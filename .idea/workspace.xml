@@ -101,8 +101,8 @@
       <file leaf-file-name="SyncDevice.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/src/main/java/pbell/offline/ole/org/pbell/SyncDevice.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.7887324">
-              <caret line="192" column="68" selection-start-line="192" selection-start-column="68" selection-end-line="192" selection-end-column="68" />
+            <state vertical-scroll-proportion="0.471831">
+              <caret line="217" column="28" selection-start-line="217" selection-start-column="28" selection-end-line="217" selection-end-column="28" />
               <folding>
                 <element signature="e#2639#2918#0" expanded="true" />
                 <element signature="e#2917#2918#0" expanded="true" />
@@ -112,6 +112,10 @@
                 <element signature="e#7339#7340#0" expanded="true" />
                 <element signature="e#7378#7688#0" expanded="true" />
                 <element signature="e#7687#7688#0" expanded="true" />
+                <element signature="e#8817#9051#0" expanded="true" />
+                <element signature="e#9050#9051#0" expanded="true" />
+                <element signature="e#9089#9407#0" expanded="true" />
+                <element signature="e#9406#9407#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -2776,8 +2780,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/pbell/offline/ole/org/pbell/SyncDevice.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.7887324">
-          <caret line="192" column="68" selection-start-line="192" selection-start-column="68" selection-end-line="192" selection-end-column="68" />
+        <state vertical-scroll-proportion="0.471831">
+          <caret line="217" column="28" selection-start-line="217" selection-start-column="28" selection-end-line="217" selection-end-column="28" />
           <folding>
             <element signature="e#2639#2918#0" expanded="true" />
             <element signature="e#2917#2918#0" expanded="true" />
@@ -2787,6 +2791,10 @@
             <element signature="e#7339#7340#0" expanded="true" />
             <element signature="e#7378#7688#0" expanded="true" />
             <element signature="e#7687#7688#0" expanded="true" />
+            <element signature="e#8817#9051#0" expanded="true" />
+            <element signature="e#9050#9051#0" expanded="true" />
+            <element signature="e#9089#9407#0" expanded="true" />
+            <element signature="e#9406#9407#0" expanded="true" />
           </folding>
         </state>
       </provider>

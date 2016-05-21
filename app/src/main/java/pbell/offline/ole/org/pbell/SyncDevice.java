@@ -215,6 +215,48 @@ public class SyncDevice extends AppCompatActivity {
         }
     }
 
+    public void ReplicateDatabeses(String databaseName){
+        final String dbName = databaseName;
+        try {
+            Manager manager = new Manager(new AndroidContext(this), Manager.DEFAULT_OPTIONS);
+            if(wipeClearn){
+                Database db = manager.getExistingDatabase(dbName);
+                db.delete();
+            }
+
+            Database db = manager.getDatabase(databaseName);
+            URL url = new URL(sys_oldSyncServerURL+"/"+databaseName);
+            Replication push = db.createPushReplication(url);
+            Replication pull = db.createPullReplication(url);
+            pull.setContinuous(false);
+            push.setContinuous(false);
+            push.addChangeListener(new Replication.ChangeListener() {
+                @Override
+                public void changed(Replication.ChangeEvent event) {
+                    Log.e("MyCouch", dbName+" "+event.getChangeCount());
+                }
+            });
+            pull.addChangeListener(new Replication.ChangeListener() {
+                @Override
+                public void changed(Replication.ChangeEvent event) {
+                    Log.e("MyCouch", dbName+" "+event.getChangeCount());
+                    // will be called back when the pull replication status changes
+                }
+            });
+            push.start();
+            pull.start();
+            //this.push = push;
+            //this.pull = pull;
+            //Authenticator auth = new BasicAuthenticator(username, password);
+            //push.setAuthenticator(auth);
+            //pull.setAuthenticator(auth);
+
+        } catch (Exception e) {
+            Log.e("MyCouch", dbName+" "+" Cannot create database", e);
+            return;
+        }
+    }
+
     /*
     * couchdb_members = TiTouchDB.databaseManager.getDatabase('members');
 	couchdb_membercourseprogress = TiTouchDB.databaseManager.getDatabase('membercourseprogress');
