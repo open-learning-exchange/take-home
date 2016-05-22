@@ -117,7 +117,17 @@
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:layout_alignParentTop="true"
-                android:layout_centerHorizontal="true"></FrameLayout>
+                android:layout_centerHorizontal="true">
+
+                <EditText
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:inputType="textMultiLine"
+                    android:ems="10"
+                    android:id="@+id/txtLogConsole"
+                    android:layout_gravity="center_horizontal|top"
+                    android:editable="false" />
+            </FrameLayout>
         </RelativeLayout>
 
     </LinearLayout>

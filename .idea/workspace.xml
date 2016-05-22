@@ -101,21 +101,85 @@
       <file leaf-file-name="SyncDevice.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/src/main/java/pbell/offline/ole/org/pbell/SyncDevice.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.471831">
-              <caret line="217" column="28" selection-start-line="217" selection-start-column="28" selection-end-line="217" selection-end-column="28" />
+            <state vertical-scroll-proportion="0.3309859">
+              <caret line="74" column="83" selection-start-line="74" selection-start-column="83" selection-end-line="74" selection-end-column="83" />
               <folding>
-                <element signature="e#2639#2918#0" expanded="true" />
-                <element signature="e#2917#2918#0" expanded="true" />
-                <element signature="e#3027#3778#0" expanded="true" />
-                <element signature="e#3777#3778#0" expanded="true" />
-                <element signature="e#7114#7340#0" expanded="true" />
-                <element signature="e#7339#7340#0" expanded="true" />
-                <element signature="e#7378#7688#0" expanded="true" />
-                <element signature="e#7687#7688#0" expanded="true" />
-                <element signature="e#8817#9051#0" expanded="true" />
-                <element signature="e#9050#9051#0" expanded="true" />
-                <element signature="e#9089#9407#0" expanded="true" />
-                <element signature="e#9406#9407#0" expanded="true" />
+                <element signature="e#2671#3028#0" expanded="true" />
+                <element signature="e#3027#3028#0" expanded="true" />
+                <element signature="e#3151#3430#0" expanded="true" />
+                <element signature="e#3429#3430#0" expanded="true" />
+                <element signature="e#3539#4290#0" expanded="true" />
+                <element signature="e#4289#4290#0" expanded="true" />
+                <element signature="e#7626#7852#0" expanded="true" />
+                <element signature="e#7851#7852#0" expanded="true" />
+                <element signature="e#7890#8200#0" expanded="true" />
+                <element signature="e#8199#8200#0" expanded="true" />
+                <element signature="e#10679#10680#0" expanded="true" />
+                <element signature="e#10723#10724#0" expanded="true" />
+                <element signature="e#10831#10832#0" expanded="true" />
+                <element signature="e#10897#10898#0" expanded="true" />
+                <element signature="e#12628#13161#0" expanded="true" />
+                <element signature="e#13160#13161#0" expanded="true" />
+                <element signature="e#13216#13870#0" expanded="true" />
+                <element signature="e#13869#13870#0" expanded="true" />
+                <element signature="e#14720#14721#0" expanded="true" />
+                <element signature="e#14773#14774#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ProcessSync.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/java/pbell/offline/ole/org/pbell/ProcessSync.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="31" column="28" selection-start-line="31" selection-start-column="28" selection-end-line="31" selection-end-column="28" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#1343#1762#0" expanded="true" />
+                <element signature="e#1761#1762#0" expanded="true" />
+                <element signature="e#1800#2220#0" expanded="true" />
+                <element signature="e#2219#2220#0" expanded="true" />
+                <element signature="e#3384#3803#0" expanded="true" />
+                <element signature="e#3802#3803#0" expanded="true" />
+                <element signature="e#3841#4261#0" expanded="true" />
+                <element signature="e#4260#4261#0" expanded="true" />
+                <element signature="e#5399#5818#0" expanded="true" />
+                <element signature="e#5817#5818#0" expanded="true" />
+                <element signature="e#5856#6276#0" expanded="true" />
+                <element signature="e#6275#6276#0" expanded="true" />
+                <element signature="e#7422#7841#0" expanded="true" />
+                <element signature="e#7840#7841#0" expanded="true" />
+                <element signature="e#7879#8299#0" expanded="true" />
+                <element signature="e#8298#8299#0" expanded="true" />
+                <element signature="e#9446#9865#0" expanded="true" />
+                <element signature="e#9864#9865#0" expanded="true" />
+                <element signature="e#9903#10323#0" expanded="true" />
+                <element signature="e#10322#10323#0" expanded="true" />
+                <element signature="e#11463#11882#0" expanded="true" />
+                <element signature="e#11881#11882#0" expanded="true" />
+                <element signature="e#11920#12340#0" expanded="true" />
+                <element signature="e#12339#12340#0" expanded="true" />
+                <element signature="e#13476#13895#0" expanded="true" />
+                <element signature="e#13894#13895#0" expanded="true" />
+                <element signature="e#13933#14353#0" expanded="true" />
+                <element signature="e#14352#14353#0" expanded="true" />
+                <element signature="e#15499#15918#0" expanded="true" />
+                <element signature="e#15917#15918#0" expanded="true" />
+                <element signature="e#15956#16376#0" expanded="true" />
+                <element signature="e#16375#16376#0" expanded="true" />
+                <element signature="e#17518#17937#0" expanded="true" />
+                <element signature="e#17936#17937#0" expanded="true" />
+                <element signature="e#17975#18395#0" expanded="true" />
+                <element signature="e#18394#18395#0" expanded="true" />
+                <element signature="e#19529#19948#0" expanded="true" />
+                <element signature="e#19947#19948#0" expanded="true" />
+                <element signature="e#19986#20406#0" expanded="true" />
+                <element signature="e#20405#20406#0" expanded="true" />
+                <element signature="e#21543#21962#0" expanded="true" />
+                <element signature="e#21961#21962#0" expanded="true" />
+                <element signature="e#22000#22420#0" expanded="true" />
+                <element signature="e#22419#22420#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -136,9 +200,9 @@
       </file>
       <file leaf-file-name="content_sync_device.xml" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/content_sync_device.xml">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-2.509434">
-              <caret line="87" column="19" selection-start-line="87" selection-start-column="13" selection-end-line="87" selection-end-column="19" />
+          <provider editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-6.0416665">
+              <caret line="121" column="16" selection-start-line="121" selection-start-column="16" selection-end-line="121" selection-end-column="16" />
               <folding>
                 <element signature="e#1347#1368#0" expanded="true" />
                 <element signature="e#2044#2067#0" expanded="true" />
@@ -148,7 +212,7 @@
               </folding>
             </state>
           </provider>
-          <provider editor-type-id="android-designer">
+          <provider selected="true" editor-type-id="android-designer">
             <state />
           </provider>
         </entry>
@@ -178,8 +242,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Class" />
         <option value="valueResourceFile" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -1866,6 +1930,7 @@
         <option value="$PROJECT_DIR$/app/src/main/res/values/strings.xml" />
         <option value="$PROJECT_DIR$/app/src/main/res/layout/content_sync_device.xml" />
         <option value="$PROJECT_DIR$/app/src/main/java/pbell/offline/ole/org/pbell/SyncDevice.java" />
+        <option value="$PROJECT_DIR$/app/src/main/java/pbell/offline/ole/org/pbell/ProcessSync.java" />
       </list>
     </option>
   </component>
@@ -2254,21 +2319,21 @@
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32914925" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Android Model" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="true" content_ui="tabs" />
       <window_info id="Capture Analysis" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Android Monitor" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32914925" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Android Monitor" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32914925" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Captures" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2496318" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="true" content_ui="tabs" />
       <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Gradle Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Gradle Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="true" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Build Variants" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="true" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32914925" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32914925" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Gradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32914925" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2496318" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2496318" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32914925" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32914925" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -2297,16 +2362,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/pbell/offline/ole/org/pbell/CustomAdapter.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="117" column="5" selection-start-line="117" selection-start-column="5" selection-end-line="117" selection-end-column="5" />
-          <folding>
-            <element signature="imports" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/pbell/offline/ole/org/pbell/ListModel.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -2539,13 +2594,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/Library/android-sdk-macosx/sources/android-23/android/os/AsyncTask.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33333334">
-          <caret line="299" column="0" selection-start-line="299" selection-start-column="0" selection-end-line="299" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/pbell/offline/ole/org/pbell/MainActivity.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-40.22222">
@@ -2761,10 +2809,18 @@
         <state />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/content_sync_device.xml">
+    <entry file="file://$USER_HOME$/Library/android-sdk-macosx/sources/android-23/android/os/AsyncTask.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-2.509434">
-          <caret line="87" column="19" selection-start-line="87" selection-start-column="13" selection-end-line="87" selection-end-column="19" />
+        <state vertical-scroll-proportion="0.39955848">
+          <caret line="648" column="32" selection-start-line="648" selection-start-column="32" selection-end-line="648" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/content_sync_device.xml">
+      <provider editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-6.0416665">
+          <caret line="121" column="16" selection-start-line="121" selection-start-column="16" selection-end-line="121" selection-end-column="16" />
           <folding>
             <element signature="e#1347#1368#0" expanded="true" />
             <element signature="e#2044#2067#0" expanded="true" />
@@ -2774,27 +2830,89 @@
           </folding>
         </state>
       </provider>
-      <provider editor-type-id="android-designer">
+      <provider selected="true" editor-type-id="android-designer">
         <state />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/pbell/offline/ole/org/pbell/ProcessSync.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="31" column="28" selection-start-line="31" selection-start-column="28" selection-end-line="31" selection-end-column="28" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#1343#1762#0" expanded="true" />
+            <element signature="e#1761#1762#0" expanded="true" />
+            <element signature="e#1800#2220#0" expanded="true" />
+            <element signature="e#2219#2220#0" expanded="true" />
+            <element signature="e#3384#3803#0" expanded="true" />
+            <element signature="e#3802#3803#0" expanded="true" />
+            <element signature="e#3841#4261#0" expanded="true" />
+            <element signature="e#4260#4261#0" expanded="true" />
+            <element signature="e#5399#5818#0" expanded="true" />
+            <element signature="e#5817#5818#0" expanded="true" />
+            <element signature="e#5856#6276#0" expanded="true" />
+            <element signature="e#6275#6276#0" expanded="true" />
+            <element signature="e#7422#7841#0" expanded="true" />
+            <element signature="e#7840#7841#0" expanded="true" />
+            <element signature="e#7879#8299#0" expanded="true" />
+            <element signature="e#8298#8299#0" expanded="true" />
+            <element signature="e#9446#9865#0" expanded="true" />
+            <element signature="e#9864#9865#0" expanded="true" />
+            <element signature="e#9903#10323#0" expanded="true" />
+            <element signature="e#10322#10323#0" expanded="true" />
+            <element signature="e#11463#11882#0" expanded="true" />
+            <element signature="e#11881#11882#0" expanded="true" />
+            <element signature="e#11920#12340#0" expanded="true" />
+            <element signature="e#12339#12340#0" expanded="true" />
+            <element signature="e#13476#13895#0" expanded="true" />
+            <element signature="e#13894#13895#0" expanded="true" />
+            <element signature="e#13933#14353#0" expanded="true" />
+            <element signature="e#14352#14353#0" expanded="true" />
+            <element signature="e#15499#15918#0" expanded="true" />
+            <element signature="e#15917#15918#0" expanded="true" />
+            <element signature="e#15956#16376#0" expanded="true" />
+            <element signature="e#16375#16376#0" expanded="true" />
+            <element signature="e#17518#17937#0" expanded="true" />
+            <element signature="e#17936#17937#0" expanded="true" />
+            <element signature="e#17975#18395#0" expanded="true" />
+            <element signature="e#18394#18395#0" expanded="true" />
+            <element signature="e#19529#19948#0" expanded="true" />
+            <element signature="e#19947#19948#0" expanded="true" />
+            <element signature="e#19986#20406#0" expanded="true" />
+            <element signature="e#20405#20406#0" expanded="true" />
+            <element signature="e#21543#21962#0" expanded="true" />
+            <element signature="e#21961#21962#0" expanded="true" />
+            <element signature="e#22000#22420#0" expanded="true" />
+            <element signature="e#22419#22420#0" expanded="true" />
+          </folding>
+        </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/pbell/offline/ole/org/pbell/SyncDevice.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.471831">
-          <caret line="217" column="28" selection-start-line="217" selection-start-column="28" selection-end-line="217" selection-end-column="28" />
+        <state vertical-scroll-proportion="0.3309859">
+          <caret line="74" column="83" selection-start-line="74" selection-start-column="83" selection-end-line="74" selection-end-column="83" />
           <folding>
-            <element signature="e#2639#2918#0" expanded="true" />
-            <element signature="e#2917#2918#0" expanded="true" />
-            <element signature="e#3027#3778#0" expanded="true" />
-            <element signature="e#3777#3778#0" expanded="true" />
-            <element signature="e#7114#7340#0" expanded="true" />
-            <element signature="e#7339#7340#0" expanded="true" />
-            <element signature="e#7378#7688#0" expanded="true" />
-            <element signature="e#7687#7688#0" expanded="true" />
-            <element signature="e#8817#9051#0" expanded="true" />
-            <element signature="e#9050#9051#0" expanded="true" />
-            <element signature="e#9089#9407#0" expanded="true" />
-            <element signature="e#9406#9407#0" expanded="true" />
+            <element signature="e#2671#3028#0" expanded="true" />
+            <element signature="e#3027#3028#0" expanded="true" />
+            <element signature="e#3151#3430#0" expanded="true" />
+            <element signature="e#3429#3430#0" expanded="true" />
+            <element signature="e#3539#4290#0" expanded="true" />
+            <element signature="e#4289#4290#0" expanded="true" />
+            <element signature="e#7626#7852#0" expanded="true" />
+            <element signature="e#7851#7852#0" expanded="true" />
+            <element signature="e#7890#8200#0" expanded="true" />
+            <element signature="e#8199#8200#0" expanded="true" />
+            <element signature="e#10679#10680#0" expanded="true" />
+            <element signature="e#10723#10724#0" expanded="true" />
+            <element signature="e#10831#10832#0" expanded="true" />
+            <element signature="e#10897#10898#0" expanded="true" />
+            <element signature="e#12628#13161#0" expanded="true" />
+            <element signature="e#13160#13161#0" expanded="true" />
+            <element signature="e#13216#13870#0" expanded="true" />
+            <element signature="e#13869#13870#0" expanded="true" />
+            <element signature="e#14720#14721#0" expanded="true" />
+            <element signature="e#14773#14774#0" expanded="true" />
           </folding>
         </state>
       </provider>

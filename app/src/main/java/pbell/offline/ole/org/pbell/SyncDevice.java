@@ -24,6 +24,7 @@ import com.couchbase.lite.auth.Authenticator;
 import com.couchbase.lite.auth.BasicAuthenticator;
 import com.couchbase.lite.replicator.Replication;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -41,7 +42,11 @@ public class SyncDevice extends AppCompatActivity {
     View clcview;
     FloatingActionButton fab;
     Boolean wipeClearn =false;
+    String[] databaseList = {"members","membercourseprogress","meetups","usermeetups","assignments",
+            "calendar","groups","invitations","languages","shelf","requests"};
 
+    AndroidContext androidContext;
+    int syncCnt=0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +54,7 @@ public class SyncDevice extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        androidContext = new AndroidContext(this);
         // Restore preferences
         settings = getSharedPreferences(PREFS_NAME, 0);
         sys_username = settings.getString("pf_username","");
@@ -65,7 +71,11 @@ public class SyncDevice extends AppCompatActivity {
         btnStartSync.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                couchbaseInitDatabese();
+                ProcessSync psSync = new ProcessSync();
+                psSync.ProcessSync(wipeClearn,sys_oldSyncServerURL,androidContext);
+
+                ///ReplicateDatabeses("members");
+                ///new TestAsync().execute();
             }
 
         });
@@ -209,12 +219,14 @@ public class SyncDevice extends AppCompatActivity {
             //push.setAuthenticator(auth);
             //pull.setAuthenticator(auth);
 
+
         } catch (Exception e) {
             Log.e("MyCouch", "Cannot create database", e);
             return;
         }
     }
 
+    /*
     public void ReplicateDatabeses(String databaseName){
         final String dbName = databaseName;
         try {
@@ -224,27 +236,36 @@ public class SyncDevice extends AppCompatActivity {
                 db.delete();
             }
 
-            Database db = manager.getDatabase(databaseName);
+            final Database db = manager.getDatabase(databaseName);
             URL url = new URL(sys_oldSyncServerURL+"/"+databaseName);
-            Replication push = db.createPushReplication(url);
-            Replication pull = db.createPullReplication(url);
+            final Replication push = db.createPushReplication(url);
+            final Replication pull = db.createPullReplication(url);
             pull.setContinuous(false);
             push.setContinuous(false);
             push.addChangeListener(new Replication.ChangeListener() {
                 @Override
                 public void changed(Replication.ChangeEvent event) {
-                    Log.e("MyCouch", dbName+" "+event.getChangeCount());
+                    if(push.isRunning()){
+                        Log.e("MyCouch", dbName+" "+event.getChangeCount());
+                    }else {
+                        Log.e("Finished", dbName+" "+db.getDocumentCount());
+                    }
                 }
             });
             pull.addChangeListener(new Replication.ChangeListener() {
                 @Override
                 public void changed(Replication.ChangeEvent event) {
-                    Log.e("MyCouch", dbName+" "+event.getChangeCount());
-                    // will be called back when the pull replication status changes
+                    if(pull.isRunning()){
+                        Log.e("MyCouch", dbName+" "+event.getChangeCount());
+                    }else {
+                        Log.e("Finished", dbName+" "+db.getDocumentCount());
+
+                    }
                 }
             });
             push.start();
             pull.start();
+
             //this.push = push;
             //this.pull = pull;
             //Authenticator auth = new BasicAuthenticator(username, password);
@@ -254,6 +275,124 @@ public class SyncDevice extends AppCompatActivity {
         } catch (Exception e) {
             Log.e("MyCouch", dbName+" "+" Cannot create database", e);
             return;
+        }
+    }*/
+
+    public void publishmyProgress(String i){
+        Log.d("Publishing","=== "+i);
+    }
+
+    class TestAsync extends AsyncTask<Void, Integer, String>
+    {
+        protected void onPreExecute (){
+            Log.d("PreExceute","On pre Exceute......");
+        }
+
+        protected String doInBackground(Void...arg0) {
+            Log.d("DoINBackGround","On doInBackground...");
+            final Replication[] push = new Replication[databaseList.length];
+            final Replication[] pull= new Replication[databaseList.length];
+            final Database[] db = new Database[databaseList.length];
+            final Manager[] manager = new Manager[databaseList.length];
+
+
+            for(syncCnt=0; syncCnt < databaseList.length; syncCnt++){
+                ///databaseList
+                //Integer in = new Integer(i);
+
+                try {
+                    manager[syncCnt] = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                    if(wipeClearn){
+                        try{
+                            db[syncCnt] = manager[syncCnt].getExistingDatabase(databaseList[syncCnt]);
+                            db[syncCnt].delete();
+                        }catch(Exception err){
+                            Log.e("MyCouch", "Delete Error "+ err.getLocalizedMessage());
+                        }
+                    }
+
+                    db[syncCnt] = manager[syncCnt].getDatabase(databaseList[syncCnt]);
+                    URL url = new URL(sys_oldSyncServerURL+"/"+databaseList[syncCnt]);
+
+
+                    push[syncCnt]=  db[syncCnt].createPushReplication(url);
+
+                    pull[syncCnt]=  db[syncCnt].createPullReplication(url);
+
+                    push[syncCnt] =  db[syncCnt].createPushReplication(url);
+                    pull[syncCnt] =  db[syncCnt].createPullReplication(url);
+                    pull[syncCnt].setContinuous(false);
+                    push[syncCnt].setContinuous(false);
+                    push[syncCnt].addChangeListener(new Replication.ChangeListener() {
+                        @Override
+                        public void changed(Replication.ChangeEvent event) {
+                            /*if(push[syncCnt] .isRunning()){
+                                Log.e("MyCouch", databaseList[syncCnt]+" "+event.getChangeCount());
+                            }else {
+                                Log.e("Finished", databaseList[syncCnt]+" "+ db[syncCnt].getDocumentCount());
+                            }*/
+                        }
+                    });
+                    pull[syncCnt].addChangeListener(new Replication.ChangeListener() {
+                        @Override
+                        public void changed(Replication.ChangeEvent event) {
+                            showLog();
+                           // Log.e("MyCouch",databaseList[syncCnt]+" logging");
+                            /*if(pull[syncCnt] .isRunning()){
+                                Log.e("MyCouch", databaseList[syncCnt]+" "+event.getChangeCount());
+                            }else {
+                                Log.e("Finished", databaseList[syncCnt]+" "+ db[syncCnt].getDocumentCount());
+
+                            }*/
+                        }
+                    });
+                    ///push[syncCnt].start();
+                    pull[syncCnt].start();
+
+                    //this.push = push;
+                    //this.pull = pull;
+                    //Authenticator auth = new BasicAuthenticator(username, password);
+                    //push.setAuthenticator(auth);
+                    //pull.setAuthenticator(auth);
+
+                } catch (Exception e) {
+                    Log.e("MyCouch", databaseList[syncCnt]+" "+" Cannot create database", e);
+
+                }
+
+                publishProgress(syncCnt);
+
+
+
+
+            }
+            return "You are at PostExecute";
+        }
+
+        protected void onProgressUpdate(Integer...a){
+            Log.d("onProgress","You are in progress update ... " + a[0]);
+            ///showLog();
+        }
+
+        protected void onPostExecute(String result) {
+            Log.d("OnPostExec",""+result);
+        }
+    }
+
+    public void showLog(){
+        try {
+            Process process = Runtime.getRuntime().exec("logcat -v");
+            BufferedReader bufferedReader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream()));
+
+            StringBuilder log=new StringBuilder();
+            String line = "";
+            while ((line = bufferedReader.readLine()) != null) {
+                log.append(line);
+            }
+            TextView tv = (TextView)findViewById(R.id.txtLogConsole);
+            tv.setText(log.toString());
+        } catch (IOException e) {
         }
     }
 
