@@ -28,7 +28,8 @@
     <!-- Strings related to Change Sync URL -->
     <string name="sync_LastSyncDate">Last sync date</string>
     <string name="sync_Headen">Synchronize device with server</string>
-    <string name="sync_Now">Start sync process</string>
+    <string name="sync_NowPush">Push Changes</string>
+    <string name="sync_NowPull">Pull Changes</string>
     <string name="sync_EraseOldData">Wipe Clean</string>
 
     <!-- Strings related to login -->
