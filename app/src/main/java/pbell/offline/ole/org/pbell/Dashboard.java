@@ -52,10 +52,17 @@ public class Dashboard extends AppCompatActivity {
 
         public static final String PREFS_NAME = "MyPrefsFile";
         SharedPreferences settings;
-        String sys_oldSyncServerURL,sys_username,sys_lastSyncDate= "";
+
+        String sys_oldSyncServerURL,sys_username,sys_lastSyncDate,
+                sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
+                sys_usergender= "";
+        int sys_uservisits=0;
 
 
-        FragmentManager fragMgr = getSupportFragmentManager();
+
+
+
+    FragmentManager fragMgr = getSupportFragmentManager();
         FragmentTransaction fragTrans = fragMgr.beginTransaction();
 
         @Override
@@ -71,7 +78,12 @@ public class Dashboard extends AppCompatActivity {
             sys_username = settings.getString("pf_username","");
             sys_oldSyncServerURL = settings.getString("pf_sysncUrl","");
             sys_lastSyncDate = settings.getString("pf_lastSyncDate","");
-
+            sys_password = settings.getString("pf_password","");
+            sys_usercouchId = settings.getString("pf_usercouchId","");
+            sys_userfirstname = settings.getString("pf_userfirstname","");
+            sys_userlastname = settings.getString("pf_userlastname","");
+            sys_usergender = settings.getString("pf_usergender","");
+            sys_uservisits = settings.getInt("pf_uservisits",0);
 
             TextView lbldate = (TextView) findViewById(R.id.lblDate);
 

@@ -4,6 +4,8 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -34,8 +36,23 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.couchbase.lite.Database;
+import com.couchbase.lite.Document;
+import com.couchbase.lite.Emitter;
+import com.couchbase.lite.Manager;
+import com.couchbase.lite.Mapper;
+import com.couchbase.lite.Query;
+import com.couchbase.lite.QueryEnumerator;
+import com.couchbase.lite.QueryRow;
+import com.couchbase.lite.android.AndroidContext;
+
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -50,6 +67,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private static final int REQUEST_READ_CONTACTS = 0;
     public static final String PREFS_NAME = "MyPrefsFile";
     SharedPreferences settings;
+    CouchViews chViews = new CouchViews();
+    final Context context = this;
 
     /**
      * A dummy authentication store containing known user names and passwords.
@@ -69,10 +88,17 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private View mProgressView;
     private View mLoginFormView;
 
+    String sys_oldSyncServerURL,sys_username,sys_lastSyncDate,
+            sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
+            sys_usergender= "";
+    int sys_uservisits=0;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
 
 
         // Set up the login form.
@@ -91,6 +117,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             }
         });
 
+
+
         Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -102,14 +130,44 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
 
+
         // Restore preferences
         settings = getSharedPreferences(PREFS_NAME, 0);
-        String username = settings.getString("pf_username","");
-        if(username!=""){
-            mUsername.setText(username);
+        sys_username = settings.getString("pf_username","");
+        sys_oldSyncServerURL = settings.getString("pf_sysncUrl","");
+        sys_lastSyncDate = settings.getString("pf_lastSyncDate","");
+        sys_password = settings.getString("pf_password","");
+        sys_usercouchId = settings.getString("pf_usercouchId","");
+        sys_userfirstname = settings.getString("pf_userfirstname","");
+        sys_userlastname = settings.getString("pf_userlastname","");
+        sys_usergender = settings.getString("pf_usergender","");
+        sys_uservisits = settings.getInt("pf_uservisits",0);
+
+        if(sys_username!=""){
+            mUsername.setText(sys_username);
         }else{
             mUsername.setText("");
         }
+
+
+        try {
+            AndroidContext androidContext = new AndroidContext(this);
+            Manager manager = null;
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database db = manager.getExistingDatabase("members");
+            if(db.getDocumentCount()<1){
+                Log.e("MYAPP", " Device Not Synced  ");
+                db.close();
+                getSyncURLDialog();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            getSyncURLDialog();
+            Log.e("MYAPP", " Device Not Synced  ");
+
+        }
+
+
     }
 
     private void populateAutoComplete() {
@@ -304,16 +362,54 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         int IS_PRIMARY = 1;
     }
 
-    public void openDashboard(){
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putString("pf_username", mUsername.getText().toString());
-        editor.commit();
+    public boolean authenticateUser(){
+        AndroidContext androidContext = new AndroidContext(this);
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database db = manager.getExistingDatabase("members");
+            Query orderedQuery = chViews.createLoginByIdView(db).createQuery();
+            orderedQuery.setDescending(true);
+            //orderedQuery.setStartKey("2015");
+            //orderedQuery.setEndKey("2014");
+            //orderedQuery.setLimit(0);
+            QueryEnumerator results = orderedQuery.run();
+            for (Iterator<QueryRow> it = results; it.hasNext();) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document doc = db.getExistingDocument(docId);
+                Map<String, Object> properties = doc.getProperties();
+                String doc_loginId = (String) properties.get("login");
+                String doc_password = (String) properties.get("password");
+                if(mUsername.getText().toString().equals(doc_loginId) && mPasswordView.getText().toString().equals(doc_password)){
+                    SharedPreferences.Editor editor = settings.edit();
+                    editor.putString("pf_username", (String) properties.get("login"));
+                    editor.putString("pf_password", (String) properties.get("password"));
+                    editor.putString("pf_usercouchId", (String) properties.get("_id"));
+                    editor.putString("pf_userfirstname", (String) properties.get("firstName"));
+                    editor.putString("pf_userlastname", (String) properties.get("lastName"));
+                    editor.putString("pf_usergender", (String) properties.get("Gender"));
+                    editor.putInt("pf_uservisits", (Integer) properties.get("visits"));
+                    Set<String> stgSet = settings.getStringSet("pf_userroles", new HashSet<String>());
+                    ArrayList roleList = (ArrayList<String>) properties.get("roles");
+                    for(int cnt=0;cnt< roleList.size();cnt++){
+                        stgSet.add(String.valueOf(roleList.get(cnt)));
+                    }
+                    editor.putStringSet("pf_userroles",stgSet);
+                    editor.commit();
+                    Log.e("MYAPP", " Data Login Id: " + doc_loginId +" Password: "+ doc_password);
+                    Intent intent = new Intent(this,Dashboard.class);
+                    startActivity(intent);
+                    return true;
+                }
 
-        ////Log.v("myLoginTag"," NEW NEW "+settings.getString("pf_username",""));
-
-        Intent intent = new Intent(this,Dashboard.class);
-        ///intent.putExtra(EXTRA_MESSAGE, message);
-        startActivity(intent);
+            }
+            db.close();
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     /**
@@ -336,9 +432,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             try {
                 // Simulate network access.
-                Thread.sleep(1000);
-                openDashboard();
-                return true;
+                ///Thread.sleep(1000);
+
+                return authenticateUser();
 
             } catch (Exception e) {
                 Log.v("myLoginTag","Login Error "+e.getLocalizedMessage());
@@ -378,6 +474,36 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mAuthTask = null;
             showProgress(false);
         }
+    }
+    public void getSyncURLDialog(){
+        // custom dialog
+        final Dialog dialog = new Dialog(context);
+        dialog.setContentView(R.layout.newsetup_dialog_welcome);
+        dialog.setTitle("WELCOME");
+        dialog.setCancelable(false);
+
+
+        final EditText txtSuncURL = (EditText)dialog.findViewById(R.id.txtNewSyncURL);
+        txtSuncURL.setText(sys_oldSyncServerURL);
+        Button dialogButton = (Button) dialog.findViewById(R.id.btnNewSaveSyncURL);
+        dialogButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sys_oldSyncServerURL = txtSuncURL.getText().toString();
+
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putString("pf_sysncUrl", sys_oldSyncServerURL);
+                editor.commit();
+
+                ///dialog.dismiss();
+                Intent intent = new Intent(context,NewSync.class);
+                startActivity(intent);
+                ///dialog.getOwnerActivity().setVisible(false);
+            }
+        });
+
+        dialog.show();
+
     }
 }
 
