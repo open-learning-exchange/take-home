@@ -19,8 +19,8 @@ public class TabFragment0 extends Fragment {
 
     String sys_oldSyncServerURL,sys_username,sys_lastSyncDate,
             sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
-            sys_usergender= "";
-    int sys_uservisits=0;
+            sys_usergender, sys_uservisits= "";
+    int sys_uservisits_Int=0;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -35,7 +35,8 @@ public class TabFragment0 extends Fragment {
         sys_userfirstname = settings.getString("pf_userfirstname","");
         sys_userlastname = settings.getString("pf_userlastname","");
         sys_usergender = settings.getString("pf_usergender","");
-        sys_uservisits = settings.getInt("pf_uservisits",0);
+        sys_uservisits_Int = settings.getInt("pf_uservisits_Int",0);
+        sys_uservisits= settings.getString("pf_uservisits","");
 
         updateUI();
 
@@ -48,7 +49,11 @@ public class TabFragment0 extends Fragment {
         lblWelcome.setText("Welcome "+sys_userfirstname +" "+sys_userlastname);
 
         lblVisits= (TextView)rootView.findViewById(R.id.lblVisits);
-        lblVisits.setText(""+sys_uservisits);
+        if(sys_uservisits==""){
+            lblVisits.setText(""+sys_uservisits_Int);
+        }else{
+            lblVisits.setText(""+sys_uservisits);
+        }
 
     }
 }

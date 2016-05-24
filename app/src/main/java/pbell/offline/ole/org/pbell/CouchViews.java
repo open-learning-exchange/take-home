@@ -13,9 +13,8 @@ import java.util.Map;
  * Created by leonardmensah on 23/05/16.
  */
 public class CouchViews {
-    public View createLoginByIdView(Database db) {
+    public View CreateLoginByIdView(Database db) {
         View LoginByIdView = db.getView("MembersByLoginID");
-        //if (LoginByIdView == null) {
             LoginByIdView.setMap(
                     new Mapper(){
                         @Override
@@ -27,10 +26,23 @@ public class CouchViews {
                         }
                     }, "8"
             );
-        //}else{
-
-            ///Log.e("MYAPP", "View Map LoginById Created ");
-        //}
         return LoginByIdView;
+    }
+
+    public View ReadShelfByIdView(Database db) {
+        View shelfListByIdView = db.getView("ShelfByID");
+        //if (LoginByIdView == null) {
+        shelfListByIdView.setMap(
+                new Mapper(){
+                    @Override
+                    public void map(Map<String, Object> document,Emitter emitter) {
+                    /* Emit data to matieralized view */
+                        ///if ("Member".equals(document.get("kind"))) {
+                            emitter.emit((String) document.get("memberId"), (String) document.get("_id"));
+                        //}
+                    }
+                }, "4"
+        );
+        return shelfListByIdView;
     }
 }

@@ -5,15 +5,15 @@ package pbell.offline.ole.org.pbell;
  */
 public class ListModel {
 
-    private  String CompanyName="";
+    private  String ResourceTitle="";
     private  String Image="";
-    private  String Url="";
+    private  String Description="";
 
     /*********** Set Methods ******************/
 
-    public void setCompanyName(String CompanyName)
+    public void setTitle(String ResourceTitle)
     {
-        this.CompanyName = CompanyName;
+        this.ResourceTitle = ResourceTitle;
     }
 
     public void setImage(String Image)
@@ -21,16 +21,16 @@ public class ListModel {
         this.Image = Image;
     }
 
-    public void setUrl(String Url)
+    public void setDescription(String Description)
     {
-        this.Url = Url;
+        this.Description = Description;
     }
 
     /*********** Get Methods ****************/
 
-    public String getCompanyName()
+    public String getTitle()
     {
-        return this.CompanyName;
+        return this.ResourceTitle;
     }
 
     public String getImage()
@@ -38,8 +38,8 @@ public class ListModel {
         return this.Image;
     }
 
-    public String getUrl()
+    public String getDescription()
     {
-        return this.Url;
+        return this.Description;
     }
 }

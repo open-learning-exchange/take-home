@@ -3,6 +3,7 @@ package pbell.offline.ole.org.pbell;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -24,7 +25,11 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.couchbase.lite.Database;
+import com.couchbase.lite.Document;
 import com.couchbase.lite.Manager;
+import com.couchbase.lite.Query;
+import com.couchbase.lite.QueryEnumerator;
+import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.auth.Authenticator;
 import com.couchbase.lite.auth.BasicAuthenticator;
@@ -37,9 +42,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Member;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 public class SyncDevice extends AppCompatActivity {
@@ -47,6 +59,9 @@ public class SyncDevice extends AppCompatActivity {
     public static final String PREFS_NAME = "MyPrefsFile";
     SharedPreferences settings;
     String sys_oldSyncServerURL,sys_username,sys_lastSyncDate= "";
+
+    CouchViews chViews = new CouchViews();
+
     TextView tv;
     View clcview;
     String message="";
@@ -68,6 +83,8 @@ public class SyncDevice extends AppCompatActivity {
     AndroidContext androidContext;
     int syncCnt=0;
     Button btnStartSyncPush,btnStartSyncPull;
+    String[] str_memberIdList,str_memberNameList,str_memberLoginIdList;
+    Integer[] str_memberResourceNo;
 
     Boolean members,membercourseprogress,meetups,
             usermeetups,assignments,calendar,groups,
@@ -152,6 +169,25 @@ public class SyncDevice extends AppCompatActivity {
             }
         });
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+
+        //Todo Remove from below
+        if(BuildMemberListArray()){
+
+            for(int cnt=0;cnt<str_memberIdList.length;cnt++) {
+                ArrayList<String> strings = CheckShelfForResources(cnt);
+
+            }
+            Intent intent = new Intent(this,MemberListDownloadRes.class);
+            startActivity(intent);
+        }
+        //;
+
+
+
+
+
+
     }
 
 
@@ -360,6 +396,80 @@ public class SyncDevice extends AppCompatActivity {
 
             Log.d("OnPostExec",""+result);
 
+        }
+    }
+    public ArrayList<String> CheckShelfForResources(int index) {
+        int array_index = index;
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        try {
+                manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database db = manager.getExistingDatabase("shelf");
+                Query orderedQuery = chViews.ReadShelfByIdView(db).createQuery();
+                orderedQuery.setDescending(true);
+                orderedQuery.setStartKey(str_memberIdList[array_index]);
+                //orderedQuery.setLimit(0);
+                ArrayList<String> lst = new ArrayList<String>();
+                QueryEnumerator results = orderedQuery.run();
+                for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                    QueryRow row = it.next();
+                    String docId = (String) row.getValue();
+                    Document doc = db.getExistingDocument(docId);
+                    Map<String, Object> properties = doc.getProperties();
+                    lst.add((String)properties.get("resourceId"));
+                }
+                Object[] st = lst.toArray();
+                for (Object s : st) {
+                    if (lst.indexOf(s) != lst.lastIndexOf(s)) {
+                        lst.remove(lst.lastIndexOf(s));
+                    }
+                }
+                str_memberResourceNo[array_index]=lst.size();
+                ///Log.e("MYAPP", " Filtered List  " +lst);
+                ///Log.e("MYAPP", " *****************************  " +str_memberNameList[array_index]);
+
+            db.close();
+            return lst;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public boolean BuildMemberListArray(){
+        AndroidContext androidContext = new AndroidContext(this);
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database db = manager.getExistingDatabase("members");
+            Query orderedQuery = chViews.CreateLoginByIdView(db).createQuery();
+            orderedQuery.setDescending(true);
+            int memberCounter = 0;
+            //orderedQuery.setStartKey("2015");
+            //orderedQuery.setEndKey("2014");
+            //orderedQuery.setLimit(0);
+            QueryEnumerator results = orderedQuery.run();
+            str_memberIdList = new String[results.getCount()];
+            str_memberNameList = new String[results.getCount()];
+            str_memberLoginIdList = new String[results.getCount()];
+            str_memberResourceNo = new Integer[results.getCount()];
+            for (Iterator<QueryRow> it = results; it.hasNext();) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document doc = db.getExistingDocument(docId);
+                Map<String, Object> properties = doc.getProperties();
+                str_memberIdList[memberCounter] = (String) properties.get("_id");
+                str_memberNameList[memberCounter] = (String) properties.get("firstName") +" "+(String) properties.get("lastName");
+                str_memberLoginIdList[memberCounter] = (String) properties.get("login");
+                str_memberResourceNo[memberCounter] = 0;
+                Log.e("MYAPP", " Member Name List: " + str_memberNameList[memberCounter] +" ("+str_memberLoginIdList[memberCounter]+")");
+                memberCounter++;
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
 }

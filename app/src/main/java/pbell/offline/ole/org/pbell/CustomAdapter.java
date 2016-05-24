@@ -106,8 +106,8 @@ public class CustomAdapter extends BaseAdapter implements View.OnClickListener {
 
             /************  Set Model values in Holder elements ***********/
 
-            holder.text.setText( tempValues.getCompanyName() );
-            holder.text1.setText( tempValues.getUrl() );
+            holder.text.setText( tempValues.getTitle() );
+            holder.text1.setText( tempValues.getDescription() );
             holder.image.setImageResource( res.getIdentifier("com.androidexample.customlistview:drawable/"+tempValues.getImage() ,null,null));
 
             /******** Set Item Click Listner for LayoutInflater for each row *******/

@@ -82,8 +82,8 @@ public class MyLibraryArrayAdapter extends ArrayAdapter<String> {
 
                 /************  Set Model values in Holder elements ***********/
 
-                text.setText( tempValues.getCompanyName() );
-                text1.setText( tempValues.getUrl() );
+                text.setText( tempValues.getTitle() );
+                text1.setText( tempValues.getDescription() );
                 image.setImageResource(map.get("image3"));
 
 

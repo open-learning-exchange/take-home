@@ -55,8 +55,8 @@ public class Dashboard extends AppCompatActivity {
 
         String sys_oldSyncServerURL,sys_username,sys_lastSyncDate,
                 sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
-                sys_usergender= "";
-        int sys_uservisits=0;
+                sys_usergender, sys_uservisits= "";
+        int sys_uservisits_Int=0;
 
 
 
@@ -83,7 +83,8 @@ public class Dashboard extends AppCompatActivity {
             sys_userfirstname = settings.getString("pf_userfirstname","");
             sys_userlastname = settings.getString("pf_userlastname","");
             sys_usergender = settings.getString("pf_usergender","");
-            sys_uservisits = settings.getInt("pf_uservisits",0);
+            sys_uservisits_Int = settings.getInt("pf_uservisits_Int",0);
+            sys_uservisits= settings.getString("pf_uservisits","");
 
             TextView lbldate = (TextView) findViewById(R.id.lblDate);
 

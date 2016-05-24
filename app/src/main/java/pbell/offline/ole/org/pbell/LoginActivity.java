@@ -90,8 +90,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     String sys_oldSyncServerURL,sys_username,sys_lastSyncDate,
             sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
-            sys_usergender= "";
-    int sys_uservisits=0;
+            sys_usergender,sys_uservisits= "";
+    ///int sys_uservisits=0;
 
 
     @Override
@@ -141,7 +141,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         sys_userfirstname = settings.getString("pf_userfirstname","");
         sys_userlastname = settings.getString("pf_userlastname","");
         sys_usergender = settings.getString("pf_usergender","");
-        sys_uservisits = settings.getInt("pf_uservisits",0);
+        sys_uservisits = settings.getString("pf_uservisits","");
 
         if(sys_username!=""){
             mUsername.setText(sys_username);
@@ -368,7 +368,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database db = manager.getExistingDatabase("members");
-            Query orderedQuery = chViews.createLoginByIdView(db).createQuery();
+            Query orderedQuery = chViews.CreateLoginByIdView(db).createQuery();
             orderedQuery.setDescending(true);
             //orderedQuery.setStartKey("2015");
             //orderedQuery.setEndKey("2014");
@@ -389,7 +389,12 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     editor.putString("pf_userfirstname", (String) properties.get("firstName"));
                     editor.putString("pf_userlastname", (String) properties.get("lastName"));
                     editor.putString("pf_usergender", (String) properties.get("Gender"));
-                    editor.putInt("pf_uservisits", (Integer) properties.get("visits"));
+                    try {
+                        String noOfVisits = properties.get("visits").toString();
+                        editor.putInt("pf_uservisits_Int", Integer.parseInt(noOfVisits));
+                    }catch(Exception err){
+                        ///editor.putString("pf_uservisits", (String) properties.get("visits"));
+                    }
                     Set<String> stgSet = settings.getStringSet("pf_userroles", new HashSet<String>());
                     ArrayList roleList = (ArrayList<String>) properties.get("roles");
                     for(int cnt=0;cnt< roleList.size();cnt++){
@@ -501,6 +506,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 ///dialog.getOwnerActivity().setVisible(false);
             }
         });
+        Button btnCloseWindow = (Button) dialog.findViewById(R.id.btnCloseDialog);
+        btnCloseWindow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
 
         dialog.show();
 
