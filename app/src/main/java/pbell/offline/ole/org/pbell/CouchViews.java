@@ -24,9 +24,25 @@ public class CouchViews {
                                 emitter.emit((String) document.get("login"), (String) document.get("_id"));
                             }
                         }
-                    }, "8"
+                    }, "9"
             );
         return LoginByIdView;
+    }
+
+    public View CreateListByNameView(Database db) {
+        View ListByNameView = db.getView("MembersByNameView");
+        ListByNameView.setMap(
+                new Mapper(){
+                    @Override
+                    public void map(Map<String, Object> document,Emitter emitter) {
+                    /* Emit data to matieralized view */
+                        if ("Member".equals(document.get("kind"))) {
+                            emitter.emit((String) document.get("firstName"), (String) document.get("_id"));
+                        }
+                    }
+                }, "4"
+        );
+        return ListByNameView;
     }
 
     public View ReadShelfByIdView(Database db) {

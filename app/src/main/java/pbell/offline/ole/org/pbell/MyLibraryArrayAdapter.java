@@ -58,13 +58,13 @@ public class MyLibraryArrayAdapter extends ArrayAdapter<String> {
         CustomAdapter.ViewHolder holder;
 
         if(convertView==null){
-        holder = new CustomAdapter.ViewHolder();
-        vi = inflater.inflate(R.layout.tabitem, null);
+            holder = new CustomAdapter.ViewHolder();
+            vi = inflater.inflate(R.layout.tabitem, null);
 
-        ///View rowView = inflater.inflate(R.layout.tabitem, parent, false);
-        text = (TextView) vi.findViewById(R.id.text);
-        text1 = (TextView) vi.findViewById(R.id.text1);
-        image = (ImageView) vi.findViewById(R.id.image);
+            ///View rowView = inflater.inflate(R.layout.tabitem, parent, false);
+            text = (TextView) vi.findViewById(R.id.text);
+            text1 = (TextView) vi.findViewById(R.id.text1);
+            image = (ImageView) vi.findViewById(R.id.image);
         }
         else
             holder=(CustomAdapter.ViewHolder)vi.getTag();

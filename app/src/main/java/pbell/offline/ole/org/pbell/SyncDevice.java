@@ -84,7 +84,7 @@ public class SyncDevice extends AppCompatActivity {
     int syncCnt=0;
     Button btnStartSyncPush,btnStartSyncPull;
     String[] str_memberIdList,str_memberNameList,str_memberLoginIdList;
-    Integer[] str_memberResourceNo;
+    int[] str_memberResourceNo;
 
     Boolean members,membercourseprogress,meetups,
             usermeetups,assignments,calendar,groups,
@@ -178,16 +178,15 @@ public class SyncDevice extends AppCompatActivity {
                 ArrayList<String> strings = CheckShelfForResources(cnt);
 
             }
+            Bundle b=new Bundle();
+            b.putStringArray("memberNameList", str_memberNameList);
+            b.putStringArray("memberIdList", str_memberIdList);
+            b.putIntArray("memberResourceNo", str_memberResourceNo);
+            b.putStringArray("memberLoginIdList", str_memberLoginIdList);
             Intent intent = new Intent(this,MemberListDownloadRes.class);
+            intent.putExtras(b);
             startActivity(intent);
         }
-        //;
-
-
-
-
-
-
     }
 
 
@@ -398,6 +397,7 @@ public class SyncDevice extends AppCompatActivity {
 
         }
     }
+
     public ArrayList<String> CheckShelfForResources(int index) {
         int array_index = index;
         AndroidContext androidContext = new AndroidContext(context);
@@ -407,7 +407,8 @@ public class SyncDevice extends AppCompatActivity {
                 Database db = manager.getExistingDatabase("shelf");
                 Query orderedQuery = chViews.ReadShelfByIdView(db).createQuery();
                 orderedQuery.setDescending(true);
-                orderedQuery.setStartKey(str_memberIdList[array_index]);
+                //Todo startKey and EndKey generate inaccurate result
+                ///orderedQuery.setStartKey(str_memberIdList[array_index]);
                 //orderedQuery.setLimit(0);
                 ArrayList<String> lst = new ArrayList<String>();
                 QueryEnumerator results = orderedQuery.run();
@@ -416,7 +417,9 @@ public class SyncDevice extends AppCompatActivity {
                     String docId = (String) row.getValue();
                     Document doc = db.getExistingDocument(docId);
                     Map<String, Object> properties = doc.getProperties();
-                    lst.add((String)properties.get("resourceId"));
+                    if(str_memberIdList[array_index].equals((String)properties.get("memberId"))){
+                        lst.add((String)properties.get("resourceId"));
+                    }
                 }
                 Object[] st = lst.toArray();
                 for (Object s : st) {
@@ -425,8 +428,6 @@ public class SyncDevice extends AppCompatActivity {
                     }
                 }
                 str_memberResourceNo[array_index]=lst.size();
-                ///Log.e("MYAPP", " Filtered List  " +lst);
-                ///Log.e("MYAPP", " *****************************  " +str_memberNameList[array_index]);
 
             db.close();
             return lst;
@@ -443,17 +444,17 @@ public class SyncDevice extends AppCompatActivity {
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database db = manager.getExistingDatabase("members");
-            Query orderedQuery = chViews.CreateLoginByIdView(db).createQuery();
-            orderedQuery.setDescending(true);
+            Query orderedQuery = chViews.CreateListByNameView(db).createQuery();
             int memberCounter = 0;
-            //orderedQuery.setStartKey("2015");
-            //orderedQuery.setEndKey("2014");
+            orderedQuery.setStartKey("A");
+            //orderedQuery.setEndKey("a");
+            ///orderedQuery.setDescending(false);
             //orderedQuery.setLimit(0);
             QueryEnumerator results = orderedQuery.run();
             str_memberIdList = new String[results.getCount()];
             str_memberNameList = new String[results.getCount()];
             str_memberLoginIdList = new String[results.getCount()];
-            str_memberResourceNo = new Integer[results.getCount()];
+            str_memberResourceNo = new int[results.getCount()];
             for (Iterator<QueryRow> it = results; it.hasNext();) {
                 QueryRow row = it.next();
                 String docId = (String) row.getValue();

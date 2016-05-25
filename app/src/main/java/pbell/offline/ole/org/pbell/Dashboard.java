@@ -5,6 +5,7 @@ package pbell.offline.ole.org.pbell;
  */
     import android.app.Dialog;
     import android.content.Context;
+    import android.content.DialogInterface;
     import android.content.Intent;
     import android.content.SharedPreferences;
     import android.os.Bundle;
@@ -16,6 +17,7 @@ package pbell.offline.ole.org.pbell;
     import android.support.v4.app.FragmentTransaction;
     import android.support.v4.content.ContextCompat;
     import android.support.v4.view.ViewPager;
+    import android.support.v7.app.AlertDialog;
     import android.support.v7.app.AppCompatActivity;
     import android.support.v7.widget.Toolbar;
     import android.util.Log;
@@ -35,6 +37,7 @@ package pbell.offline.ole.org.pbell;
     import java.text.SimpleDateFormat;
     import java.util.Calendar;
     import java.util.Date;
+    import java.util.Set;
 
 public class Dashboard extends AppCompatActivity {
         private BottomBar mBottomBar;
@@ -57,6 +60,8 @@ public class Dashboard extends AppCompatActivity {
                 sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
                 sys_usergender, sys_uservisits= "";
         int sys_uservisits_Int=0;
+        Object[] sys_membersWithResource;
+        boolean userShelfSynced =false;
 
 
 
@@ -85,6 +90,41 @@ public class Dashboard extends AppCompatActivity {
             sys_usergender = settings.getString("pf_usergender","");
             sys_uservisits_Int = settings.getInt("pf_uservisits_Int",0);
             sys_uservisits= settings.getString("pf_uservisits","");
+
+            Set<String> mwr = settings.getStringSet("membersWithResource",null);
+            sys_membersWithResource = mwr.toArray();
+            for(int cnt=0;cnt<sys_membersWithResource.length;cnt++){
+
+                Log.e("MYAPP", " members With Resource Synced  = "+sys_membersWithResource[cnt]);
+                if(sys_membersWithResource[cnt].equals(sys_usercouchId)){
+                    userShelfSynced =true;
+                    break;
+                }
+            }
+
+            if (!userShelfSynced){
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage("Materials on your shelf are NOT yet synchronized unto this device. " +
+                        "You can only view title of items on your shelf BUT you can not launch or read them." +
+                        "To access your materials on this device, please sync device with server.")
+                        .setCancelable(false)
+                        .setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+                /*.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        finish();
+                    }
+                });*/
+
+                AlertDialog closeDialogue = builder.create();
+                closeDialogue.show();
+            }
+
+            Log.e("MYAPP", " membersWithResource  = "+sys_membersWithResource.length);
+
 
             TextView lbldate = (TextView) findViewById(R.id.lblDate);
 

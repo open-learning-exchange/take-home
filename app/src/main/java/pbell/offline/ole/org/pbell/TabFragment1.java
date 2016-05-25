@@ -164,7 +164,7 @@ public class TabFragment1 extends Fragment {
 
                     ///Document doc = db.getExistingDocument(docId);
                     //Map<String, Object> properties = doc.getProperties();
-                    Log.e("MYAPP", " Data In Shelf Id: " + row.getValue());
+                    ////////////////Log.e("MYAPP", " Data In Shelf Id: " + row.getValue());
 
                     /*Set<String> stgSet = settings.getStringSet("pf_userroles", new HashSet<String>());
                     ArrayList roleList = (ArrayList<String>) properties.get("roles");

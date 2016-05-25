@@ -91,6 +91,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     String sys_oldSyncServerURL,sys_username,sys_lastSyncDate,
             sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
             sys_usergender,sys_uservisits= "";
+    Object[] sys_membersWithResource;
     ///int sys_uservisits=0;
 
 
@@ -148,7 +149,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }else{
             mUsername.setText("");
         }
+        Set<String>  mwr = settings.getStringSet("membersWithResource",null);
+        sys_membersWithResource = mwr.toArray();
 
+        Log.e("MYAPP", " membersWithResource  = "+sys_membersWithResource.length);
 
         try {
             AndroidContext androidContext = new AndroidContext(this);

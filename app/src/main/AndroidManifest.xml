@@ -48,8 +48,13 @@
             android:name=".NewSync"
             android:label="@string/title_activity_new_sync"
             android:parentActivityName=".LoginActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".MemberListDownloadRes"></activity>
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="stateHidden" />
+        <activity
+            android:name=".MemberListDownloadRes"
+            android:windowSoftInputMode="stateHidden">
+
+        </activity>
     </application>
 
 </manifest>

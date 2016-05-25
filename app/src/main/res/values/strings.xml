@@ -57,4 +57,5 @@
     <string name="title_activity_new_sync">First Time Configuration</string>
     <string name="sync_NowPullOnly">Synchronize With Server</string>
     <string name="sync_CloseWindow">Close</string>
+    <string name="sync_DownloadResPersons">Download Resources</string>
 </resources>
