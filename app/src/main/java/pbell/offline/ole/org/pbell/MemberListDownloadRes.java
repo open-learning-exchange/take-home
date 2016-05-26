@@ -99,9 +99,14 @@ public class MemberListDownloadRes extends AppCompatActivity {
         sys_oldSyncServerURL = settings.getString("pf_sysncUrl","");
         sys_lastSyncDate = settings.getString("pf_lastSyncDate","");
 
-        Set<String> mwr = settings.getStringSet("membersWithResource",null);
-        sys_membersWithResource = mwr.toArray();
+        Set<String>  mwr = settings.getStringSet("membersWithResource",null);
+        try{
+            sys_membersWithResource = mwr.toArray();
+            Log.e("MYAPP", " membersWithResource  = "+sys_membersWithResource.length);
 
+        }catch(Exception err){
+            Log.e("MYAPP", " Error creating  sys_membersWithResource");
+        }
 
 
         Bundle b=this.getIntent().getExtras();
@@ -234,10 +239,15 @@ public class MemberListDownloadRes extends AppCompatActivity {
             Members member = memberList.get(position);
             holder.code.setText(" (" +  member.getCode() + ")     [ "+member.getResNo()+ " ] ");
             holder.name.setText(member.getName());
-            if (Arrays.asList(sys_membersWithResource).contains(member.getId())) {
-                holder.name.setChecked(true);
-            }else{
+            try{
+                if (Arrays.asList(sys_membersWithResource).contains(member.getId())) {
+                    holder.name.setChecked(true);
+                }else{
+                    holder.name.setChecked(false);
+                }
+            }catch(Exception err){
                 holder.name.setChecked(false);
+                Log.e("MYAPP", " Error creating  sys_membersWithResource");
             }
             holder.name.setTag(member);
 

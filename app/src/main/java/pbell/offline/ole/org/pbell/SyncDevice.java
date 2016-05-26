@@ -55,7 +55,6 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 public class SyncDevice extends AppCompatActivity {
-
     public static final String PREFS_NAME = "MyPrefsFile";
     SharedPreferences settings;
     String sys_oldSyncServerURL,sys_username,sys_lastSyncDate= "";
@@ -86,9 +85,7 @@ public class SyncDevice extends AppCompatActivity {
     String[] str_memberIdList,str_memberNameList,str_memberLoginIdList;
     int[] str_memberResourceNo;
 
-    Boolean members,membercourseprogress,meetups,
-            usermeetups,assignments,calendar,groups,
-            invitations,languages,shelf,requests = false;
+    Boolean synchronizingPull = true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -120,7 +117,8 @@ public class SyncDevice extends AppCompatActivity {
                 syncCnt=0;
                 tv.setText(" Sync Started, please wait ... " );
                 tv.scrollTo(0,tv.getTop());
-                new TestAsyncPull().execute();
+                syncNotifier();
+                ///new TestAsyncPull().execute();
             }
 
         });
@@ -171,24 +169,59 @@ public class SyncDevice extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 
-        //Todo Remove from below
-        if(BuildMemberListArray()){
 
-            for(int cnt=0;cnt<str_memberIdList.length;cnt++) {
-                ArrayList<String> strings = CheckShelfForResources(cnt);
+    }
 
+    public void triggerMemberResourceDownload(){
+        if(!synchronizingPull) {
+            synchronizingPull = true;
+            Log.e("MyCouch", "Sync Variable false");
+            if (BuildMemberListArray()) {
+                for (int cnt = 0; cnt < str_memberIdList.length; cnt++) {
+                    ArrayList<String> strings = CheckShelfForResources(cnt);
+                }
+                Bundle b = new Bundle();
+                b.putStringArray("memberNameList", str_memberNameList);
+                b.putStringArray("memberIdList", str_memberIdList);
+                b.putIntArray("memberResourceNo", str_memberResourceNo);
+                b.putStringArray("memberLoginIdList", str_memberLoginIdList);
+                Intent intent = new Intent(this, MemberListDownloadRes.class);
+                intent.putExtras(b);
+                startActivity(intent);
+            } else {
+                Log.e("MyCouch", "triggerMemberResourceDownload function error");
             }
-            Bundle b=new Bundle();
-            b.putStringArray("memberNameList", str_memberNameList);
-            b.putStringArray("memberIdList", str_memberIdList);
-            b.putIntArray("memberResourceNo", str_memberResourceNo);
-            b.putStringArray("memberLoginIdList", str_memberLoginIdList);
-            Intent intent = new Intent(this,MemberListDownloadRes.class);
-            intent.putExtras(b);
-            startActivity(intent);
+            synchronizingPull = true;
+        }else{
+            Log.e("MyCouch", "Sync Variable True");
         }
     }
 
+    public void syncNotifier(){
+         final AsyncTask<Void, Integer, String> execute = new TestAsyncPull().execute();
+         Log.e("MyCouch", "syncNotifier Running");
+         final Thread th = new Thread(new Runnable() {
+             private long startTime = System.currentTimeMillis();
+             public void run() {
+                 while (synchronizingPull) {
+                     runOnUiThread(new Runnable() {
+                         @Override
+                         public void run() {
+                            ///triggerMemberResourceDownload();
+                             ///Log.d("runOnUiThread", "running");
+                             //mydialog.setMessage("Downloading, please wait .... " + (syncCnt + 1));
+                         }
+                     });
+                     try {
+                         Thread.sleep(9000);
+                     } catch (InterruptedException e) {
+                         e.printStackTrace();
+                     }
+                 }
+             }
+         });
+         th.start();
+     }
 
     private boolean checkConnectionURL() {
         ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -250,6 +283,7 @@ public class SyncDevice extends AppCompatActivity {
            /// textView.setText(result);
         }
     }
+
     public void displayDownMesage(boolean status){
         if(status){
             Snackbar.make(clcview, "Connection to established successful", Snackbar.LENGTH_LONG)
@@ -260,7 +294,6 @@ public class SyncDevice extends AppCompatActivity {
         }
     }
 
-
     class TestAsyncPull extends AsyncTask<Void, Integer, String> {
         protected void onPreExecute (){
             Log.d("PreExceute","On pre Exceute......");
@@ -268,6 +301,7 @@ public class SyncDevice extends AppCompatActivity {
 
         protected String doInBackground(Void...arg0) {
             Log.d("DoINBackGround","On doInBackground...");
+            synchronizingPull=true;
             pull= new Replication[databaseList.length];
             db = new Database[databaseList.length];
             manager = new Manager[databaseList.length];
@@ -294,10 +328,13 @@ public class SyncDevice extends AppCompatActivity {
                                 message = String.valueOf(event.getChangeCount());
                             }else {
                                 Log.e("Finished", databaseList[syncCnt]+" "+ db[syncCnt].getDocumentCount());
-
                                 if(syncCnt < (databaseList.length-2)){
                                     syncCnt++;
                                     new TestAsyncPull().execute();
+                                }else{
+                                    Log.e("MyCouch","Sync Completed");
+                                    triggerMemberResourceDownload();
+                                    synchronizingPull=true;
                                 }
 
                             }
@@ -333,8 +370,7 @@ public class SyncDevice extends AppCompatActivity {
         }
     }
 
-    class TestAsyncPush extends AsyncTask<Void, Integer, String>
-    {
+    class TestAsyncPush extends AsyncTask<Void, Integer, String> {
         protected void onPreExecute (){
             Log.d("PreExceute","On pre Exceute......");
         }

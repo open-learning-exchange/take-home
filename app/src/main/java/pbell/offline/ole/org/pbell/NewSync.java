@@ -4,6 +4,7 @@ package pbell.offline.ole.org.pbell;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -25,7 +26,11 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.couchbase.lite.Database;
+import com.couchbase.lite.Document;
 import com.couchbase.lite.Manager;
+import com.couchbase.lite.Query;
+import com.couchbase.lite.QueryEnumerator;
+import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.auth.Authenticator;
 import com.couchbase.lite.auth.BasicAuthenticator;
@@ -41,6 +46,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 public class NewSync extends AppCompatActivity {
@@ -48,6 +56,11 @@ public class NewSync extends AppCompatActivity {
     public static final String PREFS_NAME = "MyPrefsFile";
     SharedPreferences settings;
     String sys_oldSyncServerURL,sys_username,sys_lastSyncDate= "";
+
+    CouchViews chViews = new CouchViews();
+
+    Button btnClose;
+
     TextView tv;
     View clcview;
     String message="";
@@ -68,12 +81,12 @@ public class NewSync extends AppCompatActivity {
 
     AndroidContext androidContext;
     int syncCnt=0;
-    Button btnStartSyncPull,btnClose;
+    Button btnStartSyncPush,btnStartSyncPull;
+    String[] str_memberIdList,str_memberNameList,str_memberLoginIdList;
+    int[] str_memberResourceNo;
 
-    Boolean members,membercourseprogress,meetups,
-            usermeetups,assignments,calendar,groups,
-            invitations,languages,shelf,requests = false;
-    @Override
+    Boolean synchronizingPull=true;
+    Boolean openMemberList = false;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_sync);
@@ -110,7 +123,8 @@ public class NewSync extends AppCompatActivity {
                 syncCnt=0;
                 tv.setText(" Sync Started, please wait ... " );
                 tv.scrollTo(0,tv.getTop());
-                new TestAsyncPull().execute();
+                syncNotifier();
+                ///new TestAsyncPull().execute();
             }
 
         });
@@ -147,14 +161,70 @@ public class NewSync extends AppCompatActivity {
             }
         });
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
     }
 
+    public void triggerMemberResourceDownload(){
+        ///if(!synchronizingPull) {
+            //synchronizingPull = true;
+            Log.e("MyCouch", "Sync Variable false");
+            if (BuildMemberListArray()) {
+                for (int cnt = 0; cnt < str_memberIdList.length; cnt++) {
+                    ArrayList<String> strings = CheckShelfForResources(cnt);
+                }
+                Bundle b = new Bundle();
+                b.putStringArray("memberNameList", str_memberNameList);
+                b.putStringArray("memberIdList", str_memberIdList);
+                b.putIntArray("memberResourceNo", str_memberResourceNo);
+                b.putStringArray("memberLoginIdList", str_memberLoginIdList);
+                Intent intent = new Intent(this, MemberListDownloadRes.class);
+                intent.putExtras(b);
+                startActivity(intent);
+            } else {
+                Log.e("MyCouch", "triggerMemberResourceDownload function error");
+            }
+            openMemberList = false;
+            synchronizingPull = false;
+
+        ///}else{
+        //    Log.e("MyCouch", "Sync Variable True");
+        //}
+    }
+
+    public void syncNotifier(){
+        final AsyncTask<Void, Integer, String> execute = new TestAsyncPull().execute();
+        Log.e("MyCouch", "syncNotifier Running");
+        final Thread th = new Thread(new Runnable() {
+            private long startTime = System.currentTimeMillis();
+            public void run() {
+                while (synchronizingPull) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(openMemberList) {
+                                triggerMemberResourceDownload();
+                                openMemberList=false;
+                            }
+                            Log.d("runOnUiThread", "running");
+                            //mydialog.setMessage("Downloading, please wait .... " + (syncCnt + 1));
+                        }
+                    });
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        th.start();
+    }
 
     private boolean checkConnectionURL() {
         ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo != null && networkInfo.isConnected()) {
-            Log.v("myTag","Network Connected");
+            Log.v("myErrorTag","Network Connected");
             return true;
             // fetch data
         } else {
@@ -210,6 +280,7 @@ public class NewSync extends AppCompatActivity {
             /// textView.setText(result);
         }
     }
+
     public void displayDownMesage(boolean status){
         if(status){
             Snackbar.make(clcview, "Connection to established successful", Snackbar.LENGTH_LONG)
@@ -220,7 +291,6 @@ public class NewSync extends AppCompatActivity {
         }
     }
 
-
     class TestAsyncPull extends AsyncTask<Void, Integer, String> {
         protected void onPreExecute (){
             Log.d("PreExceute","On pre Exceute......");
@@ -228,6 +298,7 @@ public class NewSync extends AppCompatActivity {
 
         protected String doInBackground(Void...arg0) {
             Log.d("DoINBackGround","On doInBackground...");
+            synchronizingPull=true;
             pull= new Replication[databaseList.length];
             db = new Database[databaseList.length];
             manager = new Manager[databaseList.length];
@@ -254,10 +325,16 @@ public class NewSync extends AppCompatActivity {
                             message = String.valueOf(event.getChangeCount());
                         }else {
                             Log.e("Finished", databaseList[syncCnt]+" "+ db[syncCnt].getDocumentCount());
-
                             if(syncCnt < (databaseList.length-2)){
                                 syncCnt++;
                                 new TestAsyncPull().execute();
+                            }else{
+                                Log.e("MyCouch","Sync Completed");
+                                if(!openMemberList) {
+                                    openMemberList = true;
+                                }
+                                //triggerMemberResourceDownload();
+                                ///synchronizingPull=true;
                             }
 
                         }
@@ -283,13 +360,153 @@ public class NewSync extends AppCompatActivity {
             }else{
                 tv.setText(tv.getText().toString()+" \n Pulled "+ databaseList[syncCnt] );
                 tv.scrollTo(0,(tv.getLineCount()*20)+syncCnt);
+
                 tv.requestFocus();
-                //finishActivity();
             }
         }
 
         protected void onPostExecute(String result) {
             Log.d("OnPostExec",""+result);
+        }
+    }
+
+    class TestAsyncPush extends AsyncTask<Void, Integer, String> {
+        protected void onPreExecute (){
+            Log.d("PreExceute","On pre Exceute......");
+        }
+
+        protected String doInBackground(Void...arg0) {
+            Log.d("DoINBackGround","On doInBackground...");
+            push = new Replication[databaseList.length];
+            db = new Database[databaseList.length];
+            manager = new Manager[databaseList.length];
+            try {
+                manager[syncCnt] = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                db[syncCnt] = manager[syncCnt].getDatabase(databaseList[syncCnt]);
+                URL url = new URL(sys_oldSyncServerURL+"/"+databaseList[syncCnt]);
+
+                push[syncCnt]=  db[syncCnt].createPushReplication(url);
+                push[syncCnt].setContinuous(false);
+                Authenticator auth = new BasicAuthenticator("appuser", "appuser");
+                push[syncCnt].setAuthenticator(auth);
+                push[syncCnt].addChangeListener(new Replication.ChangeListener() {
+                    @Override
+                    public void changed(Replication.ChangeEvent event) {
+                        if(push[syncCnt] .isRunning()){
+                            Log.e("MyCouch", databaseList[syncCnt]+" "+event.getChangeCount());
+                        }else {
+                            Log.e("Finished", databaseList[syncCnt]+" "+ db[syncCnt].getDocumentCount());
+                            if(syncCnt < (databaseList.length-2)){
+                                syncCnt++;
+                                new TestAsyncPush().execute();
+                            }
+                        }
+                    }
+                });
+                push[syncCnt].start();
+            } catch (Exception e) {
+                Log.e("MyCouch", databaseList[syncCnt]+" "+" Cannot create database", e);
+
+            }
+
+            publishProgress(syncCnt);
+            return "You are at PostExecute";
+        }
+
+        protected void onProgressUpdate(Integer...a){
+            Log.d("onProgress","You are in progress update ... " + a[0]);
+            if(syncCnt != (databaseList.length-2)){
+                tv.setText(tv.getText().toString()+" \n Pushed "+databaseList[syncCnt]+ "\n Pushing "+ databaseList[syncCnt+1]+"....." );
+                tv.scrollTo(0,(tv.getLineCount()*20+syncCnt));
+                tv.requestFocus();
+            }else{
+                tv.setText(tv.getText().toString()+" \n Pushed "+ databaseList[syncCnt] );
+                tv.scrollTo(0,(tv.getLineCount()*20)+syncCnt);
+                tv.requestFocus();
+            }
+
+
+        }
+        protected void onPostExecute(String result) {
+
+            Log.d("OnPostExec",""+result);
+
+        }
+    }
+
+    public ArrayList<String> CheckShelfForResources(int index) {
+        int array_index = index;
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database db = manager.getExistingDatabase("shelf");
+            Query orderedQuery = chViews.ReadShelfByIdView(db).createQuery();
+            orderedQuery.setDescending(true);
+            //Todo startKey and EndKey generate inaccurate result
+            ///orderedQuery.setStartKey(str_memberIdList[array_index]);
+            //orderedQuery.setLimit(0);
+            ArrayList<String> lst = new ArrayList<String>();
+            QueryEnumerator results = orderedQuery.run();
+            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document doc = db.getExistingDocument(docId);
+                Map<String, Object> properties = doc.getProperties();
+                if(str_memberIdList[array_index].equals((String)properties.get("memberId"))){
+                    lst.add((String)properties.get("resourceId"));
+                }
+            }
+            Object[] st = lst.toArray();
+            for (Object s : st) {
+                if (lst.indexOf(s) != lst.lastIndexOf(s)) {
+                    lst.remove(lst.lastIndexOf(s));
+                }
+            }
+            str_memberResourceNo[array_index]=lst.size();
+
+            db.close();
+            return lst;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public boolean BuildMemberListArray(){
+        AndroidContext androidContext = new AndroidContext(this);
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database db = manager.getExistingDatabase("members");
+            Query orderedQuery = chViews.CreateListByNameView(db).createQuery();
+            int memberCounter = 0;
+            orderedQuery.setStartKey("A");
+            //orderedQuery.setEndKey("a");
+            ///orderedQuery.setDescending(false);
+            //orderedQuery.setLimit(0);
+            QueryEnumerator results = orderedQuery.run();
+            str_memberIdList = new String[results.getCount()];
+            str_memberNameList = new String[results.getCount()];
+            str_memberLoginIdList = new String[results.getCount()];
+            str_memberResourceNo = new int[results.getCount()];
+            for (Iterator<QueryRow> it = results; it.hasNext();) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document doc = db.getExistingDocument(docId);
+                Map<String, Object> properties = doc.getProperties();
+                str_memberIdList[memberCounter] = (String) properties.get("_id");
+                str_memberNameList[memberCounter] = (String) properties.get("firstName") +" "+(String) properties.get("lastName");
+                str_memberLoginIdList[memberCounter] = (String) properties.get("login");
+                str_memberResourceNo[memberCounter] = 0;
+                Log.e("MYAPP", " Member Name List: " + str_memberNameList[memberCounter] +" ("+str_memberLoginIdList[memberCounter]+")");
+                memberCounter++;
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
 }

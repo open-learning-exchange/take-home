@@ -150,9 +150,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mUsername.setText("");
         }
         Set<String>  mwr = settings.getStringSet("membersWithResource",null);
-        sys_membersWithResource = mwr.toArray();
+        try{
+            sys_membersWithResource = mwr.toArray();
+            Log.e("MYAPP", " membersWithResource  = "+sys_membersWithResource.length);
 
-        Log.e("MYAPP", " membersWithResource  = "+sys_membersWithResource.length);
+        }catch(Exception err){
+            Log.e("MYAPP", " Error creating  sys_membersWithResource");
+        }
+
 
         try {
             AndroidContext androidContext = new AndroidContext(this);
