@@ -2,25 +2,11 @@
 <items version="2" >
 
     <item
-        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.android.support/animated-vector-drawable/23.4.0/jars/classes.jar"
-        jumboMode="false"
-        revision="23.0.3"
-        sha1="de4db3785756bfb0915a9f59a9b3f2fea7407be4">
-        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.android.support-animated-vector-drawable-23.4.0_9499abdddbb910b8216c73ec260d8f2a6515bb9a.jar" />
-    </item>
-    <item
         jar="/Users/leonardmensah/.gradle/caches/modules-2/files-2.1/com.couchbase.lite/couchbase-lite-java-core/1.2.1/ffd63d435d8c2ba13575cead721b5a64b021335f/couchbase-lite-java-core-1.2.1.jar"
         jumboMode="false"
         revision="23.0.3"
         sha1="ffd63d435d8c2ba13575cead721b5a64b021335f">
         <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/couchbase-lite-java-core-1.2.1_e2c365165f21db7ffb01a3179b1efed8e599ca4b.jar" />
-    </item>
-    <item
-        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.android.support/support-vector-drawable/23.4.0/jars/classes.jar"
-        jumboMode="false"
-        revision="23.0.3"
-        sha1="c2c594cace5d83a3227b2b6e658ecbfd586d3ed9">
-        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.android.support-support-vector-drawable-23.4.0_e4b9563698f1352f68215f3b3842393100d0ab31.jar" />
     </item>
     <item
         jar="/Users/leonardmensah/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-core/2.5.0/b2ece1bd57ac7b4c315b7505b65ac79cb1da4270/jackson-core-2.5.0.jar"
@@ -30,39 +16,11 @@
         <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/jackson-core-2.5.0_95a64802cee3254e0a866dcbf2f43eea9b088324.jar" />
     </item>
     <item
-        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.roughike/bottom-bar/1.3.3/jars/classes.jar"
-        jumboMode="false"
-        revision="23.0.3"
-        sha1="febdca0af7e75d9e2d621fd99be05dfbfd2667ed">
-        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.roughike-bottom-bar-1.3.3_73d59ea97afdfaf4ea907671e15de7e6564ea5c8.jar" />
-    </item>
-    <item
         jar="/Users/leonardmensah/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-annotations/2.5.0/a2a55a3375bc1cef830ca426d68d2ea22961190e/jackson-annotations-2.5.0.jar"
         jumboMode="false"
         revision="23.0.3"
         sha1="a2a55a3375bc1cef830ca426d68d2ea22961190e">
         <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/jackson-annotations-2.5.0_6a1044d783dc1be19aa666a78f1a8974ca4ae873.jar" />
-    </item>
-    <item
-        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.couchbase.lite/couchbase-lite-android-sqlite-default/1.2.1/jars/classes.jar"
-        jumboMode="false"
-        revision="23.0.3"
-        sha1="df78eba53e01ecb50e09156b7aab0479a2d32bf7">
-        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.couchbase.lite-couchbase-lite-android-sqlite-default-1.2.1_a8495dadae2834195f5da5ed34bb6962e91e2b8e.jar" />
-    </item>
-    <item
-        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.couchbase.lite/couchbase-lite-android/1.2.1/jars/classes.jar"
-        jumboMode="false"
-        revision="23.0.3"
-        sha1="3ff8f27d4f03623592b40f37465d57981f8f37f4">
-        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.couchbase.lite-couchbase-lite-android-1.2.1_6d4fe9c7b1969c93cb27480ca1ef0d0fcd184f8e.jar" />
-    </item>
-    <item
-        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.android.support/support-v4/23.4.0/jars/classes.jar"
-        jumboMode="false"
-        revision="23.0.3"
-        sha1="67bd36ee9340ec7c254108936ad16b24bed160cc">
-        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.android.support-support-v4-23.4.0_1e579debf1a1203d2f153ff5232c8fdb72a97f4f.jar" />
     </item>
     <item
         jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.android.support/support-v4/23.4.0/jars/libs/internal_impl-23.4.0.jar"
@@ -72,11 +30,46 @@
         <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/internal_impl-23.4.0_8911afccfc8d135976ce51c926f7549920bf867d.jar" />
     </item>
     <item
+        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.couchbase.lite/couchbase-lite-android-sqlite-default/1.2.1/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="df78eba53e01ecb50e09156b7aab0479a2d32bf7">
+        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.couchbase.lite-couchbase-lite-android-sqlite-default-1.2.1_a8495dadae2834195f5da5ed34bb6962e91e2b8e.jar" />
+    </item>
+    <item
+        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-tasks/9.0.1/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="13270ae22369a0d50cb6c560aeca4056f025cae6">
+        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.google.android.gms-play-services-tasks-9.0.1_8056bf4a93500853b27d5301562745e9cea919a3.jar" />
+    </item>
+    <item
         jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.android.support/design/23.4.0/jars/classes.jar"
         jumboMode="false"
         revision="23.0.3"
         sha1="5326d9a850d491714fef8cbfaa9ea3416f0bf0d2">
         <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.android.support-design-23.4.0_37b3eb9e29ad93edb1f9e51d0f028b584d50c483.jar" />
+    </item>
+    <item
+        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.google.android.support/wearable/2.0.0-alpha1/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="198f86964d1fe34215742672a4e095f916f0f4d9">
+        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.google.android.support-wearable-2.0.0-alpha1_3a8fcf01414a1a1f68ed2e9d62e9a8bd41993ed5.jar" />
+    </item>
+    <item
+        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.google.firebase/firebase-common/9.0.1/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="ffc3c6fc861f04d45835c9eac5cec10acc180d55">
+        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.google.firebase-firebase-common-9.0.1_78628377358c0bfbddb6745bd866deee4d4a7d67.jar" />
+    </item>
+    <item
+        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.roughike/bottom-bar/1.3.3/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="febdca0af7e75d9e2d621fd99be05dfbfd2667ed">
+        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.roughike-bottom-bar-1.3.3_73d59ea97afdfaf4ea907671e15de7e6564ea5c8.jar" />
     </item>
     <item
         jar="/Users/leonardmensah/Library/android-sdk-macosx/extras/android/m2repository/com/android/support/support-annotations/23.4.0/support-annotations-23.4.0.jar"
@@ -93,11 +86,46 @@
         <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/jackson-databind-2.5.0_b418ed70fded3893e060bacea6d5dd485f38b206.jar" />
     </item>
     <item
-        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.4.0/jars/classes.jar"
+        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.android.support/support-v4/23.4.0/jars/classes.jar"
         jumboMode="false"
         revision="23.0.3"
-        sha1="548f06de403a9409f00554b3ee12a9fdea0e236c">
-        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.android.support-appcompat-v7-23.4.0_58e78cdbcd80580dbb9ec1ec58a2cdb2f147cdf0.jar" />
+        sha1="67bd36ee9340ec7c254108936ad16b24bed160cc">
+        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.android.support-support-v4-23.4.0_1e579debf1a1203d2f153ff5232c8fdb72a97f4f.jar" />
+    </item>
+    <item
+        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/libs/PdfViewer.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="a53b4c813e4237286bd10f0c334c46e894970666">
+        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/PdfViewer_b535c7f42d43d49c088ba7243abb783c07e36565.jar" />
+    </item>
+    <item
+        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.android.support/recyclerview-v7/23.4.0/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="ec75036c3c52e451d0cde50a5aedaf5fd32354a0">
+        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.android.support-recyclerview-v7-23.4.0_5314b2882e7d5670a4f0192c376abf1ed67d9844.jar" />
+    </item>
+    <item
+        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.android.support/support-vector-drawable/23.4.0/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="c2c594cace5d83a3227b2b6e658ecbfd586d3ed9">
+        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.android.support-support-vector-drawable-23.4.0_e4b9563698f1352f68215f3b3842393100d0ab31.jar" />
+    </item>
+    <item
+        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/9.0.1/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="e711046a40e1562d85854ee09cd0a05254cb6463">
+        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.google.android.gms-play-services-base-9.0.1_3f304dcc5f2d9a3fcaaf4a1e204f2a7f487beaac.jar" />
+    </item>
+    <item
+        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-basement/9.0.1/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="a3ebac72ca6befe2e900427505dbb3dd58a5ebbf">
+        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.google.android.gms-play-services-basement-9.0.1_b96e20cbf6bde21effd449d49401a08154d59d71.jar" />
     </item>
     <item
         jar="/Users/leonardmensah/.gradle/caches/modules-2/files-2.1/com.github.oxo42/stateless4j/2.4.0/128aca4ace585f0b42faa739d0b968a154debb7a/stateless4j-2.4.0.jar"
@@ -107,11 +135,39 @@
         <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/stateless4j-2.4.0_61080fb4d3d7e145abfce3c6b3246da969177b21.jar" />
     </item>
     <item
-        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.android.support/recyclerview-v7/23.4.0/jars/classes.jar"
+        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-wearable/9.0.1/jars/classes.jar"
         jumboMode="false"
         revision="23.0.3"
-        sha1="ec75036c3c52e451d0cde50a5aedaf5fd32354a0">
-        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.android.support-recyclerview-v7-23.4.0_5314b2882e7d5670a4f0192c376abf1ed67d9844.jar" />
+        sha1="b49f3f1bddb0201ac336b50bb6c66040d26f6d0d">
+        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.google.android.gms-play-services-wearable-9.0.1_752149755f46b4be120689b51cdfff54a2a70218.jar" />
+    </item>
+    <item
+        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.android.support/animated-vector-drawable/23.4.0/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="de4db3785756bfb0915a9f59a9b3f2fea7407be4">
+        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.android.support-animated-vector-drawable-23.4.0_9499abdddbb910b8216c73ec260d8f2a6515bb9a.jar" />
+    </item>
+    <item
+        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.4.0/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="548f06de403a9409f00554b3ee12a9fdea0e236c">
+        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.android.support-appcompat-v7-23.4.0_58e78cdbcd80580dbb9ec1ec58a2cdb2f147cdf0.jar" />
+    </item>
+    <item
+        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.couchbase.lite/couchbase-lite-android/1.2.1/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="3ff8f27d4f03623592b40f37465d57981f8f37f4">
+        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.couchbase.lite-couchbase-lite-android-1.2.1_6d4fe9c7b1969c93cb27480ca1ef0d0fcd184f8e.jar" />
+    </item>
+    <item
+        jar="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/exploded-aar/com.mcxiaoke.volley/library-aar/1.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="23.0.3"
+        sha1="e40b9a81989bd4a846018551c280f8c4d837bf2e">
+        <dex dex="/Users/leonardmensah/Documents/Android_Projects/PBeLL/app/build/intermediates/pre-dexed/debug/com.mcxiaoke.volley-library-aar-1.0.0_0d2161316853cc2c86427119eca5e7a4317e4f20.jar" />
     </item>
 
 </items>

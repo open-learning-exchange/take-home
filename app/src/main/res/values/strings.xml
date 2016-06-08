@@ -34,12 +34,13 @@
     <string name="syncURL_saveButton">Save changes</string>
 
 
-    <!-- Strings related to Change Sync URL -->
+    <!-- Strings Sync URL -->
     <string name="sync_LastSyncDate">Last sync date</string>
     <string name="sync_Headen">Synchronize device with server</string>
     <string name="sync_NowPush">Push Changes</string>
     <string name="sync_NowPull">Pull Changes</string>
     <string name="sync_EraseOldData">Wipe Clean</string>
+    <string name="sync_Resources">Sync Materials</string>
 
     <!-- Strings related to login -->
     <string name="prompt_username">Username</string>

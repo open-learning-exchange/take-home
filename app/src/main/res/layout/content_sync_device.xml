@@ -120,6 +120,13 @@
                     android:layout_alignParentTop="true"
                     android:layout_centerHorizontal="true"
                     android:layout_weight="2" />
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="fill_parent"
+                    android:text="@string/sync_Resources"
+                    android:id="@+id/btnsyncResources"
+                    android:layout_weight="2" />
             </LinearLayout>
         </RelativeLayout>
 

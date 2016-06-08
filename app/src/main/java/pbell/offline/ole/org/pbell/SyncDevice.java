@@ -135,6 +135,16 @@ public class SyncDevice extends AppCompatActivity {
 
         });
 
+        Button btnSyncResources = (Button)findViewById(R.id.btnsyncResources);
+        btnSyncResources.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                synchronizingPull=false;
+                triggerMemberResourceDownload();
+            }
+
+        });
+
         Switch sw_wipeClean = (Switch) findViewById(R.id.swWipeClean);
         sw_wipeClean.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -143,6 +153,8 @@ public class SyncDevice extends AppCompatActivity {
                 ///Log.v("Switch State=", ""+isChecked);
             }
         });
+
+
 
 
         fab = (FloatingActionButton) findViewById(R.id.checkConnection);

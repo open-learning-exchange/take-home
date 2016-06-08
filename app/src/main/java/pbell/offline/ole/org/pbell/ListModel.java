@@ -1,5 +1,7 @@
 package pbell.offline.ole.org.pbell;
 
+import android.util.Log;
+
 /**
  * Created by leonardmensah on 18/05/16.
  */
@@ -23,6 +25,8 @@ public class ListModel {
 
     public void setDescription(String Description)
     {
+
+        Log.e("MYAPP", "DD "+Description);
         this.Description = Description;
     }
 
@@ -42,4 +46,6 @@ public class ListModel {
     {
         return this.Description;
     }
+
+
 }

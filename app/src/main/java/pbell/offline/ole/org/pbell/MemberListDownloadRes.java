@@ -396,7 +396,6 @@ public class MemberListDownloadRes extends AppCompatActivity {
         protected Boolean doInBackground(final String... args) {
             Log.d("DoINBackGround","On doInBackground...");
             Manager manager = null;
-
             try {
                 URL url = new URL(sys_oldSyncServerURL+"/resources");
                 manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);

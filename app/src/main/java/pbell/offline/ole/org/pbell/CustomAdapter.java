@@ -134,7 +134,7 @@ public class CustomAdapter extends BaseAdapter implements View.OnClickListener {
         public void onClick(View arg0) {
 
 
-            MainActivity sct = (MainActivity)activity;
+            ///TabFragment1 sct = (TabFragment1)activity;
 
             /****  Call  onItemClick Method inside CustomListViewAndroidExample Class ( See Below )****/
 

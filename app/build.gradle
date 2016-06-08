@@ -31,4 +31,8 @@ dependencies {
     compile 'com.android.support:design:23.4.0'
     compile 'com.couchbase.lite:couchbase-lite-android:1.2.1'
     compile 'com.roughike:bottom-bar:1.3.3'
+    compile files('libs/PdfViewer.jar')
+    compile 'com.google.android.support:wearable:+'
+    compile 'com.google.android.gms:play-services-wearable:+'
+    compile 'com.mcxiaoke.volley:library-aar:1.0.0'
 }
