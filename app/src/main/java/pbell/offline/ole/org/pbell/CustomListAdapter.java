@@ -4,10 +4,12 @@ package pbell.offline.ole.org.pbell;
 
         import android.app.Activity;
         import android.content.Context;
+        import android.content.res.Resources;
         import android.view.LayoutInflater;
         import android.view.View;
         import android.view.ViewGroup;
         import android.widget.BaseAdapter;
+        import android.widget.ImageView;
         import android.widget.TextView;
 
         import com.android.volley.toolbox.ImageLoader;
@@ -17,6 +19,8 @@ public class CustomListAdapter extends BaseAdapter {
     private Activity activity;
     private LayoutInflater inflater;
     private List<Resource> resourceItems;
+    public Resources res;
+
     ImageLoader imageLoader = AppController.getInstance().getImageLoader();
     public CustomListAdapter(Activity activity, List<Resource> resourceItems) {
         this.activity = activity;
@@ -50,7 +54,8 @@ public class CustomListAdapter extends BaseAdapter {
 
         if (imageLoader == null)
         imageLoader = AppController.getInstance().getImageLoader();
-        NetworkImageView thumbNail = (NetworkImageView) convertView.findViewById(R.id.thumbnail);
+       // NetworkImageView thumbNail = (NetworkImageView) convertView.findViewById(R.id.thumbnail);
+        ImageView thumbNail = (ImageView) convertView.findViewById(R.id.thumbnail);
         TextView title = (TextView) convertView.findViewById(R.id.title);
         TextView rating = (TextView) convertView.findViewById(R.id.rating);
         TextView genre = (TextView) convertView.findViewById(R.id.genre);
@@ -60,7 +65,8 @@ public class CustomListAdapter extends BaseAdapter {
         Resource r = resourceItems.get(position);
 
         // thumbnail image
-        thumbNail.setImageUrl(r.getThumbnailUrl(), imageLoader);
+        thumbNail.setBackgroundResource(r.getThumbnailUrl());
+        //thumbNail.setImageUrl(r.getThumbnailUrl(), imageLoader);
 
         // title
         title.setText(r.getTitle());

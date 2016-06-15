@@ -7,13 +7,13 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.AsyncTaskLoader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,12 +32,7 @@ import java.io.OutputStream;
 
 import net.sf.andpdf.pdfviewer.PdfViewerActivity;
 
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.couchbase.lite.Attachment;
-import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.Manager;
@@ -46,15 +41,23 @@ import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+
+import com.coremedia.iso.boxes.Container;
+import com.googlecode.mp4parser.authoring.Movie;
+import com.googlecode.mp4parser.authoring.Track;
+import com.googlecode.mp4parser.authoring.builder.DefaultMp4Builder;
+import com.googlecode.mp4parser.authoring.container.mp4.MovieCreator;
+import com.googlecode.mp4parser.authoring.tracks.AppendTrack;
+import com.googlecode.mp4parser.authoring.tracks.CroppedTrack;
+import com.googlecode.mp4parser.authoring.tracks.TextTrackImpl;
 
 public class TabFragment1 extends Fragment {
 
@@ -80,6 +83,8 @@ public class TabFragment1 extends Fragment {
     int rsLstCnt=0;
 
     ImageView[] imageView;
+    static Uri videoURl;
+    static Intent intent;
     ///////////////////////////
 
     // Log tag
@@ -93,6 +98,7 @@ public class TabFragment1 extends Fragment {
     private CustomListAdapter adapter;
 
     AssetManager assetManager;
+    AssetFileDescriptor afd;
 
 
 
@@ -102,6 +108,12 @@ public class TabFragment1 extends Fragment {
 
         CustomListView = this;
         assetManager = getActivity().getAssets();
+        try {
+            afd = assetManager.openFd("begin.mp4");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
         //Just Download
         //HTML
@@ -137,6 +149,7 @@ public class TabFragment1 extends Fragment {
         ///if (!resourceList.isEmpty()) {
             resourceList.clear();
             LoadShelfResourceList();
+
         //}
 
         //setListData();
@@ -151,7 +164,7 @@ public class TabFragment1 extends Fragment {
                     openDoc(resourceIdList[position]);
                }
         });
-
+        copyAssets();
         //pDialog = new ProgressDialog(context);
         // Showing progress dialog before making http request
         //pDialog.setMessage("Loading...");
@@ -159,77 +172,42 @@ public class TabFragment1 extends Fragment {
 
         // changing action bar color
         //getActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#1b1b1b")));
-
-
-        /*
-        // Creating volley request obj
-        JsonArrayRequest movieReq = new JsonArrayRequest(url,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        Log.d(TAG, response.toString());
-                        hidePDialog();
-
-                        // Parsing json
-                        for (int i = 0; i < response.length(); i++) {
-                            try {
-
-                                JSONObject obj = response.getJSONObject(i);
-                                Movie movie = new Movie();
-                                movie.setTitle(obj.getString("title"));
-                                movie.setThumbnailUrl(obj.getString("image"));
-                                movie.setRating(((Number) obj.get("rating")).doubleValue());
-                                movie.setYear(obj.getInt("releaseYear"));
-
-                                // Genre is json array
-                                JSONArray genreArry = obj.getJSONArray("genre");
-                                ArrayList<String> genre = new ArrayList<String>();
-                                for (int j = 0; j < genreArry.length(); j++) {
-                                    genre.add((String) genreArry.get(j));
-                                }
-                                movie.setGenre(genre);
-
-                                // adding movie to movies array
-                                movieList.add(movie);
-
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-
-                        }
-
-                        // notifying list adapter about data changes
-                        // so that it renders the list view with updated data
-                        adapter.notifyDataSetChanged();
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.d(TAG, "Error: " + error.getMessage());
-                hidePDialog();
-
-            }
-        });
-
-
-        // Adding request to request queue
-        AppController.getInstance().addToRequestQueue(resourceList);
-        */
-
-
-
         return rootView;
 
     }
 
-    private void copyFile(InputStream in, OutputStream out) throws IOException
-    {
+    private void copyFile(InputStream in, OutputStream out) throws IOException {
         byte[] buffer = new byte[1024];
         int read;
         while ((read = in.read(buffer)) != -1)
         {
             out.write(buffer, 0, read);
         }
+    }
+
+    private void copyAssets() {
+        InputStream in = getResources().openRawResource(R.raw.bgin);
+        String root = Environment.getExternalStorageDirectory().toString();
+        File myDir = new File(root + "/ole_temp2");
+        if (!myDir.exists()){
+            myDir.mkdirs();
+        }
+        File dst = new File(myDir,"bgin.mp4");
+        try {
+            FileOutputStream out = new FileOutputStream(dst);
+            byte[] buff = new byte[1024];
+            int read = 0;
+            while ((read = in.read(buff)) > 0) {
+                out.write(buff, 0, read);
+            }
+            in.close();
+            out.close();
+            Log.e("tag", "Video file copied "+ dst.toString());
+        }catch(Exception err){
+            err.printStackTrace();
+        } ///
+
+
     }
 
     public void openDoc(String docId) {
@@ -333,22 +311,9 @@ public class TabFragment1 extends Fragment {
             in.close();
             out.close();
             dst.setReadable(true);
-            Log.e("tag", src.getPath()+" S " +src.length());
-            Log.e("tag", dst.getCanonicalPath()+" D " +dst.length());
-
-            Intent intent = new Intent();
-            intent.setAction(Intent.ACTION_VIEW);
-
-            //String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(dst).toString());
-            //String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-            ///intent.setDataAndType(Uri.fromFile(dst),mimetype);
-            //startActivity(intent);
-
-            ///Log.e("tag", fileAttachment.getContentURL().getPath());
-
 
             Intent myIntent = new Intent(getActivity(),VideoViewActivity.class);
-            myIntent.putExtra("VIDEO_URL",Uri.fromFile(src).toString());
+            myIntent.putExtra("VIDEO_URL",Uri.fromFile(dst).toString());
 
             Log.e("tag", Uri.fromFile(dst).toString());
             startActivity(myIntent);
@@ -389,20 +354,29 @@ public class TabFragment1 extends Fragment {
             in.close();
             out.close();
             dst.setReadable(true);
-            Log.e("tag", src.getPath()+" S " +src.length());
-            Log.e("tag", dst.getCanonicalPath()+" D " +dst.length());
-
-            Intent intent = new Intent();
-            intent.setAction(Intent.ACTION_VIEW);
+            ////Log.e("tag", src.getPath()+" S " +src.length());
+            ////Log.e("tag", dst.getCanonicalPath()+" D " +dst.length());
 
             String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(dst).toString());
             String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-            ///intent.setDataAndType(Uri.fromFile(dst).toString(),mimetype);
-            intent.setDataAndType(Uri.fromFile(dst),mimetype);
-            startActivity(intent);
+            intent = new Intent();
+            intent.setAction(Intent.ACTION_VIEW);
+            Log.e("tag","- "+ mimetype +" - ");
 
-            Log.e("tag", fileAttachment.getContentURL().getPath());
-
+            if(mimetype=="audio/mpeg"){
+                intent.setDataAndType(Uri.fromFile(dst),mimetype);
+                getActivity().startActivity(intent);
+            }else{
+                try {
+                    //videoURl = Uri.fromFile(dst);
+                    //if(new EditMovieTask(context, 0).append()){
+                    ///};
+                    intent.setDataAndType(Uri.fromFile(dst),mimetype);
+                    getActivity().startActivity(intent);
+                }catch (Exception Er) {
+                    Log.e("tag", Er.getMessage());
+                }
+            }
         } catch (Exception Er) {
             Log.e("tag", Er.getMessage());
         }
@@ -421,10 +395,6 @@ public class TabFragment1 extends Fragment {
 
         return false;
     }
-
-    ///Intent intent = new Intent(Intent.ACTION_VIEW);
-	    ///intent.setDataAndType( Uri.parse("file://" + getFilesDir() + "/ABC.pdf"),"application/pdf");
-
 
     @Override
     public void onDestroy() {
@@ -448,29 +418,6 @@ public class TabFragment1 extends Fragment {
         final int afterLastBackslash = afterLastSlash.lastIndexOf('\\') + 1;
         final int dotIndex = afterLastSlash.indexOf('.', afterLastBackslash);
         return (dotIndex == -1) ? "" : afterLastSlash.substring(dotIndex + 1);
-    }
-
-
-
-
-
-
-
-    public void setListData() {
-        for (int i = 0; i < 8; i++) {
-
-            final ListModel sched = new ListModel();
-
-            /******* Firstly take data in model object ******/
-            sched.setTitle("Resource Title : "+i);
-            ///sched.setImage("image"+i);
-            sched.setImage("image"+(i+1)+"");
-            sched.setDescription("Resource Type : "+i+"");
-
-            /******** Take Model Object in ArrayList **********/
-            CustomListViewValuesArr.add( sched );
-        }
-
     }
 
     /*****************  This function used by adapter ****************/
@@ -506,6 +453,7 @@ public class TabFragment1 extends Fragment {
                     String myresId = "";
                     String myresType = "";
                     String myresDec = "";
+                    String myresExt = "";
                     try {
                         Document resource_doc = resource_Db.getExistingDocument((String) properties.get("resourceId"));
                         Log.e("tag", "RES ID "+ (String) properties.get("resourceId"));
@@ -518,6 +466,7 @@ public class TabFragment1 extends Fragment {
                         myresId = (String) properties.get("resourceId")+"";
                         myresDec = (String) resource_properties.get("author")+"";
                         myresType = (String) resource_properties.get("averageRating")+"";
+                        myresExt = (String) resource_properties.get("openWith")+"";
                         resourceIdList[rsLstCnt]=myresId;
                         rsLstCnt++;
                     }catch(Exception err){
@@ -531,15 +480,10 @@ public class TabFragment1 extends Fragment {
                         rsLstCnt++;
 
                     }
-                    ListModel sched = new ListModel();
-                    ///Log.e("MYAPP", "Resource Here = "+(String) properties.get("resourceId"));
-                    //sched.setTitle(myresTitile);
-                    //sched.setImage("image1");
-                    //sched.setDescription(myresDec);
-                    //CustomListViewValuesArr.add( sched );
+
                     Resource resource = new Resource();
                     resource.setTitle(myresTitile);
-                    resource.setThumbnailUrl(null);
+                    resource.setThumbnailUrl(getIconType(myresExt));
                     resource.setDescription(myresDec);
                     resource.setRating(myresType);
 
@@ -556,6 +500,7 @@ public class TabFragment1 extends Fragment {
                     resourceNo++;
                 }
             }
+
             ///adapter.notifyDataSetChanged();
 
             ///Log.d("PreExceute","Items "+ db.getDocumentCount());
@@ -565,6 +510,184 @@ public class TabFragment1 extends Fragment {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public int getIconType(String myresExt){
+
+        int img = R.drawable.web;
+        switch (myresExt){
+            case "Flow Video Player":
+                img = R.drawable.video;
+                break;
+            case "MP3":
+                img = R.drawable.mp3;
+                break;
+            case "PDF.js":
+                img = R.drawable.pdf;
+                break;
+            case "":
+                img = R.drawable.web;
+                break;
+            default:
+                img = R.drawable.web;
+                break;
+        }
+        return img;
+    }
+
+    public void DecodeEncodeVideo(String filePath){
+
+    }
+
+    public class EditMovieTask extends AsyncTaskLoader<Boolean> {
+
+        private int mType;
+
+        public EditMovieTask(Context context, int type) {
+            super(context);
+            mType = type;
+            forceLoad();
+        }
+
+        @Override
+        public Boolean loadInBackground() {
+            switch (mType) {
+                case 0:
+                    return append();
+                case 1:
+                    return crop();
+                case 2:
+                    return subTitle();
+            }
+
+            return false;
+        }
+        private boolean append() {
+            try {
+                // 複数の動画を読み込み
+                String f1 = videoURl.getPath();
+                //String f1 = Environment.getExternalStorageDirectory() + "/ole_temp2/bgin.mp4";
+                ////String f2 = Environment.getExternalStorageDirectory() + "/sample2.mp4";
+                String f2 = videoURl.getPath();
+                Log.e("tag","Video URL "+ f2 +" - ");
+
+                Movie[] inMovies = new Movie[]{
+                        MovieCreator.build(f1),
+                        MovieCreator.build(f2)};
+
+                // 1つのファイルに結合
+                List<Track> videoTracks = new LinkedList<Track>();
+                List<Track> audioTracks = new LinkedList<Track>();
+                for (Movie m : inMovies) {
+                    for (Track t : m.getTracks()) {
+                        if (t.getHandler().equals("soun")) {
+                            audioTracks.add(t);
+                        }
+                        if (t.getHandler().equals("vide")) {
+                            videoTracks.add(t);
+                        }
+                    }
+                }
+                Movie result = new Movie();
+                if (audioTracks.size() > 0) {
+                    result.addTrack(new AppendTrack(audioTracks.toArray(new Track[audioTracks.size()])));
+                }
+                if (videoTracks.size() > 0) {
+                    result.addTrack(new AppendTrack(videoTracks.toArray(new Track[videoTracks.size()])));
+                }
+
+                // 出力
+                Container out = new DefaultMp4Builder().build(result);
+                String outputFilePath = Environment.getExternalStorageDirectory() + "/ole_temp/output_append.mp4";
+                FileOutputStream fos = new FileOutputStream(new File(outputFilePath));
+                out.writeContainer(fos.getChannel());
+                fos.close();
+
+                String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(new File(outputFilePath)).toString());
+                String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                intent.setDataAndType(Uri.fromFile(new File(outputFilePath)),mimetype);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(intent);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+
+            return true;
+        }
+
+        private boolean crop() {
+            try {
+                // オリジナル動画を読み込み
+                ///String filePath = Environment.getExternalStorageDirectory() + "/sample1.mp4";
+                String filePath = videoURl.getPath();
+                Movie originalMovie = MovieCreator.build(filePath);
+
+                // 分割
+                Track track = originalMovie.getTracks().get(0);
+                Movie movie = new Movie();
+                movie.addTrack(new AppendTrack(new CroppedTrack(track, 200, 400)));
+
+                // 出力
+                Container out = new DefaultMp4Builder().build(movie);
+                String outputFilePath = Environment.getExternalStorageDirectory() + "/output_crop.mp4";
+                FileOutputStream fos = new FileOutputStream(new File(outputFilePath));
+                out.writeContainer(fos.getChannel());
+                fos.close();
+
+                String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(new File(outputFilePath)).toString());
+                String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                intent.setDataAndType(Uri.fromFile(new File(outputFilePath)),mimetype);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(intent);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+            return true;
+        }
+
+        private boolean subTitle() {
+            try {
+                // オリジナル動画を読み込み
+                ///String filePath = Environment.getExternalStorageDirectory() + "/sample1.mp4";
+                String filePath = videoURl.getPath();
+                Movie countVideo = MovieCreator.build(filePath);
+
+                // SubTitleを追加
+                TextTrackImpl subTitleEng = new TextTrackImpl();
+                subTitleEng.getTrackMetaData().setLanguage("eng");
+
+                subTitleEng.getSubs().add(new TextTrackImpl.Line(0, 1000, "Five"));
+                subTitleEng.getSubs().add(new TextTrackImpl.Line(1000, 2000, "Four"));
+                subTitleEng.getSubs().add(new TextTrackImpl.Line(2000, 3000, "Three"));
+                subTitleEng.getSubs().add(new TextTrackImpl.Line(3000, 4000, "Two"));
+                subTitleEng.getSubs().add(new TextTrackImpl.Line(4000, 5000, "one"));
+                countVideo.addTrack(subTitleEng);
+
+                // 出力
+                Container container = new DefaultMp4Builder().build(countVideo);
+                String outputFilePath = Environment.getExternalStorageDirectory() + "/output_subtitle.mp4";
+                FileOutputStream fos = new FileOutputStream(outputFilePath);
+                FileChannel channel = fos.getChannel();
+                container.writeContainer(channel);
+                fos.close();
+
+
+                String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(new File(outputFilePath)).toString());
+                String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                intent.setDataAndType(Uri.fromFile(new File(outputFilePath)),mimetype);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(intent);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+            return true;
+        }
+
     }
 
 }

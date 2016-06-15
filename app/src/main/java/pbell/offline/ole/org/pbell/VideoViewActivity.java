@@ -37,7 +37,6 @@ public class VideoViewActivity extends Activity {
         if (savedInstanceState != null) {
             mWebView.restoreState(savedInstanceState);
         } else {
-            //mWebView.loadUrl("http://192.168.0.2:5988/resources/bb7a908e3ca2cdad2681234e28007e25/Feedback.mov");
             mWebView.loadUrl(VideoURL);
         }
 

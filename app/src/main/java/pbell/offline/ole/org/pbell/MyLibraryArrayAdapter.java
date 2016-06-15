@@ -45,10 +45,10 @@ public class MyLibraryArrayAdapter extends ArrayAdapter<String> {
         //this.values = values;
         this.data=d;
         map = new HashMap<String, Integer>();
-        map.put("image1", R.drawable.image1);
-        map.put("image2", R.drawable.image2);
-        map.put("image3", R.drawable.image3);
-        map.put("image4", R.drawable.image4);
+        map.put("image1", R.drawable.pdf);
+        map.put("image2", R.drawable.web);
+        map.put("image3", R.drawable.mp3);
+        map.put("image4", R.drawable.video);
        // dh = new DataHelper(getApplicationContext());
     }
 

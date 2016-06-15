@@ -6,7 +6,8 @@ import java.util.ArrayList;
  * Created by leonardmensah on 01/06/16.
  */
 public class Resource {
-    private String title, thumbnailUrl;
+    private String title;
+    private int thumbnailUrl;
     private String rating;
     private String descr;
     private ArrayList<String> genre;
@@ -15,7 +16,7 @@ public class Resource {
 
     }
 
-    public Resource(String name, String thumbnailUrl, String rating, String descr,
+    public Resource(String name, int thumbnailUrl, String rating, String descr,
                  ArrayList<String> genre) {
         this.title = name;
         this.thumbnailUrl = thumbnailUrl;
@@ -32,11 +33,11 @@ public class Resource {
         this.title = name;
     }
 
-    public String getThumbnailUrl() {
+    public int getThumbnailUrl() {
         return thumbnailUrl;
     }
 
-    public void setThumbnailUrl(String thumbnailUrl) {
+    public void setThumbnailUrl(int thumbnailUrl) {
         this.thumbnailUrl = thumbnailUrl;
     }
 
