@@ -113,11 +113,6 @@ public class Dashboard extends AppCompatActivity {
                                 dialog.cancel();
                             }
                         });
-                /*.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        finish();
-                    }
-                });*/
 
                 AlertDialog closeDialogue = builder.create();
                 closeDialogue.show();
@@ -131,33 +126,23 @@ public class Dashboard extends AppCompatActivity {
             Calendar cal= Calendar.getInstance();
             Date d = new Date();
 
-
             SimpleDateFormat s_df = new SimpleDateFormat("EEEE");
             String dayOfTheWeek = s_df.format(d);
-
             SimpleDateFormat date_df = new SimpleDateFormat("d");
             String dayNumber = date_df.format(d);
-
             SimpleDateFormat month_df = new SimpleDateFormat("MMMM");
             String month_name = month_df.format(cal.getTime());
-
             SimpleDateFormat year_df = new SimpleDateFormat("yyyy");
             String year = year_df.format(d);
-
             String displayedDate = dayOfTheWeek + "  |  "+dayNumber+" " + month_name+" "+year;
-
             lbldate.setText(displayedDate);
 
 
 
             mySectionsPagerAdapter = new SectionsPagerAdapter(fragMgr);
-
             mViewPager = (ViewPager) findViewById(R.id.container);
             mViewPager.setAdapter(mySectionsPagerAdapter);
-
-
             mBottomBar = BottomBar.attach(this, savedInstanceState);
-
             mBottomBar.setItemsFromMenu(R.menu.bottombar_menu, new OnMenuTabClickListener() {
                 @Override
                 public void onMenuTabSelected(@IdRes int menuItemId) {
@@ -166,7 +151,6 @@ public class Dashboard extends AppCompatActivity {
 
                 @Override
                 public void onMenuTabReSelected(@IdRes int menuItemId) {
-
                     Toast.makeText(getApplicationContext(), getMessage(menuItemId, true), Toast.LENGTH_SHORT).show();
                 }
             });
@@ -177,7 +161,6 @@ public class Dashboard extends AppCompatActivity {
             mBottomBar.mapColorForTab(1, 0xFF5D4037);
             mBottomBar.mapColorForTab(2, "#7B1FA2");
             mBottomBar.mapColorForTab(3, "#FF5252");
-
         }
 
 
@@ -223,24 +206,24 @@ public class Dashboard extends AppCompatActivity {
             switch (menuItemId) {
                 case R.id.bb_menu_friends:
                     mViewPager.setCurrentItem(0);
-                    //message += "friends";
+                    message += "Achievements";
                     break;
                 case R.id.bb_menu_favorites:
                     mViewPager.setCurrentItem(2);
-                   /// message += "favorites";
+                    message += "My Library";
                     break;
                 case R.id.bb_menu_recents:
                     mViewPager.setCurrentItem(1);
-                    ///message += "recents";
+                    message += "";
                     break;
                 case R.id.bb_menu_food:
                     mViewPager.setCurrentItem(3);
-                    //message += "food";
+                    message += "";
                     break;
             }
 
             if (isReselection) {
-                message += " WAS RESELECTED! YAY!";
+                message += "";
             }
 
             return message;
@@ -288,17 +271,13 @@ public class Dashboard extends AppCompatActivity {
 
         }
 
+    /*
         public static class PlaceholderFragment extends Fragment {
-            /**
-             * The fragment argument representing the section number for this
-             * fragment.
-             */
+            //The fragment argument representing the section number for this fragment.
             private static final String ARG_SECTION_NUMBER = "section_number";
 
-            /**
-             * Returns a new instance of this fragment for the given section
-             * number.
-             */
+            //Returns a new instance of this fragment for the given section
+
             public static PlaceholderFragment newInstance(int sectionNumber) {
                 PlaceholderFragment fragment = new PlaceholderFragment();
                 Bundle args = new Bundle();
@@ -317,6 +296,8 @@ public class Dashboard extends AppCompatActivity {
                 return rootView;
             }
         }
+
+    */
         public void SyncDialog(String oldSyncURL){
             // custom dialog
             final Dialog dialog = new Dialog(context);

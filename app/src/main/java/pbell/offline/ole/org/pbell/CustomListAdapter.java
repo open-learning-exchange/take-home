@@ -45,8 +45,6 @@ public class CustomListAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-
-
         if (inflater == null)
             inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (convertView == null)
@@ -76,9 +74,6 @@ public class CustomListAdapter extends BaseAdapter {
 
         // genre
         String genreStr = "";
-        //////for (String str : m.getGenre()) {
-         /////   genreStr += str + ", ";
-        /////}
         genreStr = genreStr.length() > 0 ? genreStr.substring(0,
                 genreStr.length() - 2) : genreStr;
         genre.setText(genreStr);

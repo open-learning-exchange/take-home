@@ -19,7 +19,6 @@ public class CouchViews {
                     new Mapper(){
                         @Override
                         public void map(Map<String, Object> document,Emitter emitter) {
-                    /* Emit data to matieralized view */
                             if ("Member".equals(document.get("kind"))) {
                                 emitter.emit((String) document.get("login"), (String) document.get("_id"));
                             }
@@ -35,10 +34,9 @@ public class CouchViews {
                 new Mapper(){
                     @Override
                     public void map(Map<String, Object> document,Emitter emitter) {
-                    /* Emit data to matieralized view */
-                        if ("Member".equals(document.get("kind"))) {
+                    if ("Member".equals(document.get("kind"))) {
                             emitter.emit((String) document.get("firstName"), (String) document.get("_id"));
-                        }
+                    }
                     }
                 }, "4"
         );
@@ -47,15 +45,11 @@ public class CouchViews {
 
     public View ReadShelfByIdView(Database db) {
         View shelfListByIdView = db.getView("ShelfByID");
-        //if (LoginByIdView == null) {
         shelfListByIdView.setMap(
                 new Mapper(){
                     @Override
                     public void map(Map<String, Object> document,Emitter emitter) {
-                    /* Emit data to matieralized view */
-                        ///if ("Member".equals(document.get("kind"))) {
-                            emitter.emit((String) document.get("memberId"), (String) document.get("_id"));
-                        //}
+                    emitter.emit((String) document.get("memberId"), (String) document.get("_id"));
                     }
                 }, "4"
         );

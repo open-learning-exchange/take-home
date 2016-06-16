@@ -3,8 +3,10 @@ package pbell.offline.ole.org.pbell;
 /**
  * Created by leonardmensah on 17/05/16.
  */
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetFileDescriptor;
@@ -115,6 +117,9 @@ public class TabFragment1 extends Fragment {
         }
 
 
+
+
+
         //Just Download
         //HTML
         //PDF.js
@@ -165,6 +170,7 @@ public class TabFragment1 extends Fragment {
                }
         });
         copyAssets();
+        copyAPK();
         //pDialog = new ProgressDialog(context);
         // Showing progress dialog before making http request
         //pDialog.setMessage("Loading...");
@@ -193,6 +199,31 @@ public class TabFragment1 extends Fragment {
             myDir.mkdirs();
         }
         File dst = new File(myDir,"bgin.mp4");
+        try {
+            FileOutputStream out = new FileOutputStream(dst);
+            byte[] buff = new byte[1024];
+            int read = 0;
+            while ((read = in.read(buff)) > 0) {
+                out.write(buff, 0, read);
+            }
+            in.close();
+            out.close();
+            Log.e("tag", "Video file copied "+ dst.toString());
+        }catch(Exception err){
+            err.printStackTrace();
+        } ///
+
+
+    }
+
+    private void copyAPK() {
+        InputStream in = getResources().openRawResource(R.raw.adobe_reader);
+        String root = Environment.getExternalStorageDirectory().toString();
+        File myDir = new File(root + "/ole_temp2");
+        if (!myDir.exists()){
+            myDir.mkdirs();
+        }
+        File dst = new File(myDir,"adobe_reader.apk");
         try {
             FileOutputStream out = new FileOutputStream(dst);
             byte[] buff = new byte[1024];
@@ -248,81 +279,94 @@ public class TabFragment1 extends Fragment {
         }
     }
 
-    public void openPDF(String docId,String fileName, String player) {
+    public void openPDF(String docId, final String fileName, String player) {
+        final String myfilename =  fileName;
         AndroidContext androidContext = new AndroidContext(context);
         Manager manager = null;
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database res_Db = manager.getExistingDatabase("resources");
             Document res_doc = res_Db.getExistingDocument(docId);
-            Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment(fileName);
+            final Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment(fileName);
 
-            InputStream in = null;
-            OutputStream out = null;
-            ////File file = new File(getActivity().getFilesDir(), "ABC.pdf");
-            try {
-                //in = assetManager.open("ABC.pdf");
-                out = getActivity().openFileOutput(fileName, Context.MODE_WORLD_READABLE);
-                copyFile(fileAttachment.getContent(), out);
-                //in.close();
-                //in = null;
-                out.flush();
-                out.close();
-                out = null;
-            } catch (Exception e) {
-                Log.e("tag", e.getMessage());
-            }
+            AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
+            alertDialog.setTitle("Open Document");
+            alertDialog.setMessage("Select which application you wish to open document with");
+            alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Adobe PDF Reader", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    try{
+                        File src = new File(fileAttachment.getContentURL().getPath());
+                        String root = Environment.getExternalStorageDirectory().toString();
+                        File myDir = new File(root + "/ole_temp");
+                        deleteDirectory(myDir);
+                        myDir.mkdirs();
+                        String diskFileName = fileAttachment.getName();
+                        diskFileName = diskFileName.replace(" ", "");
+                        File dst = new File(myDir,diskFileName);
+
+                        InputStream in = new FileInputStream(src);
+                        OutputStream out = new FileOutputStream(dst);
+
+                        // Transfer bytes from in to out
+                        byte[] buf = new byte[1024];
+                        int len;
+                        while ((len = in.read(buf)) > 0) {
+                            out.write(buf, 0, len);
+                        }
+                        in.close();
+                        out.close();
+                        dst.setReadable(true);
+
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setPackage("com.adobe.reader");
+                        intent.setDataAndType(Uri.fromFile(dst), "application/pdf");
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                    }catch(Exception err){
+                        File myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
+                        File dst = new File(myDir,"adobe_reader.apk");
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                    }
+
+                } });
+
+            alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "In-App PDF Viewer", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    OutputStream out = null;
+                    String diskFileName = fileAttachment.getName();
+                    diskFileName = diskFileName.replace(" ", "");
+                    try {
+                        out = getActivity().openFileOutput(diskFileName, Context.CONTEXT_IGNORE_SECURITY);
+                        copyFile(fileAttachment.getContent(), out);
+                        out.flush();
+                        out.close();
+                        out = null;
+                    } catch (Exception e) {
+                        Log.e("tag", e.getMessage());
+                    }
+                    Intent intent = new Intent(getActivity(), MyPdfViewerActivity.class);
+                    intent.putExtra(PdfViewerActivity.EXTRA_PDFFILENAME, getActivity().getFilesDir() + "/"+myfilename);
+                    startActivity(intent);
+
+                }});
+            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+
+
+                    //...
+
+                }});
+            alertDialog.show();
 
         } catch (Exception Er) {
+            Er.printStackTrace();
 
         }
-        Intent intent = new Intent(getActivity(), MyPdfViewerActivity.class);
-        intent.putExtra(PdfViewerActivity.EXTRA_PDFFILENAME, getActivity().getFilesDir() + "/"+fileName);
-        startActivity(intent);
+
     }
-
-    public void openVideo(String docId,String fileName, String player) {
-        AndroidContext androidContext = new AndroidContext(context);
-        Manager manager = null;
-        try {
-            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-            Database res_Db = manager.getExistingDatabase("resources");
-            Document res_doc = res_Db.getExistingDocument(docId);
-            Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment(fileName);
-
-            File src = new File(fileAttachment.getContentURL().getPath());
-            String root = Environment.getExternalStorageDirectory().toString();
-            File myDir = new File(root + "/ole_temp");
-            deleteDirectory(myDir);
-            myDir.mkdirs();
-            String diskFileName = fileAttachment.getName();
-            diskFileName = diskFileName.replace(" ", "");
-            File dst = new File(myDir,diskFileName);
-
-            InputStream in = new FileInputStream(src);
-            OutputStream out = new FileOutputStream(dst);
-
-            // Transfer bytes from in to out
-            byte[] buf = new byte[1024];
-            int len;
-            while ((len = in.read(buf)) > 0) {
-                out.write(buf, 0, len);
-            }
-            in.close();
-            out.close();
-            dst.setReadable(true);
-
-            Intent myIntent = new Intent(getActivity(),VideoViewActivity.class);
-            myIntent.putExtra("VIDEO_URL",Uri.fromFile(dst).toString());
-
-            Log.e("tag", Uri.fromFile(dst).toString());
-            startActivity(myIntent);
-
-        } catch (Exception Er) {
-
-        }
-    }
-
 
     public void openAudioVideo(String docId,String fileName, String player) {
         AndroidContext androidContext = new AndroidContext(context);
@@ -368,9 +412,6 @@ public class TabFragment1 extends Fragment {
                 getActivity().startActivity(intent);
             }else{
                 try {
-                    //videoURl = Uri.fromFile(dst);
-                    //if(new EditMovieTask(context, 0).append()){
-                    ///};
                     intent.setDataAndType(Uri.fromFile(dst),mimetype);
                     getActivity().startActivity(intent);
                 }catch (Exception Er) {
@@ -419,13 +460,6 @@ public class TabFragment1 extends Fragment {
         final int dotIndex = afterLastSlash.indexOf('.', afterLastBackslash);
         return (dotIndex == -1) ? "" : afterLastSlash.substring(dotIndex + 1);
     }
-
-    /*****************  This function used by adapter ****************/
-    /*public void onItemClick(int mPosition) {
-        ListModel tempValues = ( ListModel ) CustomListViewValuesArr.get(mPosition);
-        // SHOW ALERT
-       // Toast.makeText(CustomListView,""+tempValues.getCompanyName()+" Image:"+tempValues.getImage() +" Url:"+tempValues.getUrl(), Toast.LENGTH_LONG).show();
-    }*/
 
     public void LoadShelfResourceList() {
         String memberId = sys_usercouchId;
@@ -487,15 +521,8 @@ public class TabFragment1 extends Fragment {
                     resource.setDescription(myresDec);
                     resource.setRating(myresType);
 
-                    // Genre is json array
-                    /*JSONArray genreArry = obj.getJSONArray("genre");
-                    ArrayList<String> genre = new ArrayList<String>();
-                    for (int j = 0; j < genreArry.length(); j++) {
-                        genre.add((String) genreArry.get(j));
-                    }*/
                     resource.setGenre(null);
-
-                    // adding movie to movies array
+                    // adding resource to resources array
                     resourceList.add(resource);
                     resourceNo++;
                 }
@@ -535,9 +562,6 @@ public class TabFragment1 extends Fragment {
         return img;
     }
 
-    public void DecodeEncodeVideo(String filePath){
-
-    }
 
     public class EditMovieTask extends AsyncTaskLoader<Boolean> {
 
