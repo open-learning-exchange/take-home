@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,14 +45,14 @@ public class MyLibraryArrayAdapter extends ArrayAdapter<String> {
         //this.values = values;
         this.data=d;
         map = new HashMap<String, Integer>();
-        map.put("image1", R.drawable.image1);
-        map.put("image2", R.drawable.image2);
-        map.put("image3", R.drawable.image3);
-        map.put("image4", R.drawable.image4);
+        map.put("image1", R.drawable.pdf);
+        map.put("image2", R.drawable.web);
+        map.put("image3", R.drawable.mp3);
+        map.put("image4", R.drawable.video);
        // dh = new DataHelper(getApplicationContext());
     }
 
-    @Override
+    /*@Override
     public View getView(final int position, final View convertView, ViewGroup parent) {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View vi = convertView;
@@ -62,12 +63,15 @@ public class MyLibraryArrayAdapter extends ArrayAdapter<String> {
             vi = inflater.inflate(R.layout.tabitem, null);
 
             ///View rowView = inflater.inflate(R.layout.tabitem, parent, false);
-            text = (TextView) vi.findViewById(R.id.text);
-            text1 = (TextView) vi.findViewById(R.id.text1);
-            image = (ImageView) vi.findViewById(R.id.image);
+            holder.text = (TextView) vi.findViewById(R.id.text);
+            holder.text1 = (TextView) vi.findViewById(R.id.text1);
+            holder.image = (ImageView) vi.findViewById(R.id.image);
+
+            vi.setTag(holder);
         }
-        else
-            holder=(CustomAdapter.ViewHolder)vi.getTag();
+        else {
+            holder = (CustomAdapter.ViewHolder) vi.getTag();
+        }
 
         if(data.size()<=0)
         {
@@ -80,38 +84,12 @@ public class MyLibraryArrayAdapter extends ArrayAdapter<String> {
                 tempValues=null;
                 tempValues = ( ListModel ) data.get( position );
 
-                /************  Set Model values in Holder elements ***********/
 
-                text.setText( tempValues.getTitle() );
-                text1.setText( tempValues.getDescription() );
-                image.setImageResource(map.get("image3"));
-
-
-
-
-
-                ///image.setImageResource( Resources.getSystem().getIdentifier("pbell.offline.ole.org.pbell:drawable/"+tempValues.getImage() ,null,null));
-        /*
-
-            vi.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Toast.makeText(getContext(), v.getId() + " this is my  =)", Toast.LENGTH_LONG).show();
-                }
-            });
-
-         */
-            ///vi.setOnClickListener(new OnItemClickListener( position ));
-
-
-               /// holder.image.setImageResource( res.getIdentifier("com.androidexample.customlistview:drawable/"+tempValues.getImage() ,null,null));
-
-                /******** Set Item Click Listner for LayoutInflater for each row *******/
-
-                ////vi.setOnClickListener(new AdapterView.OnItemClickListener( position ));
-
-
-
+            holder.text.setText( tempValues.getTitle() );
+            holder.text1.setText( tempValues.getDescription() );
+            holder.image.setImageResource(map.get("image3"));
+            vi.setTag(holder);
+            Log.e("MYAPP", "Added Id = "+tempValues.getTitle());
 
 
         }
@@ -119,4 +97,42 @@ public class MyLibraryArrayAdapter extends ArrayAdapter<String> {
 
         return vi;
     }
+    */
+
+    public View getView(final int position, View convertView, ViewGroup parent) {
+        LayoutInflater minflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final ViewHolder mHolder;
+        if (convertView == null) {
+            convertView = minflater.inflate(R.layout.tabitem, null);
+            mHolder = new ViewHolder();
+
+            mHolder.mText=(TextView) convertView.findViewById(R.id.text);
+            mHolder.mText1=(TextView) convertView.findViewById(R.id.text1);
+            mHolder.mImage=(ImageView) convertView.findViewById(R.id.image);
+
+            //convertView.setTag(mHolder);
+
+            tempValues=null;
+            tempValues = ( ListModel ) data.get( position );
+            mHolder.mText.setText( tempValues.getTitle() );
+            mHolder.mText1.setText( tempValues.getDescription() );
+            mHolder.mImage.setImageResource(map.get("image3"));
+
+            ///convertView.setTag(mHolder);
+            Log.e("MYAPP", "Added Id = "+tempValues.getTitle());
+
+        } else {
+           /// mHolder = (ViewHolder) convertView.getTag();
+        }
+
+        return convertView;
+    }
+
+    private class ViewHolder {
+        private TextView mText;
+        private TextView mText1;
+        private ImageView mImage;
+
+    }
+
 }

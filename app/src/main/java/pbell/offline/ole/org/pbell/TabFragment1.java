@@ -3,20 +3,38 @@ package pbell.offline.ole.org.pbell;
 /**
  * Created by leonardmensah on 17/05/16.
  */
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
+import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.AsyncTaskLoader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import net.sf.andpdf.pdfviewer.PdfViewerActivity;
+
+import com.couchbase.lite.Attachment;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.Manager;
@@ -25,22 +43,33 @@ import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
 
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+
+import com.coremedia.iso.boxes.Container;
+import com.googlecode.mp4parser.authoring.Movie;
+import com.googlecode.mp4parser.authoring.Track;
+import com.googlecode.mp4parser.authoring.builder.DefaultMp4Builder;
+import com.googlecode.mp4parser.authoring.container.mp4.MovieCreator;
+import com.googlecode.mp4parser.authoring.tracks.AppendTrack;
+import com.googlecode.mp4parser.authoring.tracks.CroppedTrack;
+import com.googlecode.mp4parser.authoring.tracks.TextTrackImpl;
+
 public class TabFragment1 extends Fragment {
-    /*
-    String[] data = new String[]{
-            "Max","Nan","Another"
-    };*/
+
     ListView list;
-    CustomAdapter adapter;
     public  TabFragment1 CustomListView = null;
     public ArrayList<ListModel> CustomListViewValuesArr = new ArrayList<ListModel>();
+
+
+
+
     public static final String PREFS_NAME = "MyPrefsFile";
     SharedPreferences settings;
     CouchViews chViews = new CouchViews();
@@ -49,12 +78,47 @@ public class TabFragment1 extends Fragment {
     String sys_oldSyncServerURL,sys_username,sys_lastSyncDate,
             sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
             sys_usergender, sys_uservisits= "";
-    int sys_uservisits_Int=0;
+    Object[] sys_membersWithResource;
+    int resourceNo=0;
+
+    String resourceIdList[];
+    int rsLstCnt=0;
+
+    ImageView[] imageView;
+    static Uri videoURl;
+    static Intent intent;
+    ///////////////////////////
+
+    // Log tag
+    private static final String TAG = TabFragment1.class.getSimpleName();
+
+    // Movies json url
+    private static final String url = "http://api.androidhive.info/json/movies.json";
+    private ProgressDialog pDialog;
+    private List<Resource> resourceList = new ArrayList<Resource>();
+    private ListView listView;
+    private CustomListAdapter adapter;
+
+    AssetManager assetManager;
+    AssetFileDescriptor afd;
+
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         context = container.getContext();
+
+        CustomListView = this;
+        assetManager = getActivity().getAssets();
+        try {
+            afd = assetManager.openFd("begin.mp4");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+
+
 
         //Just Download
         //HTML
@@ -64,16 +128,7 @@ public class TabFragment1 extends Fragment {
         //Flow Video Player
         //BeLL Video Book Player
         //Native Video
-
-
-        //Type
-        //Textbook
-        //Lesson Plan
-        //Activities
-        //Exercises
-        //Discussion Questions*/
-
-        settings = getActivity().getSharedPreferences(PREFS_NAME, 0);
+        settings = context.getSharedPreferences(PREFS_NAME, 0);
         sys_username = settings.getString("pf_username","");
         sys_oldSyncServerURL = settings.getString("pf_sysncUrl","");
         sys_lastSyncDate = settings.getString("pf_lastSyncDate","");
@@ -82,105 +137,581 @@ public class TabFragment1 extends Fragment {
         sys_userfirstname = settings.getString("pf_userfirstname","");
         sys_userlastname = settings.getString("pf_userlastname","");
         sys_usergender = settings.getString("pf_usergender","");
-        sys_uservisits_Int = settings.getInt("pf_uservisits_Int",0);
-        sys_uservisits= settings.getString("pf_uservisits","");
+        sys_uservisits = settings.getString("pf_uservisits","");
 
 
+        Set<String>  mwr = settings.getStringSet("membersWithResource",null);
+        try{
+            sys_membersWithResource = mwr.toArray();
+            Log.e("MYAPP", " membersWithResource  = "+sys_membersWithResource.length);
 
-        loadUserDetails();
-        setListData();
+        }catch(Exception err){
+            Log.e("MYAPP", " Error creating  sys_membersWithResource");
+        }
+
+
+        ///loadUserDetails();
+        ///if (!resourceList.isEmpty()) {
+            resourceList.clear();
+            LoadShelfResourceList();
+
+        //}
+
+        //setListData();
 
         View rootView = inflater.inflate(R.layout.tab_fragment_1, container, false);
-        ListView lv = (ListView)rootView.findViewById(R.id.frg1_listView);
-        MyLibraryArrayAdapter adapter = new MyLibraryArrayAdapter(getActivity(),  R.id.frg1_listView,CustomListViewValuesArr);
-        lv.setAdapter(adapter);
 
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> adapter, View v, int position, long id) {
-                Toast.makeText(getContext(), position+" Clicked Item ", Toast.LENGTH_LONG).show();
-            }
+        listView = (ListView) rootView.findViewById(R.id.list);
+        adapter = new CustomListAdapter(this.getActivity(), resourceList);
+        listView.setAdapter(adapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                public void onItemClick(AdapterView<?> adapter, View v, int position, long id) {
+                    openDoc(resourceIdList[position]);
+               }
         });
+        copyAssets();
+        copyAPK();
+        //pDialog = new ProgressDialog(context);
+        // Showing progress dialog before making http request
+        //pDialog.setMessage("Loading...");
+        //pDialog.show();
 
-
-
-        //return inflater.inflate(R.layout.tab_fragment_1, container, false);
+        // changing action bar color
+        //getActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#1b1b1b")));
         return rootView;
 
     }
 
-    /****** Function to set data in ArrayList *************/
-    public void setListData()
-    {
+    private void copyFile(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[1024];
+        int read;
+        while ((read = in.read(buffer)) != -1)
+        {
+            out.write(buffer, 0, read);
+        }
+    }
 
-        for (int i = 0; i < 8; i++) {
+    private void copyAssets() {
+        InputStream in = getResources().openRawResource(R.raw.bgin);
+        String root = Environment.getExternalStorageDirectory().toString();
+        File myDir = new File(root + "/ole_temp2");
+        if (!myDir.exists()){
+            myDir.mkdirs();
+        }
+        File dst = new File(myDir,"bgin.mp4");
+        try {
+            FileOutputStream out = new FileOutputStream(dst);
+            byte[] buff = new byte[1024];
+            int read = 0;
+            while ((read = in.read(buff)) > 0) {
+                out.write(buff, 0, read);
+            }
+            in.close();
+            out.close();
+            Log.e("tag", "Video file copied "+ dst.toString());
+        }catch(Exception err){
+            err.printStackTrace();
+        } ///
 
-            final ListModel sched = new ListModel();
 
-            /******* Firstly take data in model object ******/
-            sched.setTitle("Resource Title : "+i);
-            ///sched.setImage("image"+i);
-            sched.setImage("image"+(i+1)+"");
-            sched.setDescription("Resource Type : "+i+"");
+    }
 
-            /******** Take Model Object in ArrayList **********/
-            CustomListViewValuesArr.add( sched );
+    private void copyAPK() {
+        InputStream in = getResources().openRawResource(R.raw.adobe_reader);
+        String root = Environment.getExternalStorageDirectory().toString();
+        File myDir = new File(root + "/ole_temp2");
+        if (!myDir.exists()){
+            myDir.mkdirs();
+        }
+        File dst = new File(myDir,"adobe_reader.apk");
+        try {
+            FileOutputStream out = new FileOutputStream(dst);
+            byte[] buff = new byte[1024];
+            int read = 0;
+            while ((read = in.read(buff)) > 0) {
+                out.write(buff, 0, read);
+            }
+            in.close();
+            out.close();
+            Log.e("tag", "Video file copied "+ dst.toString());
+        }catch(Exception err){
+            err.printStackTrace();
+        } ///
+
+
+    }
+
+    public void openDoc(String docId) {
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database res_Db = manager.getExistingDatabase("resources");
+            Document res_doc = res_Db.getExistingDocument(docId);
+            Log.e("MYAPP", " membersWithID  = " + docId);
+
+            List<String> attmentNames = res_doc.getCurrentRevision().getAttachmentNames();
+            if (attmentNames.size() > 0) {
+                for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                    Log.e("MYAPP", " membersWithResource  = " + getExtension(attmentNames.get(cnt)));
+                    switch (getExtension(attmentNames.get(cnt))){
+                        case "mp3":
+                            openAudioVideo(docId,(String) attmentNames.get(cnt),getExtension(attmentNames.get(cnt)));
+                            break;
+                        case "mov":
+                            openAudioVideo(docId,(String) attmentNames.get(cnt),getExtension(attmentNames.get(cnt)));
+                            break;
+                        case "mp4":
+                            openAudioVideo(docId,(String) attmentNames.get(cnt),getExtension(attmentNames.get(cnt)));
+                           break;
+                        case "pdf":
+                            openPDF(docId,(String) attmentNames.get(cnt),getExtension(attmentNames.get(cnt)));
+                            break;
+                        default:
+                            Toast.makeText(getContext(), getExtension(attmentNames.get(cnt)) + " File type not supported yet ", Toast.LENGTH_LONG).show();
+                            break;
+                    }
+                }
+
+            }
+        } catch (Exception Er) {
+
+        }
+    }
+
+    public void openPDF(String docId, final String fileName, String player) {
+        final String myfilename =  fileName;
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database res_Db = manager.getExistingDatabase("resources");
+            Document res_doc = res_Db.getExistingDocument(docId);
+            final Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment(fileName);
+
+            AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
+            alertDialog.setTitle("Open Document");
+            alertDialog.setMessage("Select which application you wish to open document with");
+            alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Adobe PDF Reader", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    try{
+                        File src = new File(fileAttachment.getContentURL().getPath());
+                        String root = Environment.getExternalStorageDirectory().toString();
+                        File myDir = new File(root + "/ole_temp");
+                        deleteDirectory(myDir);
+                        myDir.mkdirs();
+                        String diskFileName = fileAttachment.getName();
+                        diskFileName = diskFileName.replace(" ", "");
+                        File dst = new File(myDir,diskFileName);
+
+                        InputStream in = new FileInputStream(src);
+                        OutputStream out = new FileOutputStream(dst);
+
+                        // Transfer bytes from in to out
+                        byte[] buf = new byte[1024];
+                        int len;
+                        while ((len = in.read(buf)) > 0) {
+                            out.write(buf, 0, len);
+                        }
+                        in.close();
+                        out.close();
+                        dst.setReadable(true);
+
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setPackage("com.adobe.reader");
+                        intent.setDataAndType(Uri.fromFile(dst), "application/pdf");
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                    }catch(Exception err){
+                        File myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
+                        File dst = new File(myDir,"adobe_reader.apk");
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                    }
+
+                } });
+
+            alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "In-App PDF Viewer", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    OutputStream out = null;
+                    String diskFileName = fileAttachment.getName();
+                    diskFileName = diskFileName.replace(" ", "");
+                    try {
+                        out = getActivity().openFileOutput(diskFileName, Context.CONTEXT_IGNORE_SECURITY);
+                        copyFile(fileAttachment.getContent(), out);
+                        out.flush();
+                        out.close();
+                        out = null;
+                    } catch (Exception e) {
+                        Log.e("tag", e.getMessage());
+                    }
+                    Intent intent = new Intent(getActivity(), MyPdfViewerActivity.class);
+                    intent.putExtra(PdfViewerActivity.EXTRA_PDFFILENAME, getActivity().getFilesDir() + "/"+myfilename);
+                    startActivity(intent);
+
+                }});
+            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+
+
+                    //...
+
+                }});
+            alertDialog.show();
+
+        } catch (Exception Er) {
+            Er.printStackTrace();
+
         }
 
     }
 
-
-    /*****************  This function used by adapter ****************/
-    public void onItemClick(int mPosition)
-    {
-        ListModel tempValues = ( ListModel ) CustomListViewValuesArr.get(mPosition);
-
-
-        // SHOW ALERT
-
-       // Toast.makeText(CustomListView,""+tempValues.getCompanyName()+" Image:"+tempValues.getImage() +" Url:"+tempValues.getUrl(), Toast.LENGTH_LONG).show();
-    }
-    public void loadUserDetails() {
+    public void openAudioVideo(String docId,String fileName, String player) {
         AndroidContext androidContext = new AndroidContext(context);
         Manager manager = null;
         try {
-            if (sys_usercouchId != "") {
-                manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                Database db = manager.getExistingDatabase("shelf");
-                //Database db_resources = manager.getExistingDatabase("resources");
-                Query orderedQuery = chViews.ReadShelfByIdView(db).createQuery();
-                orderedQuery.setDescending(true);
-                ///orderedQuery.setStartKeyDocId(sys_usercouchId);
-                orderedQuery.setStartKey(sys_usercouchId);
-                //orderedQuery.setEndKey("2014");
-                //orderedQuery.setLimit(0);
-                QueryEnumerator results = orderedQuery.run();
-                for (Iterator<QueryRow> it = results; it.hasNext(); ) {
-                    QueryRow row = it.next();
-                    ///String docId = (String) row.getValue();
-                   // HashMap<String,String> map =(HashMap<String,String>)row.getValue();
-                    //String value = map.get("_id");
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database res_Db = manager.getExistingDatabase("resources");
+            Document res_doc = res_Db.getExistingDocument(docId);
+            Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment(fileName);
 
+            File src = new File(fileAttachment.getContentURL().getPath());
+            String root = Environment.getExternalStorageDirectory().toString();
+            File myDir = new File(root + "/ole_temp");
+            deleteDirectory(myDir);
+            myDir.mkdirs();
+            String diskFileName = fileAttachment.getName();
+            diskFileName = diskFileName.replace(" ", "");
+            File dst = new File(myDir,diskFileName);
 
+            InputStream in = new FileInputStream(src);
+            OutputStream out = new FileOutputStream(dst);
 
-                    ///Document doc = db.getExistingDocument(docId);
-                    //Map<String, Object> properties = doc.getProperties();
-                    ////////////////Log.e("MYAPP", " Data In Shelf Id: " + row.getValue());
-
-                    /*Set<String> stgSet = settings.getStringSet("pf_userroles", new HashSet<String>());
-                    ArrayList roleList = (ArrayList<String>) properties.get("roles");
-                    for(int cnt=0;cnt< roleList.size();cnt++){
-                        stgSet.add(String.valueOf(roleList.get(cnt)));
-                    }
-                    Log.e("MYAPP", " Data Login Id: " + doc_loginId +" Password: "+ doc_password);
-                    Intent intent = new Intent(this,Dashboard.class);
-                    startActivity(intent);*/
-
-
-                }
-                //db.close();
+            // Transfer bytes from in to out
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
             }
+            in.close();
+            out.close();
+            dst.setReadable(true);
+            ////Log.e("tag", src.getPath()+" S " +src.length());
+            ////Log.e("tag", dst.getCanonicalPath()+" D " +dst.length());
+
+            String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(dst).toString());
+            String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+            intent = new Intent();
+            intent.setAction(Intent.ACTION_VIEW);
+            Log.e("tag","- "+ mimetype +" - ");
+
+            if(mimetype=="audio/mpeg"){
+                intent.setDataAndType(Uri.fromFile(dst),mimetype);
+                getActivity().startActivity(intent);
+            }else{
+                try {
+                    intent.setDataAndType(Uri.fromFile(dst),mimetype);
+                    getActivity().startActivity(intent);
+                }catch (Exception Er) {
+                    Log.e("tag", Er.getMessage());
+                }
+            }
+        } catch (Exception Er) {
+            Log.e("tag", Er.getMessage());
+        }
+    }
+
+    boolean deleteDirectory(File path) {
+        if(path.exists()) {
+            if (path.isDirectory()) {
+                File[] files = path.listFiles();
+                for (int i=0; i<files.length; i++) {
+                    deleteDirectory(files[i]);
+                }
+            }
+            return path.delete();
+        }
+
+        return false;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        hidePDialog();
+    }
+
+    private void hidePDialog() {
+        if (pDialog != null) {
+            pDialog.dismiss();
+            pDialog = null;
+        }
+    }
+
+
+    public String getExtension(final String filename) {
+        if (filename == null){
+            return null;
+        }
+        final String afterLastSlash = filename.substring(filename.lastIndexOf('/') + 1);
+        final int afterLastBackslash = afterLastSlash.lastIndexOf('\\') + 1;
+        final int dotIndex = afterLastSlash.indexOf('.', afterLastBackslash);
+        return (dotIndex == -1) ? "" : afterLastSlash.substring(dotIndex + 1);
+    }
+
+    public void LoadShelfResourceList() {
+        String memberId = sys_usercouchId;
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database db = manager.getExistingDatabase("shelf");
+            Database resource_Db = manager.getExistingDatabase("resources");
+            Query orderedQuery = chViews.ReadShelfByIdView(db).createQuery();
+            orderedQuery.setDescending(true);
+            //orderedQuery.setStartKey(memberId);
+            //orderedQuery.setLimit(0);
+            QueryEnumerator results = orderedQuery.run();
+            resourceIdList = new String[results.getCount()];
+            rsLstCnt = 0;
+            Map<String, Object> resource_properties = null;
+            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document doc = db.getExistingDocument(docId);
+                Map<String, Object> properties = doc.getProperties();
+                if(memberId.equals((String) properties.get("memberId"))) {
+                    String myresTitile = "";
+                    String myresId = "";
+                    String myresType = "";
+                    String myresDec = "";
+                    String myresExt = "";
+                    try {
+                        Document resource_doc = resource_Db.getExistingDocument((String) properties.get("resourceId"));
+                        Log.e("tag", "RES ID "+ (String) properties.get("resourceId"));
+                        try {
+                            resource_properties = resource_doc.getProperties();
+                        }catch(Exception errs){
+                            Log.e("tag", "OBJECT ERROR "+ errs.toString());
+                        }
+                        myresTitile = (String) resource_properties.get("title")+"";
+                        myresId = (String) properties.get("resourceId")+"";
+                        myresDec = (String) resource_properties.get("author")+"";
+                        myresType = (String) resource_properties.get("averageRating")+"";
+                        myresExt = (String) resource_properties.get("openWith")+"";
+                        resourceIdList[rsLstCnt]=myresId;
+                        rsLstCnt++;
+                    }catch(Exception err){
+
+
+                        Log.e("tag", "ERROR "+ err.getMessage());
+                        myresTitile = "Unknown resource .. ";
+                        myresId = "";
+                        myresDec = "Not yet downloaded.. Please sync";
+                        myresType = "";
+                        rsLstCnt++;
+
+                    }
+
+                    Resource resource = new Resource();
+                    resource.setTitle(myresTitile);
+                    resource.setThumbnailUrl(getIconType(myresExt));
+                    resource.setDescription(myresDec);
+                    resource.setRating(myresType);
+
+                    resource.setGenre(null);
+                    // adding resource to resources array
+                    resourceList.add(resource);
+                    resourceNo++;
+                }
+            }
+
+            ///adapter.notifyDataSetChanged();
+
+            ///Log.d("PreExceute","Items "+ db.getDocumentCount());
+
+            db.close();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+    public int getIconType(String myresExt){
+
+        int img = R.drawable.web;
+        switch (myresExt){
+            case "Flow Video Player":
+                img = R.drawable.video;
+                break;
+            case "MP3":
+                img = R.drawable.mp3;
+                break;
+            case "PDF.js":
+                img = R.drawable.pdf;
+                break;
+            case "":
+                img = R.drawable.web;
+                break;
+            default:
+                img = R.drawable.web;
+                break;
+        }
+        return img;
+    }
+
+
+    public class EditMovieTask extends AsyncTaskLoader<Boolean> {
+
+        private int mType;
+
+        public EditMovieTask(Context context, int type) {
+            super(context);
+            mType = type;
+            forceLoad();
+        }
+
+        @Override
+        public Boolean loadInBackground() {
+            switch (mType) {
+                case 0:
+                    return append();
+                case 1:
+                    return crop();
+                case 2:
+                    return subTitle();
+            }
+
+            return false;
+        }
+        private boolean append() {
+            try {
+                // 複数の動画を読み込み
+                String f1 = videoURl.getPath();
+                //String f1 = Environment.getExternalStorageDirectory() + "/ole_temp2/bgin.mp4";
+                ////String f2 = Environment.getExternalStorageDirectory() + "/sample2.mp4";
+                String f2 = videoURl.getPath();
+                Log.e("tag","Video URL "+ f2 +" - ");
+
+                Movie[] inMovies = new Movie[]{
+                        MovieCreator.build(f1),
+                        MovieCreator.build(f2)};
+
+                // 1つのファイルに結合
+                List<Track> videoTracks = new LinkedList<Track>();
+                List<Track> audioTracks = new LinkedList<Track>();
+                for (Movie m : inMovies) {
+                    for (Track t : m.getTracks()) {
+                        if (t.getHandler().equals("soun")) {
+                            audioTracks.add(t);
+                        }
+                        if (t.getHandler().equals("vide")) {
+                            videoTracks.add(t);
+                        }
+                    }
+                }
+                Movie result = new Movie();
+                if (audioTracks.size() > 0) {
+                    result.addTrack(new AppendTrack(audioTracks.toArray(new Track[audioTracks.size()])));
+                }
+                if (videoTracks.size() > 0) {
+                    result.addTrack(new AppendTrack(videoTracks.toArray(new Track[videoTracks.size()])));
+                }
+
+                // 出力
+                Container out = new DefaultMp4Builder().build(result);
+                String outputFilePath = Environment.getExternalStorageDirectory() + "/ole_temp/output_append.mp4";
+                FileOutputStream fos = new FileOutputStream(new File(outputFilePath));
+                out.writeContainer(fos.getChannel());
+                fos.close();
+
+                String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(new File(outputFilePath)).toString());
+                String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                intent.setDataAndType(Uri.fromFile(new File(outputFilePath)),mimetype);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(intent);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+
+            return true;
+        }
+
+        private boolean crop() {
+            try {
+                // オリジナル動画を読み込み
+                ///String filePath = Environment.getExternalStorageDirectory() + "/sample1.mp4";
+                String filePath = videoURl.getPath();
+                Movie originalMovie = MovieCreator.build(filePath);
+
+                // 分割
+                Track track = originalMovie.getTracks().get(0);
+                Movie movie = new Movie();
+                movie.addTrack(new AppendTrack(new CroppedTrack(track, 200, 400)));
+
+                // 出力
+                Container out = new DefaultMp4Builder().build(movie);
+                String outputFilePath = Environment.getExternalStorageDirectory() + "/output_crop.mp4";
+                FileOutputStream fos = new FileOutputStream(new File(outputFilePath));
+                out.writeContainer(fos.getChannel());
+                fos.close();
+
+                String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(new File(outputFilePath)).toString());
+                String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                intent.setDataAndType(Uri.fromFile(new File(outputFilePath)),mimetype);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(intent);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+            return true;
+        }
+
+        private boolean subTitle() {
+            try {
+                // オリジナル動画を読み込み
+                ///String filePath = Environment.getExternalStorageDirectory() + "/sample1.mp4";
+                String filePath = videoURl.getPath();
+                Movie countVideo = MovieCreator.build(filePath);
+
+                // SubTitleを追加
+                TextTrackImpl subTitleEng = new TextTrackImpl();
+                subTitleEng.getTrackMetaData().setLanguage("eng");
+
+                subTitleEng.getSubs().add(new TextTrackImpl.Line(0, 1000, "Five"));
+                subTitleEng.getSubs().add(new TextTrackImpl.Line(1000, 2000, "Four"));
+                subTitleEng.getSubs().add(new TextTrackImpl.Line(2000, 3000, "Three"));
+                subTitleEng.getSubs().add(new TextTrackImpl.Line(3000, 4000, "Two"));
+                subTitleEng.getSubs().add(new TextTrackImpl.Line(4000, 5000, "one"));
+                countVideo.addTrack(subTitleEng);
+
+                // 出力
+                Container container = new DefaultMp4Builder().build(countVideo);
+                String outputFilePath = Environment.getExternalStorageDirectory() + "/output_subtitle.mp4";
+                FileOutputStream fos = new FileOutputStream(outputFilePath);
+                FileChannel channel = fos.getChannel();
+                container.writeContainer(channel);
+                fos.close();
+
+
+                String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(new File(outputFilePath)).toString());
+                String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                intent.setDataAndType(Uri.fromFile(new File(outputFilePath)),mimetype);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(intent);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+            return true;
+        }
+
+    }
+
 }

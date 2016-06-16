@@ -35,6 +35,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.couchbase.lite.Attachment;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.Manager;
@@ -43,6 +44,13 @@ import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.replicator.Replication;
+import com.github.kittinunf.fuel.Fuel;
+import com.github.kittinunf.fuel.core.FuelError;
+import com.github.kittinunf.fuel.core.Request;
+import com.github.kittinunf.fuel.core.Response;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.net.URL;
 import java.text.Collator;
@@ -52,6 +60,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -84,6 +93,10 @@ public class MemberListDownloadRes extends AppCompatActivity {
 
     boolean synchronizing = false;
     boolean wipeClearn =false;
+
+
+    JSONObject jsonData;
+    int resourceCntr,attachmentLength;
 
 
     @Override
@@ -395,12 +408,16 @@ public class MemberListDownloadRes extends AppCompatActivity {
 
         protected Boolean doInBackground(final String... args) {
             Log.d("DoINBackGround","On doInBackground...");
-            Manager manager = null;
-
+            final Manager manager ;
+            final Database res_Db;
+            final Fuel ful = new Fuel();
+            jsonData = null;
+            attachmentLength= -1;
             try {
                 URL url = new URL(sys_oldSyncServerURL+"/resources");
                 manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                 dbResources = manager.getDatabase("resources");
+                res_Db = manager.getExistingDatabase("resources");
                 pull = dbResources.createPullReplication(url);
                 pull.setFilter("apps/by_resource");
                 Map<String, Object> params = new HashMap<String, Object>();
@@ -408,6 +425,7 @@ public class MemberListDownloadRes extends AppCompatActivity {
                 //Log.e("MyCouch", " Resource ID "+ lst.get(syncCnt));
                 pull.setFilterParams(params);
                 pull.setContinuous(false);
+                ////pull.setAuthenticator(new BasicAuthenticator(userName, userPw));
                 pull.addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
@@ -416,7 +434,60 @@ public class MemberListDownloadRes extends AppCompatActivity {
                             Log.e("MyCouch", " Document Count "+dbResources.getDocumentCount());
                         }else {
                             Log.e("Finished", ""+dbResources.getDocumentCount());
-                            if(syncCnt < (lst.size()-1)){
+                            ////// CHECK REMOTE ATTACHMENT FILE SIZE VS LOCAL ATTACHMENT FILE SIZE (length)
+                            Document res_doc = res_Db.getExistingDocument(lst.get(syncCnt));
+                            final List<String> attmentNames = res_doc.getCurrentRevision().getAttachmentNames();
+                            /// IF local document has attachments
+                            if (attmentNames.size() > 0) {
+                                for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                                    resourceCntr = cnt;
+                                    Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment((String) attmentNames.get(cnt));
+                                    ///
+                                    ful.get(sys_oldSyncServerURL+"/resources/"+lst.get(syncCnt)).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+                                        @Override
+                                        public void success(Request request, Response response, String s) {
+                                            try {
+                                                jsonData = new JSONObject(s);
+                                                //Log.e("MyCouch", "-- "+jsonData);
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
+                                            try {
+                                                JSONObject jsob = jsonData.getJSONObject("_attachments");
+                                                JSONObject jsoAttachments = jsob.getJSONObject((String) attmentNames.get(resourceCntr));
+                                                attachmentLength = jsoAttachments.getInt("length");
+                                                Log.e("MyCouch", "Attachment Object Content "+jsoAttachments);
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                        @Override
+                                        public void failure(Request request, Response response, FuelError fuelError) {
+                                            Log.e("MyCouch", " "+fuelError);
+
+                                        }
+                                    });
+                                    /// If local attachment length is greater or equal to remote attachment, continue
+                                    /// Else run the replication again
+                                    if(fileAttachment.getLength() >= attachmentLength){
+                                        Log.e("MyCouch", "Local = "+fileAttachment.getLength() + "  Remote = " +attachmentLength);
+                                        if(syncCnt < (lst.size()-1)){
+                                            syncCnt++;
+                                            new TestAsyncPull().execute();
+                                        }else{
+                                            if (synchronizing){
+                                                mydialog.dismiss();
+                                            }
+                                            synchronizing = false;
+                                        }
+
+                                    }else{
+                                        Log.e("MyCouch", "Local = "+fileAttachment.getLength() + "  Remote = " +attachmentLength);
+
+                                        new TestAsyncPull().execute();
+                                    }
+                                }
+                            } else if(syncCnt < (lst.size()-1)){
                                 syncCnt++;
                                 new TestAsyncPull().execute();
                             }else{
@@ -424,8 +495,9 @@ public class MemberListDownloadRes extends AppCompatActivity {
                                     mydialog.dismiss();
                                 }
                                 synchronizing = false;
-
                             }
+                            //////////////////////
+
                         }
                     }
                 });
