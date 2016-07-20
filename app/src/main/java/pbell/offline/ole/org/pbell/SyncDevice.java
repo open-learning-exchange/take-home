@@ -68,7 +68,7 @@ public class SyncDevice extends AppCompatActivity {
     FloatingActionButton fab;
     Boolean wipeClearn =false;
     final Context context = this;
-    String[] databaseList = {"members","membercourseprogress","meetups","usermeetups","assignments",
+    String[] databaseList = {"members","membercourseprogress","meetups","usermeetups","assignments","coursestep",
             "calendar","groups","invitations","requests","shelf","languages"};
 
     Replication[] push = new Replication[databaseList.length];

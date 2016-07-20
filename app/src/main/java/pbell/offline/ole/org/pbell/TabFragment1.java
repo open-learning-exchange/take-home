@@ -110,11 +110,11 @@ public class TabFragment1 extends Fragment {
 
         CustomListView = this;
         assetManager = getActivity().getAssets();
-        try {
-            afd = assetManager.openFd("begin.mp4");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            afd = assetManager.openFd("begin.mp4");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
 
 
@@ -169,7 +169,7 @@ public class TabFragment1 extends Fragment {
                     openDoc(resourceIdList[position]);
                }
         });
-        copyAssets();
+        //////copyAssets();
         copyAPK();
         //pDialog = new ProgressDialog(context);
         // Showing progress dialog before making http request
@@ -233,7 +233,7 @@ public class TabFragment1 extends Fragment {
             }
             in.close();
             out.close();
-            Log.e("tag", "Video file copied "+ dst.toString());
+            Log.e("tag", "Adobe Reader Copied "+ dst.toString());
         }catch(Exception err){
             err.printStackTrace();
         } ///
@@ -296,32 +296,34 @@ public class TabFragment1 extends Fragment {
                 public void onClick(DialogInterface dialog, int id) {
                     try{
                         File src = new File(fileAttachment.getContentURL().getPath());
+                        InputStream in = new FileInputStream(src);
                         String root = Environment.getExternalStorageDirectory().toString();
                         File myDir = new File(root + "/ole_temp");
-                        deleteDirectory(myDir);
-                        myDir.mkdirs();
-                        String diskFileName = fileAttachment.getName();
-                        diskFileName = diskFileName.replace(" ", "");
-                        File dst = new File(myDir,diskFileName);
-
-                        InputStream in = new FileInputStream(src);
-                        OutputStream out = new FileOutputStream(dst);
-
-                        // Transfer bytes from in to out
-                        byte[] buf = new byte[1024];
-                        int len;
-                        while ((len = in.read(buf)) > 0) {
-                            out.write(buf, 0, len);
+                        if (!myDir.exists()){
+                            myDir.mkdirs();
                         }
-                        in.close();
-                        out.close();
-                        dst.setReadable(true);
+                        File dst = new File(myDir,fileAttachment.getName().replace(" ", ""));
+                        try {
+                            FileOutputStream out = new FileOutputStream(dst);
+                            byte[] buff = new byte[1024];
+                            int read = 0;
+                            while ((read = in.read(buff)) > 0) {
+                                out.write(buff, 0, read);
+                            }
+                            in.close();
+                            out.close();
+                            Log.e("tag", " Copied PDF "+ dst.toString());
+                        }catch(Exception err){
+                            err.printStackTrace();
+                        } ///
 
                         Intent intent = new Intent(Intent.ACTION_VIEW);
                         intent.setPackage("com.adobe.reader");
                         intent.setDataAndType(Uri.fromFile(dst), "application/pdf");
                         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         startActivity(intent);
+
+
                     }catch(Exception err){
                         File myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
                         File dst = new File(myDir,"adobe_reader.apk");
@@ -335,6 +337,49 @@ public class TabFragment1 extends Fragment {
 
             alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "In-App PDF Viewer", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
+
+                    try{
+                        File src = new File(fileAttachment.getContentURL().getPath());
+                        InputStream in = new FileInputStream(src);
+                        String root = Environment.getExternalStorageDirectory().toString();
+                        File myDir = new File(root + "/ole_temp");
+                        if (!myDir.exists()){
+                            myDir.mkdirs();
+                        }
+                        File dst = new File(myDir,fileAttachment.getName().replace(" ", ""));
+                        try {
+                            FileOutputStream out = new FileOutputStream(dst);
+                            byte[] buff = new byte[1024];
+                            int read = 0;
+                            while ((read = in.read(buff)) > 0) {
+                                out.write(buff, 0, read);
+                            }
+                            in.close();
+                            out.close();
+                            Log.e("tag", " Copied PDF "+ dst.toString());
+                        }catch(Exception err){
+                            err.printStackTrace();
+                        } ///
+
+
+                        Intent intent = new Intent(getActivity(), MyPdfViewerActivity.class);
+                        ///Uri.fromFile(dst)
+                        ///getActivity().getFilesDir() + "/"+myfilename
+                        Log.e("tag", " URL Path "+ Uri.fromFile(dst).getPath());
+                        intent.putExtra(PdfViewerActivity.EXTRA_PDFFILENAME, Uri.fromFile(dst).getPath());
+                        startActivity(intent);
+
+
+                    }catch(Exception err){
+
+                    }
+
+
+
+
+
+
+                    /*
                     OutputStream out = null;
                     String diskFileName = fileAttachment.getName();
                     diskFileName = diskFileName.replace(" ", "");
@@ -347,9 +392,8 @@ public class TabFragment1 extends Fragment {
                     } catch (Exception e) {
                         Log.e("tag", e.getMessage());
                     }
-                    Intent intent = new Intent(getActivity(), MyPdfViewerActivity.class);
-                    intent.putExtra(PdfViewerActivity.EXTRA_PDFFILENAME, getActivity().getFilesDir() + "/"+myfilename);
-                    startActivity(intent);
+                    */
+
 
                 }});
             alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Cancel", new DialogInterface.OnClickListener() {

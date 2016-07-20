@@ -10,6 +10,7 @@ package pbell.offline.ole.org.pbell;
     import android.content.SharedPreferences;
     import android.os.Bundle;
     import android.support.annotation.IdRes;
+    import android.support.design.widget.CoordinatorLayout;
     import android.support.design.widget.TabLayout;
     import android.support.v4.app.Fragment;
     import android.support.v4.app.FragmentManager;
@@ -142,7 +143,14 @@ public class Dashboard extends AppCompatActivity {
             mySectionsPagerAdapter = new SectionsPagerAdapter(fragMgr);
             mViewPager = (ViewPager) findViewById(R.id.container);
             mViewPager.setAdapter(mySectionsPagerAdapter);
+
             mBottomBar = BottomBar.attach(this, savedInstanceState);
+            mBottomBar.useOnlyStatusBarTopOffset();
+            //mBottomBar.setMaxFixedTabs(n-1);
+            //mBottomBar.noNavBarGoodness();
+           // mBottomBar = BottomBar.attachShy((CoordinatorLayout) findViewById(R.id.main_content),findViewById(R.id.container), savedInstanceState);
+
+            mBottomBar.noTabletGoodness();
             mBottomBar.setItemsFromMenu(R.menu.bottombar_menu, new OnMenuTabClickListener() {
                 @Override
                 public void onMenuTabSelected(@IdRes int menuItemId) {
@@ -155,12 +163,21 @@ public class Dashboard extends AppCompatActivity {
                 }
             });
 
+
+
             // Setting colors for different tabs when there's more than three of them.
             // You can set colors for tabs in three different ways as shown below.
             mBottomBar.mapColorForTab(0, ContextCompat.getColor(this, R.color.colorAccent));
             mBottomBar.mapColorForTab(1, 0xFF5D4037);
             mBottomBar.mapColorForTab(2, "#7B1FA2");
             mBottomBar.mapColorForTab(3, "#FF5252");
+
+
+
+
+
+
+            //mBottomBar.hide();
         }
 
 
