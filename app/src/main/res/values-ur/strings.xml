@@ -32,4 +32,6 @@
     <string name="title_activity_login">داخلہ</string>
     <string name="title_activity_sync_device">مطابقت پذیری ڈیوائس</string>
     <string name="troffy">ٹرافی</string>
+    <string name="launch_course">Launch Course</string>
+    <string name="open_course">Open Course</string>
 </resources>

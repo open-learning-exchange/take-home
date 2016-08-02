@@ -59,4 +59,7 @@
     <string name="sync_NowPullOnly">Synchronize With Server</string>
     <string name="sync_CloseWindow">Close</string>
     <string name="sync_DownloadResPersons">Download Resources</string>
+    <string name="launch_course">Launch Course</string>
+    <string name="open_course">Open Course</string>
+    <string name="title_activity_course">Course</string>
 </resources>

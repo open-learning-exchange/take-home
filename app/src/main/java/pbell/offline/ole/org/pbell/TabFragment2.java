@@ -4,6 +4,7 @@ package pbell.offline.ole.org.pbell;
  * Created by leonardmensah on 17/05/16.
  */
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -21,8 +22,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.coremedia.iso.boxes.Container;
@@ -74,7 +78,7 @@ public class TabFragment2 extends Fragment {
                 sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
                 sys_usergender, sys_uservisits= "";
         Object[] sys_membersWithResource;
-        int resourceNo=0;
+        int courseNo=0;
 
         String resourceIdList[];
         String courseIdList[];
@@ -89,9 +93,9 @@ public class TabFragment2 extends Fragment {
         // Log tag
         private static final String TAG = TabFragment2.class.getSimpleName();
 
-        private List<Resource> resourceList = new ArrayList<Resource>();
+        private List<CourseList> courses = new ArrayList<CourseList>();
         private ListView listView;
-        private CustomListAdapter adapter;
+        private CourceListCustomAdapter adapter;
 
         AssetManager assetManager;
         AssetFileDescriptor afd;
@@ -124,16 +128,17 @@ public class TabFragment2 extends Fragment {
                 Log.e("MYAPP", " Error creating  sys_membersWithResource");
             }
 
-            resourceList.clear();
+            courses.clear();
             LoadCourseList();
 
             View rootView = inflater.inflate(R.layout.tab_fragment_2, container, false);
 
             listView = (ListView) rootView.findViewById(R.id.list);
-            adapter = new CustomListAdapter(this.getActivity(), resourceList);
+            adapter = new CourceListCustomAdapter(this.getActivity(), courses);
             listView.setAdapter(adapter);
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 public void onItemClick(AdapterView<?> adapter, View v, int position, long id) {
+                    courseDetails(courseIdList[position]);
                     //openDoc(resourceIdList[position]);
                 }
             });
@@ -160,7 +165,7 @@ public class TabFragment2 extends Fragment {
             try {
                 manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                 Database db = manager.getExistingDatabase("membercourseprogress");
-                Database resource_Db = manager.getExistingDatabase("resources");
+                Database groups_Db = manager.getExistingDatabase("groups");
                 Database coursestep_Db = manager.getExistingDatabase("coursestep");
                 Query orderedQuery = chViews.ReadCourseList(db).createQuery();
                 orderedQuery.setDescending(true);
@@ -183,68 +188,48 @@ public class TabFragment2 extends Fragment {
                         ArrayList arr_courseStepsIds = new ArrayList();
                         ArrayList obj_courseResult = new ArrayList();
                         ArrayList obj_courseStatus = new ArrayList();
-                        Log.e("tag2", "Course ID "+ (String) membercourseProperties.get("courseId"));
                         arr_courseStepsIds = (ArrayList) membercourseProperties.get("stepsIds");
                         obj_courseResult = (ArrayList) membercourseProperties.get("stepsResult");
                         obj_courseStatus = (ArrayList) membercourseProperties.get("stepsStatus");
 
-                        ///String value = arr_courseStepsIds.toString();
-                        //for (int cnt=0;cnt<)
-                        Log.d("tag2", "Value is: "+arr_courseStepsIds.size());
-
-
-
-                       /* String mycourseDocId= "";
-                        String mycourseId = "";
-                        String mykind = "";
-                        String courseIdList[] = new String[properties.get("stepsIds").length()];
-                        String mystepsIds[] = new String[];
-                        String mystepsResult[] = new String[];
-                        String mystepsStatus [] = new String[];
                         try {
-                            Document coursestep_doc = coursestep_Db.getExistingDocument((String) properties.get("courseId"));
-                            Log.e("tag", "Course ID "+ (String) properties.get("courseId"));
-                            try {
-                                course_properties = coursestep_doc.getProperties();
-                            }catch(Exception errs){
-                                Log.e("tag", "OBJECT ERROR "+ errs.toString());
-                            }
-                            //myresTitile = (String) course_properties.get("title")+"";
-                            //myresId = (String) properties.get("resourceId")+"";
-                            //myresDec = (String) course_properties.get("author")+"";
-                            //myresType = (String) course_properties.get("averageRating")+"";
-                            //myresExt = (String) course_properties.get("openWith")+"";
-                            ///resourceIdList[rsLstCnt]=myresId;
-                            csLstCnt++;
+                           for (int i = 0; i < arr_courseStepsIds.size(); i++) {
+                               if(arr_courseStepsIds.size()>0) {
+                                   Document groups_doc = groups_Db.getExistingDocument((String) membercourseProperties.get("courseId"));
+                                   Map<String, Object> groups_Properties = groups_doc.getProperties();
+
+                                   Log.d("tag2", "Inside value is: " + groups_doc.getId());
+
+                                   CourseList courselst = new CourseList();
+                                   courselst.setTitle((String) groups_Properties.get("CourseTitle"));
+                                   courselst.setThumbnailUrl(getIconType(""));
+                                   String desc = (String) groups_Properties.get("description");
+                                   if (desc.length() > 250){
+                                       desc = desc.substring(0, 230)+" ...";
+                                    }
+                                   courselst.setDescription(desc);
+                                   courselst.setRating((String) groups_Properties.get("endDate") +"  "+ (String) groups_Properties.get("endTime"));
+                                   courselst.setGenre(null);
+                                   ////courseIdList[csLstCnt] = (String) arr_courseStepsIds.get(i);
+                                   courseIdList[csLstCnt] = (String) groups_Properties.get("_id");
+                                   // adding resource to resources array
+                                   courses.add(courselst);
+                                   courseNo++;
+                               }
+                           }
+
+
                         }catch(Exception err){
-
-                            Log.e("tag", "ERROR "+ err.getMessage());
-                            mycourseDocId = "Unknown CourseId .. ";
-                            mycourseId = "";
-                            mykind = "";
-                            csLstCnt++;
-
+                            Log.d("tag", "Error "+ err.getLocalizedMessage());
                         }
 
-                        Resource resource = new Resource();
-                        resource.setTitle(myresTitile);
-                        resource.setThumbnailUrl(getIconType(myresExt));
-                        resource.setDescription(myresDec);
-                        resource.setRating(myresType);
+                        Log.d("tag2", "Value is: "+arr_courseStepsIds.size());
 
-                        resource.setGenre(null);
-                        // adding resource to resources array
-                        resourceList.add(resource);
-                        resourceNo++;
-*/
+                        ///String value = arr_courseStepsIds.toString();
                     }
 
 
                 }
-
-                ///adapter.notifyDataSetChanged();
-
-                ///Log.d("PreExceute","Items "+ db.getDocumentCount());
 
                 db.close();
 
@@ -274,5 +259,55 @@ public class TabFragment2 extends Fragment {
                     break;
             }
             return img;
+        }
+
+
+
+        public void courseDetails(String courseID){
+            // custom dialog
+            final String in_courseID = courseID;
+            final Dialog dialog = new Dialog(context);
+            dialog.setContentView(R.layout.course_details);
+            ////dialog.setTitle("Course Info");
+
+            try{
+                AndroidContext androidContext = new AndroidContext(context);
+                Manager manager = null;
+                manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database groups_Db = manager.getExistingDatabase("groups");
+                Document groups_doc = groups_Db.getExistingDocument(courseID);
+                Map<String, Object> groups_Properties = groups_doc.getProperties();
+
+                Log.d("tag2", "Inside Course ID: " + in_courseID);
+
+                TextView txttitle = (TextView) dialog.findViewById(R.id.txtTitle);
+                TextView txtdesc = (TextView) dialog.findViewById(R.id.txtDesc);
+
+                txttitle.setText((String) groups_Properties.get("CourseTitle"));
+                txtdesc.setText((String) groups_Properties.get("description"));
+                dialog.setTitle("Progress : "+ readCourseProgress(in_courseID));
+
+            }catch(Exception err){
+                Log.d("tag", "Error "+ err.getMessage());
+            }
+
+            Button dialogOpenCourseButton = (Button) dialog.findViewById(R.id.btnLaunchCourse);
+            dialogOpenCourseButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getActivity(),Course.class);
+                    intent.putExtra("courseID", in_courseID);
+                    startActivity(intent);
+                    dialog.dismiss();
+                }
+            });
+
+            dialog.show();
+
+        }
+        public String readCourseProgress(String courseID){
+            String progrs = " 2/4";
+
+            return progrs;
         }
     }

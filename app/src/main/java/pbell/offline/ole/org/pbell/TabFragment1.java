@@ -571,11 +571,6 @@ public class TabFragment1 extends Fragment {
                     resourceNo++;
                 }
             }
-
-            ///adapter.notifyDataSetChanged();
-
-            ///Log.d("PreExceute","Items "+ db.getDocumentCount());
-
             db.close();
 
         } catch (Exception e) {

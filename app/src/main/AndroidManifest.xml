@@ -13,6 +13,13 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
 
+    <supports-screens
+        android:anyDensity="true"
+        android:largeScreens="true"
+        android:normalScreens="true"
+        android:smallScreens="true"
+        android:xlargeScreens="true" />
+
     <application
         android:name=".AppController"
         android:icon="@mipmap/ic_launcher"
@@ -33,6 +40,7 @@
             android:label="@string/title_activity_login">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -53,19 +61,19 @@
             android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".MemberListDownloadRes"
-            android:windowSoftInputMode="stateHidden">
-
-        </activity>
+            android:windowSoftInputMode="stateHidden"></activity>
         <activity
             android:name=".MyPdfViewerActivity"
-            android:windowSoftInputMode="stateHidden">
-
+            android:windowSoftInputMode="stateHidden"></activity>
+        <activity
+            android:name=".Course"
+            android:label="@string/title_activity_course"
+            android:parentActivityName=".Dashboard"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="pbell.offline.ole.org.pbell.Dashboard" />
         </activity>
     </application>
-    <supports-screens android:anyDensity="true"
-        android:largeScreens="true"
-        android:normalScreens="true"
-        android:smallScreens="true"
-        android:xlargeScreens="true" />
 
 </manifest>
