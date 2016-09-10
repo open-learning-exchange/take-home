@@ -1,90 +1,67 @@
 package pbell.offline.ole.org.pbell;
 
-        import android.app.Activity;
-        import com.chilkatsoft.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 
-        import android.util.Log;
-        import android.widget.TextView;
-        import android.os.Bundle;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 
-        import java.security.MessageDigest;
-        import java.security.NoSuchAlgorithmException;
+import de.rtner.misc.BinTools;
+import de.rtner.security.auth.spi.PBKDF2Engine;
+import de.rtner.security.auth.spi.PBKDF2Parameters;
 
 public class AndroidDecrypter {
 
-    private static final String TAG = "Chilkat";
+    Boolean AndroidDecrypter(String usr_ID,String usr_rawPswd, String db_PswdkeyValue){
+        ///"56942958ed379a8c7d4a03a701814561"
 
-    // Called when the activity is first created.
-    AndroidDecrypter(){
-        CkCrypt2 crypt = new CkCrypt2();
-
-        boolean success = crypt.UnlockComponent("D");
-        if (success != true) {
-            Log.i(TAG, crypt.lastErrorText());
-            return;
+        ///////////// Library 1 //////
+        byte[] salt = null;
+        try {
+            ///String md5Val = md5("leomaxi");
+            salt = md5(usr_ID).getBytes();
+        } catch (Exception e1) {
+            e1.printStackTrace();
         }
 
-        String hexKey;
-        //  http://www.di-mgt.com.au/cryptoKDFs.html#examplespbkdf
+        try {
 
-        String pw = "password";
-        String pwCharset = "ansi";
-        //  Hash algorithms may be: sha1, md2, md5, etc.
-        String hashAlg = "sha1";
-        //  The salt should be 8 bytes:
-        String saltHex = "56942958ed379a8c7d4a03a701814561";
-        ///String saltHex = "56942958ed379a8c7d4a03a701814561";
-        int iterationCount = 100;
-        //int iterationCount = 2048;
-        //  Derive a 192-bit key from the password.
-        //int outputBitLen = 192;
-        int outputBitLen = 160;
+                //SecureRandom.getInstance("HmacSHA1").nextBytes(salt);
+                PBKDF2Parameters p = new PBKDF2Parameters("HmacSHA1", "utf-8", salt, 10);
+                ///byte[] dk = new PBKDF2Engine(p).deriveKey("password", 20);
+                byte[] dk = new PBKDF2Engine(p).deriveKey(usr_rawPswd, 20);
+                System.out.println( usr_ID +" Value "+BinTools.bin2hex(dk).toLowerCase());
+                if(db_PswdkeyValue.equals(BinTools.bin2hex(dk).toLowerCase())){
+                    return true;
+                }
 
-        String md5ofLogin = md5("leomaxi");
-
-        Log.i(TAG, "MD5 = "+ md5ofLogin);
-
-        //  The derived key is returned as a hex or base64 encoded string.
-        //  (Note: The salt argument must be a string that also uses
-        //  the same encoding.)
-        String enc = "hex";
-
-        ///hexKey = crypt.pbkdf2(pw,pwCharset,hashAlg,saltHex,iterationCount,outputBitLen,enc);
-        for(int m=0;m<=1000;m++) {
-            hexKey = crypt.pbkdf2(pw, pwCharset, hashAlg, saltHex, m, outputBitLen, enc);
-            Log.i(TAG, hexKey);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        //  The output should have this value:
-        //  BFDE6BE94DF7E11DD409BCE20A0255EC327CB936FFE93643
-
+        return false;
     }
 
-    static {
-        // Important: Make sure the name passed to loadLibrary matches the shared library
-        // found in your project's libs/armeabi directory.
-        //  for "libchilkat.so", pass "chilkat" to loadLibrary
-        //  for "libchilkatemail.so", pass "chilkatemail" to loadLibrary
-        //  etc.
-        //
-        System.loadLibrary("chilkat");
 
-        // Note: If the incorrect library name is passed to System.loadLibrary,
-        // then you will see the following error message at application startup:
-        //"The application <your-application-name> has stopped unexpectedly. Please try again."
-    }
-
-    public String md5(String s) {
+    public static final String md5(final String s) {
+        final String MD5 = "MD5";
         try {
             // Create MD5 Hash
-            MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
+            MessageDigest digest = java.security.MessageDigest
+                    .getInstance(MD5);
             digest.update(s.getBytes());
             byte messageDigest[] = digest.digest();
 
             // Create Hex String
-            StringBuffer hexString = new StringBuffer();
-            for (int i=0; i<messageDigest.length; i++)
-                hexString.append(Integer.toHexString(0xFF & messageDigest[i]));
+            StringBuilder hexString = new StringBuilder();
+            for (byte aMessageDigest : messageDigest) {
+                String h = Integer.toHexString(0xFF & aMessageDigest);
+                while (h.length() < 2)
+                    h = "0" + h;
+                hexString.append(h);
+            }
             return hexString.toString();
 
         } catch (NoSuchAlgorithmException e) {
@@ -92,4 +69,19 @@ public class AndroidDecrypter {
         }
         return "";
     }
+/*
+    public static SecretKey generateKey(char[] passphraseOrPin, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        // Number of PBKDF2 hardening rounds to use. Larger values increase
+        // computation time. You should select a value that causes computation
+        // to take >100ms.
+        final int iterations = 1000;
+
+        // Generate a 256-bit key
+        final int outputKeyLength = 256;
+
+        SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+        KeySpec keySpec = new PBEKeySpec(passphraseOrPin, salt, iterations, outputKeyLength);
+        SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
+        return secretKey;
+    }*/
 }

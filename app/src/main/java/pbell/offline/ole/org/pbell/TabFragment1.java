@@ -163,12 +163,18 @@ public class TabFragment1 extends Fragment {
 
         listView = (ListView) rootView.findViewById(R.id.list);
         adapter = new CustomListAdapter(this.getActivity(), resourceList);
-        listView.setAdapter(adapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        try {
+            adapter = new CustomListAdapter(this.getActivity(), resourceList);
+            listView.setAdapter(adapter);
+            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 public void onItemClick(AdapterView<?> adapter, View v, int position, long id) {
                     openDoc(resourceIdList[position]);
-               }
-        });
+                }
+            });
+        }catch (Exception err){
+            Log.e("adapter", " "+err);
+        }
+
         //////copyAssets();
         copyAPK();
         //pDialog = new ProgressDialog(context);
