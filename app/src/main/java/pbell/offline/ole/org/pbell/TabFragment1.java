@@ -4,6 +4,7 @@ package pbell.offline.ole.org.pbell;
  * Created by leonardmensah on 17/05/16.
  */
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -21,8 +22,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RatingBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -87,8 +92,12 @@ public class TabFragment1 extends Fragment {
     ImageView[] imageView;
     static Uri videoURl;
     static Intent intent;
-    ///////////////////////////
 
+    ///////////////////////////
+    private RatingBar ratingBar;
+    private TextView txtRatingValue;
+
+    ///////////////////
     // Log tag
     private static final String TAG = TabFragment1.class.getSimpleName();
 
@@ -168,6 +177,8 @@ public class TabFragment1 extends Fragment {
             listView.setAdapter(adapter);
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 public void onItemClick(AdapterView<?> adapter, View v, int position, long id) {
+///
+               RateResourceDialog(resourceIdList[position]);
                     openDoc(resourceIdList[position]);
                 }
             });
@@ -500,7 +511,6 @@ public class TabFragment1 extends Fragment {
         }
     }
 
-
     public String getExtension(final String filename) {
         if (filename == null){
             return null;
@@ -606,6 +616,33 @@ public class TabFragment1 extends Fragment {
         }
         return img;
     }
+
+
+    public void RateResourceDialog(String resourceId){
+        // custom dialog
+        final Dialog dialog = new Dialog(context);
+        dialog.setContentView(R.layout.rate_resource_dialog);
+        dialog.setTitle("What do you want to do?");
+
+
+        ratingBar = (RatingBar) dialog.findViewById(R.id.ratingBar);
+        Button dialogButton = (Button) dialog.findViewById(R.id.btnRateResource);
+        dialogButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                   /* sys_oldSyncServerURL = txtSuncURL.getText().toString();
+                    SharedPreferences.Editor editor = settings.edit();
+                    editor.putString("pf_sysncUrl", sys_oldSyncServerURL);
+                    editor.commit();*/
+                // openDoc(resourceIdList[position]);
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+
+    }
+
 
 
     public class EditMovieTask extends AsyncTaskLoader<Boolean> {
@@ -756,6 +793,8 @@ public class TabFragment1 extends Fragment {
             }
             return true;
         }
+
+
 
     }
 
