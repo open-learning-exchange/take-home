@@ -18,6 +18,7 @@ Thumbs.db
 =======
 # Gradle generated files
 .gradle/
+.gradle/*
 
 # Signing files
 .signing/
