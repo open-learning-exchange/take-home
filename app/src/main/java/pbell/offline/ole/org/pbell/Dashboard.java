@@ -79,16 +79,32 @@ public class Dashboard extends AppCompatActivity {
             Toolbar toolbar = (Toolbar) findViewById(R.id.mytoolbar);
             setSupportActionBar(toolbar);
 
+            ///settings = context.getSharedPreferences("PREFS_NAME", Context.MODE_PRIVATE);
+            settings = getSharedPreferences(PREFS_NAME, 0);
+            sys_username = settings.getString("pf_username","");
+            sys_oldSyncServerURL = settings.getString("pf_sysncUrl","");
+            sys_lastSyncDate = settings.getString("pf_lastSyncDate","");
+            sys_password = settings.getString("pf_password","");
+            sys_usercouchId = settings.getString("pf_usercouchId","");
+            sys_userfirstname = settings.getString("pf_userfirstname","");
+            sys_userlastname = settings.getString("pf_userlastname","");
+            sys_usergender = settings.getString("pf_usergender","");
+            sys_uservisits = settings.getString("pf_uservisits","");
 
-            Set<String> mwr = settings.getStringSet("membersWithResource",null);
-            sys_membersWithResource = mwr.toArray();
-            for(int cnt=0;cnt<sys_membersWithResource.length;cnt++){
+            try {
+                Set<String> mwr = settings.getStringSet("membersWithResource", null);
+                sys_membersWithResource = mwr.toArray();
+                for (int cnt = 0; cnt < sys_membersWithResource.length; cnt++) {
 
-                Log.e("MYAPP", " members With Resource Synced  = "+sys_membersWithResource[cnt]);
-                if(sys_membersWithResource[cnt].equals(sys_usercouchId)){
-                    userShelfSynced =true;
-                    break;
+                    Log.e("MYAPP", " members With Resource Synced  = " + sys_membersWithResource[cnt]);
+                    if (sys_membersWithResource[cnt].equals(sys_usercouchId)) {
+                        userShelfSynced = true;
+                        break;
+                    }
                 }
+            }catch(Exception err){
+
+                Log.e("TakeHome", " MembersWithResource Array" + err.getMessage());
             }
 
             if (!userShelfSynced){
@@ -107,7 +123,7 @@ public class Dashboard extends AppCompatActivity {
                 closeDialogue.show();
             }
 
-            Log.e("MYAPP", " membersWithResource  = "+sys_membersWithResource.length);
+         ///   Log.e("MYAPP", " membersWithResource  = "+sys_membersWithResource.length);
 
 
             TextView lbldate = (TextView) findViewById(R.id.lblDate);

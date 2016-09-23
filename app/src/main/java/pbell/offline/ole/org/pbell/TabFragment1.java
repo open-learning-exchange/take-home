@@ -87,6 +87,7 @@ public class TabFragment1 extends Fragment {
     int resourceNo=0;
 
     String resourceIdList[];
+    String resourceTitleList[];
     int rsLstCnt=0;
 
     ImageView[] imageView;
@@ -178,7 +179,7 @@ public class TabFragment1 extends Fragment {
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 public void onItemClick(AdapterView<?> adapter, View v, int position, long id) {
 ///
-               RateResourceDialog(resourceIdList[position]);
+               RateResourceDialog(resourceIdList[position],resourceTitleList[position]);
                     openDoc(resourceIdList[position]);
                 }
             });
@@ -284,6 +285,14 @@ public class TabFragment1 extends Fragment {
                         case "pdf":
                             openPDF(docId,(String) attmentNames.get(cnt),getExtension(attmentNames.get(cnt)));
                             break;
+                        case "jpg":
+                        case "JPEG":
+                        case "png":
+                        case "PNG":
+                        case "gif":
+                        case "GIF":
+                            openImage(docId,(String) attmentNames.get(cnt),getExtension(attmentNames.get(cnt)));
+                            break;
                         default:
                             Toast.makeText(getContext(), getExtension(attmentNames.get(cnt)) + " File type not supported yet ", Toast.LENGTH_LONG).show();
                             break;
@@ -294,6 +303,52 @@ public class TabFragment1 extends Fragment {
         } catch (Exception Er) {
 
         }
+    }
+
+    public void openImage(String docId, final String fileName, String player) {
+        final String myfilename =  fileName;
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database res_Db = manager.getExistingDatabase("resources");
+            Document res_doc = res_Db.getExistingDocument(docId);
+            final Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment(fileName);
+            try{
+                File src = new File(fileAttachment.getContentURL().getPath());
+                InputStream in = new FileInputStream(src);
+                String root = Environment.getExternalStorageDirectory().toString();
+                File myDir = new File(root + "/ole_temp");
+                if (!myDir.exists()){
+                    myDir.mkdirs();
+                }
+                File dst = new File(myDir,fileAttachment.getName().replace(" ", ""));
+                try {
+                    FileOutputStream out = new FileOutputStream(dst);
+                    byte[] buff = new byte[1024];
+                    int read = 0;
+                    while ((read = in.read(buff)) > 0) {
+                        out.write(buff, 0, read);
+                    }
+                    in.close();
+                    out.close();
+                    Log.e("tag", " Copied PDF "+ dst.toString());
+                }catch(Exception err){
+                    err.printStackTrace();
+                }
+                Intent intent = new Intent();
+                intent.setAction(android.content.Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.fromFile(dst), "image/*");
+                //Log.e("tag", " URL Path "+ Uri.fromFile(dst).getPath());;
+                startActivity(intent);
+                }catch(Exception err){
+
+            }
+        } catch (Exception Er) {
+            Er.printStackTrace();
+
+        }
+
     }
 
     public void openPDF(String docId, final String fileName, String player) {
@@ -380,8 +435,6 @@ public class TabFragment1 extends Fragment {
 
 
                         Intent intent = new Intent(getActivity(), MyPdfViewerActivity.class);
-                        ///Uri.fromFile(dst)
-                        ///getActivity().getFilesDir() + "/"+myfilename
                         Log.e("tag", " URL Path "+ Uri.fromFile(dst).getPath());
                         intent.putExtra(PdfViewerActivity.EXTRA_PDFFILENAME, Uri.fromFile(dst).getPath());
                         startActivity(intent);
@@ -390,34 +443,10 @@ public class TabFragment1 extends Fragment {
                     }catch(Exception err){
 
                     }
-
-
-
-
-
-
-                    /*
-                    OutputStream out = null;
-                    String diskFileName = fileAttachment.getName();
-                    diskFileName = diskFileName.replace(" ", "");
-                    try {
-                        out = getActivity().openFileOutput(diskFileName, Context.CONTEXT_IGNORE_SECURITY);
-                        copyFile(fileAttachment.getContent(), out);
-                        out.flush();
-                        out.close();
-                        out = null;
-                    } catch (Exception e) {
-                        Log.e("tag", e.getMessage());
-                    }
-                    */
-
-
                 }});
             alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Cancel", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
 
-
-                    //...
 
                 }});
             alertDialog.show();
@@ -459,9 +488,6 @@ public class TabFragment1 extends Fragment {
             in.close();
             out.close();
             dst.setReadable(true);
-            ////Log.e("tag", src.getPath()+" S " +src.length());
-            ////Log.e("tag", dst.getCanonicalPath()+" D " +dst.length());
-
             String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(dst).toString());
             String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
             intent = new Intent();
@@ -535,6 +561,7 @@ public class TabFragment1 extends Fragment {
             //orderedQuery.setLimit(0);
             QueryEnumerator results = orderedQuery.run();
             resourceIdList = new String[results.getCount()];
+            resourceTitleList= new String[results.getCount()];
             rsLstCnt = 0;
             Map<String, Object> resource_properties = null;
             for (Iterator<QueryRow> it = results; it.hasNext(); ) {
@@ -562,6 +589,7 @@ public class TabFragment1 extends Fragment {
                         myresType = (String) resource_properties.get("averageRating")+"";
                         myresExt = (String) resource_properties.get("openWith")+"";
                         resourceIdList[rsLstCnt]=myresId;
+                        resourceTitleList[rsLstCnt]=myresTitile;
                         rsLstCnt++;
                     }catch(Exception err){
 
@@ -618,11 +646,11 @@ public class TabFragment1 extends Fragment {
     }
 
 
-    public void RateResourceDialog(String resourceId){
+    public void RateResourceDialog(String resourceId, String title){
         // custom dialog
         final Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.rate_resource_dialog);
-        dialog.setTitle("What do you want to do?");
+        dialog.setTitle("Rate this resource");
 
 
         ratingBar = (RatingBar) dialog.findViewById(R.id.ratingBar);
