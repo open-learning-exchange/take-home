@@ -626,15 +626,22 @@ public class TabFragment1 extends Fragment {
 
 
         ratingBar = (RatingBar) dialog.findViewById(R.id.ratingBar);
+        ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+            public void onRatingChanged(RatingBar ratingBar, float rating,
+                                        boolean fromUser) {
+
+                ///txtRatingValue.setText(String.valueOf(rating));
+
+            }
+        });
+
         Button dialogButton = (Button) dialog.findViewById(R.id.btnRateResource);
         dialogButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                   /* sys_oldSyncServerURL = txtSuncURL.getText().toString();
-                    SharedPreferences.Editor editor = settings.edit();
-                    editor.putString("pf_sysncUrl", sys_oldSyncServerURL);
-                    editor.commit();*/
                 // openDoc(resourceIdList[position]);
+                Toast.makeText(getActivity(),String.valueOf(ratingBar.getRating()),Toast.LENGTH_SHORT).show();
+
                 dialog.dismiss();
             }
         });
