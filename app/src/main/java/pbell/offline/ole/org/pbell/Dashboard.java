@@ -79,18 +79,6 @@ public class Dashboard extends AppCompatActivity {
             Toolbar toolbar = (Toolbar) findViewById(R.id.mytoolbar);
             setSupportActionBar(toolbar);
 
-            // Restore preferences
-            settings = getSharedPreferences(PREFS_NAME, 0);
-            sys_username = settings.getString("pf_username","");
-            sys_oldSyncServerURL = settings.getString("pf_sysncUrl","");
-            sys_lastSyncDate = settings.getString("pf_lastSyncDate","");
-            sys_password = settings.getString("pf_password","");
-            sys_usercouchId = settings.getString("pf_usercouchId","");
-            sys_userfirstname = settings.getString("pf_userfirstname","");
-            sys_userlastname = settings.getString("pf_userlastname","");
-            sys_usergender = settings.getString("pf_usergender","");
-            sys_uservisits_Int = settings.getInt("pf_uservisits_Int",0);
-            sys_uservisits= settings.getString("pf_uservisits","");
 
             Set<String> mwr = settings.getStringSet("membersWithResource",null);
             sys_membersWithResource = mwr.toArray();
