@@ -50,6 +50,7 @@ import com.couchbase.lite.android.AndroidContext;
 
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -97,6 +98,7 @@ public class TabFragment1 extends Fragment {
     ///////////////////////////
     private RatingBar ratingBar;
     private TextView txtRatingValue;
+    private EditText txtComment;
 
     ///////////////////
     // Log tag
@@ -648,16 +650,17 @@ public class TabFragment1 extends Fragment {
 
     public void RateResourceDialog(String resourceId, String title){
         // custom dialog
+        final String resourceID = resourceId;
         final Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.rate_resource_dialog);
         dialog.setTitle("Rate this resource");
 
+        txtComment = (EditText) dialog.findViewById(R.id.editTextComment);
+
 
         ratingBar = (RatingBar) dialog.findViewById(R.id.ratingBar);
         ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
-            public void onRatingChanged(RatingBar ratingBar, float rating,
-                                        boolean fromUser) {
-
+            public void onRatingChanged(RatingBar ratingBar, float rating,boolean fromUser) {
                 ///txtRatingValue.setText(String.valueOf(rating));
 
             }
@@ -667,14 +670,63 @@ public class TabFragment1 extends Fragment {
         dialogButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                saveRating(ratingBar.getRating(),String.valueOf(txtComment.getText()),resourceID);
                 // openDoc(resourceIdList[position]);
-                Toast.makeText(getActivity(),String.valueOf(ratingBar.getRating()),Toast.LENGTH_SHORT).show();
-
                 dialog.dismiss();
             }
         });
 
         dialog.show();
+
+    }
+
+
+    public int saveRating(float rate,String comment,String resourceId){
+        AndroidContext androidContext = new AndroidContext(getActivity());
+        Manager manager = null;
+        Database resourceRating;
+        int doc_rating,doc_timesRated; String doc_comments;
+
+        Toast.makeText(getActivity(),String.valueOf(rate),Toast.LENGTH_SHORT).show();
+
+
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            resourceRating = manager.getDatabase("resourcerating");
+            Document retrievedDocument = resourceRating.getExistingDocument(resourceId);
+            if(retrievedDocument != null) {
+                Map<String, Object> properties = retrievedDocument.getProperties();
+                if(properties.containsKey("sum")){
+                    doc_rating = (int) properties.get("sum") ;
+                    doc_timesRated  = (int) properties.get("timesRated") ;
+                    doc_comments = (String) properties.get("comments");
+                    /// Increase No Of visits by 1
+                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    newProperties.putAll(retrievedDocument.getProperties());
+                    newProperties.put("sum", (doc_rating + rate));
+                    newProperties.put("timesRated", doc_timesRated + 1);
+                    newProperties.put("comments", comment);
+                    retrievedDocument.putProperties(newProperties);
+                    return doc_rating;
+                }
+            }
+            else{
+                Document newdocument = resourceRating.getDocument(resourceId);
+                Map<String, Object> newProperties = new HashMap<String, Object>();
+                newProperties.put("sum", 1);
+                newProperties.put("timesRated", 1);
+                newProperties.put("comments", comment);
+                newdocument.putProperties(newProperties);
+                return 1;
+            }
+
+
+        }catch(Exception err){
+            Log.e("VISITS", "ERR : " +err.getMessage());
+
+        }
+
+        return 0;
 
     }
 
