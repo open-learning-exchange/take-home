@@ -10,6 +10,7 @@ package pbell.offline.ole.org.pbell;
     import android.content.SharedPreferences;
     import android.os.Bundle;
     import android.support.annotation.IdRes;
+    import android.support.design.widget.CoordinatorLayout;
     import android.support.design.widget.TabLayout;
     import android.support.v4.app.Fragment;
     import android.support.v4.app.FragmentManager;
@@ -78,7 +79,7 @@ public class Dashboard extends AppCompatActivity {
             Toolbar toolbar = (Toolbar) findViewById(R.id.mytoolbar);
             setSupportActionBar(toolbar);
 
-            // Restore preferences
+            ///settings = context.getSharedPreferences("PREFS_NAME", Context.MODE_PRIVATE);
             settings = getSharedPreferences(PREFS_NAME, 0);
             sys_username = settings.getString("pf_username","");
             sys_oldSyncServerURL = settings.getString("pf_sysncUrl","");
@@ -88,18 +89,22 @@ public class Dashboard extends AppCompatActivity {
             sys_userfirstname = settings.getString("pf_userfirstname","");
             sys_userlastname = settings.getString("pf_userlastname","");
             sys_usergender = settings.getString("pf_usergender","");
-            sys_uservisits_Int = settings.getInt("pf_uservisits_Int",0);
-            sys_uservisits= settings.getString("pf_uservisits","");
+            sys_uservisits = settings.getString("pf_uservisits","");
 
-            Set<String> mwr = settings.getStringSet("membersWithResource",null);
-            sys_membersWithResource = mwr.toArray();
-            for(int cnt=0;cnt<sys_membersWithResource.length;cnt++){
+            try {
+                Set<String> mwr = settings.getStringSet("membersWithResource", null);
+                sys_membersWithResource = mwr.toArray();
+                for (int cnt = 0; cnt < sys_membersWithResource.length; cnt++) {
 
-                Log.e("MYAPP", " members With Resource Synced  = "+sys_membersWithResource[cnt]);
-                if(sys_membersWithResource[cnt].equals(sys_usercouchId)){
-                    userShelfSynced =true;
-                    break;
+                    Log.e("MYAPP", " members With Resource Synced  = " + sys_membersWithResource[cnt]);
+                    if (sys_membersWithResource[cnt].equals(sys_usercouchId)) {
+                        userShelfSynced = true;
+                        break;
+                    }
                 }
+            }catch(Exception err){
+
+                Log.e("TakeHome", " MembersWithResource Array" + err.getMessage());
             }
 
             if (!userShelfSynced){
@@ -118,7 +123,7 @@ public class Dashboard extends AppCompatActivity {
                 closeDialogue.show();
             }
 
-            Log.e("MYAPP", " membersWithResource  = "+sys_membersWithResource.length);
+         ///   Log.e("MYAPP", " membersWithResource  = "+sys_membersWithResource.length);
 
 
             TextView lbldate = (TextView) findViewById(R.id.lblDate);
@@ -142,7 +147,14 @@ public class Dashboard extends AppCompatActivity {
             mySectionsPagerAdapter = new SectionsPagerAdapter(fragMgr);
             mViewPager = (ViewPager) findViewById(R.id.container);
             mViewPager.setAdapter(mySectionsPagerAdapter);
+
             mBottomBar = BottomBar.attach(this, savedInstanceState);
+            mBottomBar.useOnlyStatusBarTopOffset();
+            //mBottomBar.setMaxFixedTabs(n-1);
+            //mBottomBar.noNavBarGoodness();
+           // mBottomBar = BottomBar.attachShy((CoordinatorLayout) findViewById(R.id.main_content),findViewById(R.id.container), savedInstanceState);
+
+            mBottomBar.noTabletGoodness();
             mBottomBar.setItemsFromMenu(R.menu.bottombar_menu, new OnMenuTabClickListener() {
                 @Override
                 public void onMenuTabSelected(@IdRes int menuItemId) {
@@ -155,12 +167,21 @@ public class Dashboard extends AppCompatActivity {
                 }
             });
 
+
+
             // Setting colors for different tabs when there's more than three of them.
             // You can set colors for tabs in three different ways as shown below.
             mBottomBar.mapColorForTab(0, ContextCompat.getColor(this, R.color.colorAccent));
             mBottomBar.mapColorForTab(1, 0xFF5D4037);
             mBottomBar.mapColorForTab(2, "#7B1FA2");
             mBottomBar.mapColorForTab(3, "#FF5252");
+
+
+
+
+
+
+            //mBottomBar.hide();
         }
 
 

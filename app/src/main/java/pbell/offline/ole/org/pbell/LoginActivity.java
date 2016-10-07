@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.multidex.MultiDex;
 import android.support.v7.app.AppCompatActivity;
 import android.app.LoaderManager.LoaderCallbacks;
 
@@ -47,11 +48,17 @@ import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static android.Manifest.permission.READ_CONTACTS;
@@ -69,6 +76,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     SharedPreferences settings;
     CouchViews chViews = new CouchViews();
     final Context context = this;
+    String doc_lastVisit;
 
     /**
      * A dummy authentication store containing known user names and passwords.
@@ -125,6 +133,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             @Override
             public void onClick(View view) {
                 attemptLogin();
+
+
             }
         });
 
@@ -177,6 +187,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
 
 
+    }
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(newBase);
+        MultiDex.install(this);
     }
 
     private void populateAutoComplete() {
@@ -379,9 +394,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             Database db = manager.getExistingDatabase("members");
             Query orderedQuery = chViews.CreateLoginByIdView(db).createQuery();
             orderedQuery.setDescending(true);
-            //orderedQuery.setStartKey("2015");
-            //orderedQuery.setEndKey("2014");
-            //orderedQuery.setLimit(0);
             QueryEnumerator results = orderedQuery.run();
             for (Iterator<QueryRow> it = results; it.hasNext();) {
                 QueryRow row = it.next();
@@ -390,31 +402,78 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 Map<String, Object> properties = doc.getProperties();
                 String doc_loginId = (String) properties.get("login");
                 String doc_password = (String) properties.get("password");
-                if(mUsername.getText().toString().equals(doc_loginId) && mPasswordView.getText().toString().equals(doc_password)){
-                    SharedPreferences.Editor editor = settings.edit();
-                    editor.putString("pf_username", (String) properties.get("login"));
-                    editor.putString("pf_password", (String) properties.get("password"));
-                    editor.putString("pf_usercouchId", (String) properties.get("_id"));
-                    editor.putString("pf_userfirstname", (String) properties.get("firstName"));
-                    editor.putString("pf_userlastname", (String) properties.get("lastName"));
-                    editor.putString("pf_usergender", (String) properties.get("Gender"));
-                    try {
-                        String noOfVisits = properties.get("visits").toString();
-                        editor.putInt("pf_uservisits_Int", Integer.parseInt(noOfVisits));
-                    }catch(Exception err){
-                        ///editor.putString("pf_uservisits", (String) properties.get("visits"));
+
+                if(mUsername.getText().toString().equals(doc_loginId)) {
+                    Log.e("MYAPP", "Authentiicating User");
+
+                    if (mPasswordView.getText().toString().equals(doc_password) && !properties.containsKey("credentials") ) {
+                        SharedPreferences.Editor editor = settings.edit();
+                        editor.putString("pf_username", (String) properties.get("login"));
+                        editor.putString("pf_password", (String) properties.get("password"));
+                        editor.putString("pf_usercouchId", (String) properties.get("_id"));
+                        editor.putString("pf_userfirstname", (String) properties.get("firstName"));
+                        editor.putString("pf_userlastname", (String) properties.get("lastName"));
+                        editor.putString("pf_usergender", (String) properties.get("Gender"));
+                        editor.putString("pf_lastVisitDate", doc_lastVisit);
+                        try {
+                            String noOfVisits = properties.get("visits").toString();
+                            editor.putInt("pf_uservisits_Int", (Integer.parseInt(noOfVisits) + totalVisits((String) properties.get("_id"))));
+                        } catch (Exception err) {
+                        }
+                        Set<String> stgSet = settings.getStringSet("pf_userroles", new HashSet<String>());
+                        ArrayList roleList = (ArrayList<String>) properties.get("roles");
+                        for (int cnt = 0; cnt < roleList.size(); cnt++) {
+                            stgSet.add(String.valueOf(roleList.get(cnt)));
+                        }
+                        editor.putStringSet("pf_userroles", stgSet);
+                        editor.commit();
+                        Log.e("MYAPP", " Data Login OLD encryption: " + doc_loginId + " Password: " + doc_password);
+                        Intent intent = new Intent(this, Dashboard.class);
+                        startActivity(intent);
+                        return true;
+
+                    }else if (doc_password == "" && !mPasswordView.getText().toString().equals("")) {
+                        try {
+                            Map<String, Object> doc_credentials = (Map<String, Object>) properties.get("credentials");
+                            AndroidDecrypter adc = new AndroidDecrypter();
+                            if(adc.AndroidDecrypter(doc_loginId, mPasswordView.getText().toString(), doc_credentials.get("value").toString())){
+                               SharedPreferences.Editor editor = settings.edit();
+                                editor.putString("pf_username", (String) properties.get("login"));
+                                editor.putString("pf_password", (String) properties.get("password"));
+                                editor.putString("pf_usercouchId", (String) properties.get("_id"));
+                                editor.putString("pf_userfirstname", (String) properties.get("firstName"));
+                                editor.putString("pf_userlastname", (String) properties.get("lastName"));
+                                editor.putString("pf_usergender", (String) properties.get("Gender"));
+                                editor.putString("pf_lastVisitDate", doc_lastVisit);
+                                try {
+                                    String noOfVisits = properties.get("visits").toString();
+                                    editor.putInt("pf_uservisits_Int", (Integer.parseInt(noOfVisits) + totalVisits((String) properties.get("_id"))));
+                                } catch (Exception err) {
+
+                                }
+                                Set<String> stgSet = settings.getStringSet("pf_userroles", new HashSet<String>());
+                                ArrayList roleList = (ArrayList<String>) properties.get("roles");
+                                for (int cnt = 0; cnt < roleList.size(); cnt++) {
+                                    stgSet.add(String.valueOf(roleList.get(cnt)));
+                                }
+                                editor.putStringSet("pf_userroles", stgSet);
+                                editor.commit();
+                                Log.e("MYAPP", " Data Login Id: " + doc_loginId + " Password: " + doc_password);
+                                Intent intent = new Intent(this, Dashboard.class);
+                                startActivity(intent);
+                                return true;
+
+                            }
+
+                           ////doc_credentials.get("salt").toString());
+                            ///doc_credentials.get("value").toString()
+                        } catch (Exception err) {
+                            Log.e("MYAPP", " Encryption Err  " + err.getMessage());
+                        }
+
+                    } else{
+                        return false;
                     }
-                    Set<String> stgSet = settings.getStringSet("pf_userroles", new HashSet<String>());
-                    ArrayList roleList = (ArrayList<String>) properties.get("roles");
-                    for(int cnt=0;cnt< roleList.size();cnt++){
-                        stgSet.add(String.valueOf(roleList.get(cnt)));
-                    }
-                    editor.putStringSet("pf_userroles",stgSet);
-                    editor.commit();
-                    Log.e("MYAPP", " Data Login Id: " + doc_loginId +" Password: "+ doc_password);
-                    Intent intent = new Intent(this,Dashboard.class);
-                    startActivity(intent);
-                    return true;
                 }
 
             }
@@ -454,17 +513,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 Log.v("myLoginTag","Login Error "+e.getLocalizedMessage());
                 return false;
             }
-
-            /*for (String credential : DUMMY_CREDENTIALS) {
-
-
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
-            }
-            */
 
             // TODO: register the new account here.
             //return false;
@@ -525,6 +573,58 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
 
         dialog.show();
+
+    }
+    public int totalVisits(String memberId){
+        AndroidContext androidContext = new AndroidContext(this);
+        Manager manager = null;
+        Database visitHolder;
+        int doc_noOfVisits;
+
+
+       try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            visitHolder = manager.getDatabase("visits");
+            Document retrievedDocument = visitHolder.getExistingDocument(memberId);
+           if(retrievedDocument != null) {
+                Map<String, Object> properties = retrievedDocument.getProperties();
+                 if(properties.containsKey("noOfVisits")){
+                     doc_noOfVisits = (int) properties.get("noOfVisits") ;
+                     doc_lastVisit = (String) properties.get("lastVisits");
+                    /// Increase No Of visits by 1
+                     Map<String, Object> newProperties = new HashMap<String, Object>();
+                     newProperties.putAll(retrievedDocument.getProperties());
+                     doc_noOfVisits += 1;
+                     newProperties.put("noOfVisits", doc_noOfVisits);
+                     newProperties.put("lastVisits", todaysDate());
+                     retrievedDocument.putProperties(newProperties);
+                     return doc_noOfVisits;
+                 }
+            }
+            else{
+                Document newdocument = visitHolder.getDocument(memberId);
+                Map<String, Object> newProperties = new HashMap<String, Object>();
+                newProperties.put("noOfVisits", 1);
+                doc_lastVisit = todaysDate();
+                newProperties.put("lastVisits", doc_lastVisit);
+                newdocument.putProperties(newProperties);
+               return 1;
+            }
+
+
+        }catch(Exception err){
+           Log.e("VISITS", "ERR : " +err.getMessage());
+
+       }
+
+        return 0;
+
+    }
+    public String todaysDate(){
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Calendar cal = Calendar.getInstance();
+        System.out.println(dateFormat.format(cal.getTime()));
+        return dateFormat.format(cal.getTime());
 
     }
 }
