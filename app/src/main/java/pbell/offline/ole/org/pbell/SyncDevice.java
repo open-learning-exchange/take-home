@@ -73,7 +73,7 @@ public class SyncDevice extends AppCompatActivity {
     TextView tv;
     View clcview;
     String message ="";
-    String str_memberID;
+    String str_memberID,str_resourceId;
     //////Replication push,pull;
     FloatingActionButton fab;
     Boolean wipeClearn =false;
@@ -101,6 +101,9 @@ public class SyncDevice extends AppCompatActivity {
     Boolean synchronizingPull = true;
     Boolean synchronizingPush = true;
     JSONObject jsonData;
+    int doc_rating,doc_timesRated;
+    ArrayList<String> doc_comments;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -253,8 +256,32 @@ public class SyncDevice extends AppCompatActivity {
     public void pushSyncNotifier(){
         BuildMemberListArray();
         for(int cnt=0;cnt<str_memberIdList.length;cnt++){
-            updateLocalMembers(str_memberIdList[cnt]);
+            ///updateLocalMembers(str_memberIdList[cnt]);
         }
+        //Todo read resource database and pass id's to function update it.
+
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database resources_db = manager.getExistingDatabase("resources");
+            Query query = resources_db.createAllDocumentsQuery();
+            query.setAllDocsMode(Query.AllDocsMode.ONLY_CONFLICTS);
+            QueryEnumerator result = query.run();
+            for (Iterator<QueryRow> it = result; it.hasNext(); ) {
+                QueryRow row = it.next();
+                if (row.getConflictingRevisions().size() > 0) {
+                    Log.e("MyCouch", "Resource Id "+row.getDocumentId());;
+                   // Log.w("MYAPP", "Conflict in document: %s", row.getDocumentId());
+                   /// beginConflictResolution(row.getDocument());
+                }
+            }
+
+        }catch(Exception err){
+
+        }
+
+
+        /////updateLocalResources(resourceId);
+    /*
         final AsyncTask<Void, Integer, String> execute = new TestAsyncPush().execute();
         Log.e("MyCouch", "push_SyncNotifier Running");
         final Thread th = new Thread(new Runnable() {
@@ -275,6 +302,8 @@ public class SyncDevice extends AppCompatActivity {
             }
         });
         th.start();
+
+        */
 
     }
 
@@ -525,6 +554,8 @@ public class SyncDevice extends AppCompatActivity {
         }
     }
 
+
+
     public boolean BuildMemberListArray(){
         AndroidContext androidContext = new AndroidContext(this);
         Manager manager = null;
@@ -537,6 +568,8 @@ public class SyncDevice extends AppCompatActivity {
             //orderedQuery.setEndKey("a");
             ///orderedQuery.setDescending(false);
             //orderedQuery.setLimit(0);
+
+
             QueryEnumerator results = orderedQuery.run();
             str_memberIdList = new String[results.getCount()];
             str_memberNameList = new String[results.getCount()];
@@ -562,6 +595,74 @@ public class SyncDevice extends AppCompatActivity {
 
 
 
+    }
+
+    public void updateLocalResources(String resourceId){
+        str_resourceId = resourceId;
+        final Fuel ful = new Fuel();
+
+        ful.get(sys_oldSyncServerURL+"/resources/"+resourceId).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+            @Override
+            public void success(Request request, Response response, String s) {
+                try {
+                    jsonData = new JSONObject(s);
+                    Log.e("MyCouch", "-- "+jsonData);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    int remote_rating = (int) jsonData.get("sum");
+                    int remote_timesRated = (int) jsonData.get("timesRated");
+                    ArrayList<String> remote_comments = (ArrayList<String>) jsonData.get("comments");
+                    Manager manager = null;
+                    Database ratingHolder;
+                    //int doc_noOfVisits;
+                    //int total_visits=0;
+                    //String max_lastLoginDate="";
+
+                    try {
+                        manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                        ratingHolder = manager.getDatabase("resourcerating");
+                        Document retrievedDocument = ratingHolder.getExistingDocument(str_resourceId);
+                        if(retrievedDocument != null) {
+                            Map<String, Object> properties = retrievedDocument.getProperties();
+                            if (properties.containsKey("sum")) {
+                                doc_rating = (int) properties.get("sum");
+                                doc_timesRated = (int) properties.get("timesRated");
+                                ArrayList<String> doc_comments = (ArrayList<String>) properties.get("comments");
+                                ///total_visits = doc_noOfVisits + remote_NoOfVisits;
+
+                                Database resources_db = manager.getExistingDatabase("resources");
+                                Document resourceDoc = resources_db.getExistingDocument(str_resourceId);
+
+                                /// Save total no of visits for member in member database
+                                Map<String, Object> doc_properties = new HashMap<String, Object>();
+                                doc_properties.putAll(resourceDoc.getProperties());
+                                doc_properties.put("sum", (doc_rating+remote_rating));
+                                doc_properties.put("timesRated", (doc_timesRated+remote_timesRated));
+                                doc_properties.put("timesRated", (doc_timesRated+remote_timesRated));
+                                resourceDoc.putProperties(doc_properties);
+
+                                Log.e("MyCouch Remote", "Rating Sum :  -----  "+(doc_rating+remote_rating));
+                                Log.e("MyCouch Remote", "Times rated :  -----  "+ (doc_timesRated+remote_timesRated));
+                                Log.e("MyCouch Remote", "Times rated :  -----  "+ (doc_timesRated+remote_timesRated));
+
+                            }
+                        }
+                    }catch(Exception Err){
+                        Log.e("MyCouch Remote Error", " :  "+ Err.getMessage());
+
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+            @Override
+            public void failure(Request request, Response response, FuelError fuelError) {
+                Log.e("MyCouch", " "+fuelError);
+
+            }
+        });
     }
 
     public void updateLocalMembers(String memberId){
