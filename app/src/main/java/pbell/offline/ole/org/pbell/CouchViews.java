@@ -55,4 +55,29 @@ public class CouchViews {
         );
         return shelfListByIdView;
     }
+
+    public View ReadCourseList(Database db) {
+        View CourseListByMemberIdView = db.getView("CourseByMemberID");
+        CourseListByMemberIdView.setMap(
+                new Mapper(){
+                    @Override
+                    public void map(Map<String, Object> document,Emitter emitter) {
+                        emitter.emit((String) document.get("memberId"), (String) document.get("_id"));
+                    }
+                }, "1"
+        );
+        return CourseListByMemberIdView;
+    }
+    public View ReadMemberVisits(Database db) {
+        View VisitsByMemberIdView = db.getView("visits");
+        VisitsByMemberIdView.setMap(
+                new Mapper(){
+                    @Override
+                    public void map(Map<String, Object> document,Emitter emitter) {
+                        emitter.emit((String) document.get("memberId"), (String) document.get("_id"));
+                    }
+                }, "1"
+        );
+        return VisitsByMemberIdView;
+    }
 }
