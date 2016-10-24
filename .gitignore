@@ -6,6 +6,7 @@ proguard/
 
 # Mac OS X clutter
 *.DS_Store
+.idea/gradle.xml
 
 # Windows clutter
 Thumbs.db
@@ -19,7 +20,7 @@ Thumbs.db
 # Gradle generated files
 .gradle/
 .gradle/*
-
+.idea/runConfigurations.xml
 # Signing files
 .signing/
 
