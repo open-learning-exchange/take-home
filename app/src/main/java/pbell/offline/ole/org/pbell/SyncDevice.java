@@ -40,6 +40,14 @@ import com.github.kittinunf.fuel.core.FuelError;
 import com.github.kittinunf.fuel.core.Request;
 import com.github.kittinunf.fuel.core.Response;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.params.HttpParams;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -90,6 +98,8 @@ public class SyncDevice extends AppCompatActivity {
     Manager[] push_manager = new Manager[pushdatabaseList.length];
 
     ProgressDialog[] progressDialog = new ProgressDialog[databaseList.length];
+
+    JSONObject designViewDoc;
 
     AndroidContext androidContext;
     int syncCnt=0;
@@ -158,6 +168,22 @@ public class SyncDevice extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 synchronizingPull=false;
+
+                try{
+                    designViewDoc = new JSONObject();
+                    JSONObject filter = new JSONObject();
+                    try {
+                        filter.put("by_resource","function(doc, req){return doc._id === req.query._id;}");
+                        designViewDoc.put("filters",filter);
+                    } catch (JSONException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                    new RunCreateDocTask().execute("");
+                }catch(Exception err){
+                    ///err.printStackTrace();
+                }
+
                 triggerMemberResourceDownload();
             }
 
@@ -171,8 +197,6 @@ public class SyncDevice extends AppCompatActivity {
                 ///Log.v("Switch State=", ""+isChecked);
             }
         });
-
-
 
 
         fab = (FloatingActionButton) findViewById(R.id.checkConnection);
@@ -198,9 +222,108 @@ public class SyncDevice extends AppCompatActivity {
         });
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-
-
     }
+
+
+    ////// Create Filtered Replication View File
+
+    public static String createDocument(String hostUrl, String databaseName, JSONObject jsonDoc,String DocId) {
+        try {
+            HttpPut httpPutRequest = new HttpPut(hostUrl +"/"+ databaseName+"/"+DocId);
+            StringEntity body = new StringEntity(jsonDoc.toString(), "utf8");
+            httpPutRequest.setEntity(body);
+            httpPutRequest.setHeader("Accept", "application/json");
+            httpPutRequest.setHeader("Content-type", "application/json");
+            // timeout params
+            HttpParams params = httpPutRequest.getParams();
+            params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, Integer.valueOf(1000));
+            params.setParameter(CoreConnectionPNames.SO_TIMEOUT, Integer.valueOf(1000));
+            httpPutRequest.setParams(params);
+
+            JSONObject jsonResult = sendCouchRequest(httpPutRequest);
+
+            Log.v("Request =", ""+hostUrl);
+            Log.v("Returned from couch=", ""+jsonResult);
+
+            if (!jsonResult.getBoolean("ok")) {
+                return null;
+            }else if(jsonResult.getString("error")=="conflict"){
+                Log.v("Responce : ", jsonResult.getString("reason"));
+            }
+            return jsonResult.getString("rev");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private static JSONObject sendCouchRequest(HttpUriRequest request) {
+        try {
+            HttpResponse httpResponse = (HttpResponse) new DefaultHttpClient().execute(request);
+            HttpEntity entity = httpResponse.getEntity();
+            if (entity != null) {
+                // Read the content stream
+                InputStream instream = entity.getContent();
+                // Convert content stream to a String
+                String resultString = convertStreamToString(instream);
+                instream.close();
+                // Transform the String into a JSONObject
+                JSONObject jsonResult = new JSONObject(resultString);
+                return jsonResult;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static String convertStreamToString(InputStream is) {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is), 8192);
+        StringBuilder sb = new StringBuilder();
+
+        String line = null;
+        try {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line + "\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return sb.toString();
+    }
+
+    class RunCreateDocTask extends AsyncTask<String, Void, Boolean> {
+
+        private Exception exception;
+
+        protected Boolean doInBackground(String... urls) {
+            try {
+                createDocument(sys_oldSyncServerURL, "resources", designViewDoc,"_design/apps");
+                return true;
+            } catch (Exception e) {
+                this.exception = e;
+
+                return null;
+            }
+        }
+
+        protected void onPostExecute(Boolean docResult) {
+
+        }
+    }
+
+    /////// End Filtered Replication View File
+
+
+
+
+
 
     public void triggerMemberResourceDownload(){
         if(!synchronizingPull) {
@@ -756,4 +879,5 @@ public class SyncDevice extends AppCompatActivity {
             return false;
         }
     }
+
 }
