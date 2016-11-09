@@ -13,6 +13,10 @@ Thumbs.db
 .idea/dataSources.ids
 .idea/*
 .idea/
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+
 #Gradle generated files
 .gradle/
 .gradle/*
