@@ -133,24 +133,7 @@ public class TabFragment1 extends Fragment {
 
         CustomListView = this;
         assetManager = getActivity().getAssets();
-//        try {
-//            afd = assetManager.openFd("begin.mp4");
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
 
-
-
-
-
-        //Just Download
-        //HTML
-        //PDF.js
-        //Bell-Reader
-        //MP3
-        //Flow Video Player
-        //BeLL Video Book Player
-        //Native Video
         settings = context.getSharedPreferences(PREFS_NAME, 0);
         sys_username = settings.getString("pf_username","");
         sys_oldSyncServerURL = settings.getString("pf_sysncUrl","");
@@ -173,14 +156,8 @@ public class TabFragment1 extends Fragment {
         }
 
 
-        ///loadUserDetails();
-        ///if (!resourceList.isEmpty()) {
-            resourceList.clear();
-            LoadShelfResourceList();
-
-        //}
-
-        //setListData();
+        resourceList.clear();
+        LoadShelfResourceList();
 
         View rootView = inflater.inflate(R.layout.tab_fragment_1, container, false);
 
@@ -191,8 +168,8 @@ public class TabFragment1 extends Fragment {
             listView.setAdapter(adapter);
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 public void onItemClick(AdapterView<?> adapter, View v, int position, long id) {
-//todo remove comment bellow/
-              // RateResourceDialog(resourceIdList[position],resourceTitleList[position]);
+                    // todo change rating style
+              RateResourceDialog(resourceIdList[position],resourceTitleList[position]);
                     openDoc(resourceIdList[position]);
                 }
             });
@@ -203,14 +180,6 @@ public class TabFragment1 extends Fragment {
         //////copyAssets();
         copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
         copyAPK(R.raw.firefox_49_0_multi_android, "firefox_49_0_multi_android.apk");
-        ///copyAPK("firefox_49_0_multi_android.apk");
-
-        //pDialog = new ProgressDialog(context);
-        // Showing progress dialog before making http request
-        //pDialog.setMessage("Loading...");
-        //pDialog.show();
-
-        // changing action bar color
         //getActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#1b1b1b")));
         return rootView;
 
