@@ -1,6 +1,8 @@
 package pbell.offline.ole.org.pbell;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -21,6 +23,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -68,6 +71,7 @@ public class FullscreenActivity extends AppCompatActivity {
     String resourceTitleList[];
     int rsLstCnt=0;
     Button[] libraryButtons;
+    Dialog dialog2;
 
 
     @Override
@@ -239,8 +243,10 @@ public class FullscreenActivity extends AppCompatActivity {
                     public void onClick(View view) {
                         if(libraryButtons[view.getId()].getCurrentTextColor()==getResources().getColor(R.color.ole_yellow)){
                             Toast.makeText(context, "Online " + resourceTitleList[view.getId()], Toast.LENGTH_SHORT).show();
+                            MaterialClickDialog(false,resourceTitleList[view.getId()],resourceIdList[view.getId()]);
                         }else{
                             Toast.makeText(context, "Offline " + resourceTitleList[view.getId()], Toast.LENGTH_SHORT).show();
+                            MaterialClickDialog(false,resourceTitleList[view.getId()],resourceIdList[view.getId()]);
                         }
 
                     }
@@ -252,5 +258,78 @@ public class FullscreenActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void MaterialClickDialog(boolean online,String title,String resId){
+        final boolean rs_status = online;
+        final String rs_title = title;
+        final String rs_ID = title;
+
+        AlertDialog.Builder dialogB2 = new AlertDialog.Builder(this);
+        // custom dialog
+        dialogB2.setView(R.layout.dialog_prompt_resource_location);
+        dialogB2.setCancelable(true);
+        dialog2 = dialogB2.create();
+        dialog2.show();
+
+        TextView txtResourceId = (TextView) dialog2.findViewById(R.id.txtResourceID);
+        txtResourceId.setText(title);
+        Button dialogBtnDownoadFile = (Button) dialog2.findViewById(R.id.btnDownloadFile);
+        dialogBtnDownoadFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        Button dialogBtnOpenFileOnline = (Button) dialog2.findViewById(R.id.btnOpenOnline);
+        dialogBtnDownoadFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+            }
+        });
+
+
+        ///dialogDetails = dialogbuilder.create();
+/*
+        final EditText txtSuncURL = (EditText) dialog2.findViewById(R.id.txtNewSyncURL);
+        txtSuncURL.setText(sys_oldSyncServerURL);
+        Button dialogButton = (Button) dialog2.findViewById(R.id.btnNewSaveSyncURL);
+        dialogButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sys_oldSyncServerURL = txtSuncURL.getText().toString();
+
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putString("pf_sysncUrl", sys_oldSyncServerURL);
+                editor.commit();
+
+                dialog2.dismiss();
+                //Intent intent = new Intent(context,NewSync.class);
+                //startActivity(intent);
+                ///dialog.getOwnerActivity().setVisible(false);
+                ///initSyncLoginDetails();
+                ///
+                // mDialog = new ProgressDialog(context);
+                //mDialog.setMessage("Please wait...");
+               // mDialog.setCancelable(false);
+
+
+                try {
+                    //syncNotifier();
+                    //initDB();
+                    //startSync();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+
+               // mDialog.show();
+            }
+        });
+
+        */
     }
 }
