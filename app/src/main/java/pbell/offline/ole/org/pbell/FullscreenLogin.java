@@ -329,67 +329,6 @@ public class FullscreenLogin extends AppCompatActivity {
         });
 
     }
-/*
-    protected void initDB() throws IOException, CouchbaseLiteException {
-        // create the database manager with default options
-        Manager manager = new Manager(new AndroidContext(FullscreenLogin.this), Manager.DEFAULT_OPTIONS);
-
-        // get or create the database with the provided name
-         database = manager.getDatabase("members");
-
-        // add a change listener
-        //database.addChangeListener(databaseListener);
-    }
-
-    //start bi-directional syncing
-    protected void startSync() {
-
-        URL syncUrl;
-        try {
-            //syncUrl = new URL(sys_oldSyncServerURL+"/"+"members");
-            syncUrl = new URL("http://10.10.207.152:5988/members");
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
-
-        // server - client
-        pullReplication = database.createPullReplication(syncUrl);
-        pullReplication.setContinuous(true);
-
-        pullReplication.addChangeListener(new Replication.ChangeListener() {
-            @Override
-            public void changed(Replication.ChangeEvent event) {
-                if(pullReplication.isRunning()){
-                    Log.e("MyCouch", " Members "+event.getChangeCount());
-                    //message = String.valueOf(event.getChangeCount());
-                }else {
-                    Log.e("Finished", "DB count"+ database.getDocumentCount()+"");
-                    if(syncCnt < (1)){
-                        syncCnt++;
-                        ///new NewSync.TestAsyncPull().execute();
-                    }else{
-                        Log.e("MyCouch","Sync Completed");
-                        if(!openMemberList) {
-                            openMemberList = true;
-                        }
-                        //triggerMemberResourceDownload();
-                        ///synchronizingPull=true;
-                    }
-
-                }
-            }
-        });
-
-        // replication listeners
-        //pullReplication.addChangeListener(pullReplicationListener);
-
-        // start both replications
-        pullReplication.start();
-
-    }
-
-
-*/
 
     public void restorePref(){
         // Restore preferences
@@ -420,6 +359,8 @@ public class FullscreenLogin extends AppCompatActivity {
     }
 
     public void syncNotifier(){
+        emptyAllDbs();
+
         final AsyncTask<Void, Integer, String> execute = new FullscreenLogin.TestAsyncPull().execute();
         Log.e("MyCouch", "syncNotifier Running");
         final Thread th = new Thread(new Runnable() {
@@ -523,6 +464,22 @@ public class FullscreenLogin extends AppCompatActivity {
         protected void onPostExecute(String result) {
             Log.d("OnPostExec",""+result);
         }
+    }
+
+    public void emptyAllDbs(){
+        for (int cnt = 0; cnt < databaseList.length; cnt++) {
+            try {
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbResources = manager.getDatabase(databaseList[cnt]);
+                dbResources.delete();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+
+
     }
 
 

@@ -300,8 +300,6 @@ public class TabFragment1 extends Fragment {
         }
     }
 
-
-
     public void openHTML(String index) {
         final String mainFile =  index;
         try {
@@ -329,7 +327,6 @@ public class TabFragment1 extends Fragment {
         }
 
     }
-
 
     public void downloadHTMLContent(String docId, final String fileName) {
         final String myfilename =  fileName;
@@ -390,7 +387,6 @@ public class TabFragment1 extends Fragment {
         }
     }
 
-
     public void openImage(String docId, final String fileName, String player) {
         final String myfilename =  fileName;
         AndroidContext androidContext = new AndroidContext(context);
@@ -445,7 +441,6 @@ public class TabFragment1 extends Fragment {
             mkDirs(subdir, dirs, depth - 1);
         }
     }
-
 
     public void openPDF(String docId, final String fileName, String player) {
         final String myfilename =  fileName;

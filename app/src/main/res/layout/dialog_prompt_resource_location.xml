@@ -43,7 +43,9 @@
                         android:textStyle="bold"
                         android:textAlignment="center"
                         android:textColor="@color/ole_black_blue"
-                        android:textSize="18sp" />
+                        android:textSize="18sp"
+                        android:layout_marginBottom="30dp"
+                        android:layout_marginTop="20dp" />
                 </LinearLayout>
             </ScrollView>
 
@@ -74,7 +76,8 @@
                         android:layout_centerVertical="true"
                         android:layout_centerHorizontal="true"
                         android:textAlignment="center"
-                        android:textColor="@color/ole_black_blue" />
+                        android:textColor="@color/ole_black_blue"
+                        android:layout_marginBottom="30dp" />
                 </LinearLayout>
             </ScrollView>
 
@@ -86,7 +89,10 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_gravity="top|center"
-            android:gravity="center">
+            android:gravity="center"
+            android:layout_marginBottom="20dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp">
 
             <Button
                 android:layout_width="0dp"
@@ -94,7 +100,7 @@
                 android:text="@string/txtOpenOnline"
                 android:id="@+id/btnOpenOnline"
                 android:layout_gravity="center"
-                android:background="@drawable/rounded_corners_red"
+                android:background="@drawable/rounded_corners_black_blue"
                 android:layout_marginTop="5dp"
                 android:layout_weight="2"
                 android:textAlignment="center"
@@ -112,7 +118,7 @@
             android:layout_height="wrap_content"
             android:text="@string/txtDownload"
                 android:layout_gravity="center"
-            android:background="@drawable/rounded_corners_blue_btn"
+            android:background="@drawable/rounded_corners_black_blue"
             android:layout_marginTop="5dp"
             android:layout_weight="2"
             android:textAlignment="center"

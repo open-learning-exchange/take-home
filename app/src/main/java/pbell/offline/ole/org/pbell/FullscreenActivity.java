@@ -3,13 +3,21 @@ package pbell.offline.ole.org.pbell;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Environment;
 import android.provider.ContactsContract;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -29,23 +37,48 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.couchbase.lite.Attachment;
+import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.Manager;
 import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryEnumerator;
+import com.couchbase.lite.QueryOptions;
 import com.couchbase.lite.QueryRow;
+import com.couchbase.lite.Revision;
 import com.couchbase.lite.android.AndroidContext;
+import com.couchbase.lite.replicator.Replication;
+import com.github.kittinunf.fuel.Fuel;
+import com.github.kittinunf.fuel.core.FuelError;
+import com.github.kittinunf.fuel.core.Request;
+import com.github.kittinunf.fuel.core.Response;
 
+import net.sf.andpdf.pdfviewer.*;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -65,6 +98,17 @@ public class FullscreenActivity extends AppCompatActivity {
     int sys_uservisits_Int=0;
     Object[] sys_membersWithResource;
     boolean userShelfSynced =false;
+    boolean synchronizing = true;
+    JSONObject jsonData;
+    Database dbResources;
+    int syncCnt,resourceNo=0;
+    AndroidContext androidContext;
+    Replication pull;
+    Manager manager;
+    boolean status_SyncOneByOneResource = false;
+    private ProgressDialog mDialog;
+    String indexFilePath;
+
 
     CouchViews chViews = new CouchViews();
     String resourceIdList[];
@@ -72,8 +116,16 @@ public class FullscreenActivity extends AppCompatActivity {
     int rsLstCnt=0;
     Button[] libraryButtons;
     Dialog dialog2;
+    String OneByOneResID="";
+    int resButtonId;
 
+    ArrayList<String> lst;
 
+    ImageView[] imageView;
+    static Uri videoURl;
+    static Intent intent;
+
+    int resourceCntr,attachmentLength;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,6 +133,7 @@ public class FullscreenActivity extends AppCompatActivity {
         mContentView = findViewById(R.id.fullscreen_content);
         ActionBar actionBar = getSupportActionBar();
         actionBar.hide();
+        androidContext = new AndroidContext(this);
        /* mContentView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -102,6 +155,9 @@ public class FullscreenActivity extends AppCompatActivity {
         sys_userlastname = settings.getString("pf_userlastname","");
         sys_usergender = settings.getString("pf_usergender","");
         sys_uservisits = settings.getString("pf_uservisits","");
+
+        /////////////////////////
+
 
         try {
             Set<String> mwr = settings.getStringSet("membersWithResource", null);
@@ -178,8 +234,6 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public void LoadShelfResourceList() {
         String memberId = sys_usercouchId;
-        AndroidContext androidContext = new AndroidContext(context);
-        Manager manager = null;
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database db = manager.getExistingDatabase("shelf");
@@ -228,11 +282,12 @@ public class FullscreenActivity extends AppCompatActivity {
                 libraryButtons[ButtonCnt].setLayoutParams(layoutParams);
                 row2.addView(libraryButtons[ButtonCnt]);
                 try {
-                    manager = new Manager(new AndroidContext(context), Manager.DEFAULT_OPTIONS);
+                    manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                     Database resource_Db = manager.getExistingDatabase("resources");
-                    Document resource_doc = resource_Db.getExistingDocument((String) resourceTitleList[ButtonCnt]);
+                    Document resource_doc = resource_Db.getExistingDocument((String) resourceIdList[ButtonCnt]);
                     Map<String, Object> resource_properties = resource_doc.getProperties();
                     Log.e("tag", "RES ID " + (String) resource_properties.get("resourceId"));
+                    libraryButtons[ButtonCnt].setTextColor(getResources().getColor(R.color.ole_white));
                 }catch(Exception errs){
                     libraryButtons[ButtonCnt].setTextColor(getResources().getColor(R.color.ole_yellow));
                     Log.e("tag", "OBJECT ERROR "+ errs.toString());
@@ -242,11 +297,9 @@ public class FullscreenActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View view) {
                         if(libraryButtons[view.getId()].getCurrentTextColor()==getResources().getColor(R.color.ole_yellow)){
-                            Toast.makeText(context, "Online " + resourceTitleList[view.getId()], Toast.LENGTH_SHORT).show();
-                            MaterialClickDialog(false,resourceTitleList[view.getId()],resourceIdList[view.getId()]);
+                            MaterialClickDialog(false,resourceTitleList[view.getId()],resourceIdList[view.getId()],view.getId());
                         }else{
-                            Toast.makeText(context, "Offline " + resourceTitleList[view.getId()], Toast.LENGTH_SHORT).show();
-                            MaterialClickDialog(false,resourceTitleList[view.getId()],resourceIdList[view.getId()]);
+                            openDoc(resourceIdList[view.getId()]);
                         }
 
                     }
@@ -260,10 +313,12 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     }
 
-    public void MaterialClickDialog(boolean online,String title,String resId){
+    public void MaterialClickDialog(boolean online,String title,String resId,int buttonPressedId){
         final boolean rs_status = online;
         final String rs_title = title;
-        final String rs_ID = title;
+        final String rs_ID = resId;
+        resButtonId = buttonPressedId;
+
 
         AlertDialog.Builder dialogB2 = new AlertDialog.Builder(this);
         // custom dialog
@@ -274,62 +329,832 @@ public class FullscreenActivity extends AppCompatActivity {
 
         TextView txtResourceId = (TextView) dialog2.findViewById(R.id.txtResourceID);
         txtResourceId.setText(title);
+
+
+        Button dialogBtnOpenFileOnline = (Button) dialog2.findViewById(R.id.btnOpenOnline);
+        dialogBtnOpenFileOnline.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Todo Open resource in a browser
+
+
+            }
+        });
+
+        if (checkConnectionURL()) {
+            Snackbar.make(mContentView, "Checking connection to "+sys_oldSyncServerURL +".... please wait", Snackbar.LENGTH_INDEFINITE).setAction("Action", null).show();
+            new FullscreenActivity.TestConnection().execute(sys_oldSyncServerURL);
+        } else {
+            dialogBtnOpenFileOnline.setText("Not Connected");
+            dialogBtnOpenFileOnline.setEnabled(false);
+        }
+
+
         Button dialogBtnDownoadFile = (Button) dialog2.findViewById(R.id.btnDownloadFile);
         dialogBtnDownoadFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-            }
-        });
-
-        Button dialogBtnOpenFileOnline = (Button) dialog2.findViewById(R.id.btnOpenOnline);
-        dialogBtnDownoadFile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-
-            }
-        });
-
-
-        ///dialogDetails = dialogbuilder.create();
-/*
-        final EditText txtSuncURL = (EditText) dialog2.findViewById(R.id.txtNewSyncURL);
-        txtSuncURL.setText(sys_oldSyncServerURL);
-        Button dialogButton = (Button) dialog2.findViewById(R.id.btnNewSaveSyncURL);
-        dialogButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sys_oldSyncServerURL = txtSuncURL.getText().toString();
-
-                SharedPreferences.Editor editor = settings.edit();
-                editor.putString("pf_sysncUrl", sys_oldSyncServerURL);
-                editor.commit();
-
                 dialog2.dismiss();
-                //Intent intent = new Intent(context,NewSync.class);
-                //startActivity(intent);
-                ///dialog.getOwnerActivity().setVisible(false);
-                ///initSyncLoginDetails();
-                ///
-                // mDialog = new ProgressDialog(context);
-                //mDialog.setMessage("Please wait...");
-               // mDialog.setCancelable(false);
-
-
+                OneByOneResID = rs_ID;
                 try {
-                    //syncNotifier();
-                    //initDB();
-                    //startSync();
+                    //testFilteredPuller();
+
+                    mDialog = new ProgressDialog(context);
+                    mDialog.setMessage("Please wait...");
+                    mDialog.setCancelable(true);
+                    mDialog.show();
+                    final AsyncTask<String, Void, Boolean> execute = new SyncResource().execute();
+
                 } catch (Exception e) {
                     e.printStackTrace();
+                    mDialog = new ProgressDialog(context);
+                    mDialog.setMessage("Error Downloading Resource. Check connection to server and try again");
+                    mDialog.setCancelable(true);
+                    mDialog.show();
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+
                 }
-
-
-               // mDialog.show();
             }
         });
 
-        */
     }
+
+    private boolean checkConnectionURL() {
+        ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnected()) {
+            Log.v("myErrorTag","Network Connected");
+            return true;
+            // fetch data
+        } else {
+
+            Log.v("myErrorTag","Network Not Connected");
+            return false;
+        }
+
+    }
+
+    private class TestConnection extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+
+            // params comes from the execute() call: params[0] is the url.
+            InputStream is = null;
+            int response=0;
+            try {
+                URL url = new URL(sys_oldSyncServerURL+"/resources");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setReadTimeout(5000 /* milliseconds */);
+                conn.setConnectTimeout(10000 /* milliseconds */);
+                conn.setRequestMethod("GET");
+                conn.setDoInput(true);
+                // Starts the query
+                conn.connect();
+                response = conn.getResponseCode();
+                Log.d("MyCouch", "The response is: " + response);
+                is = conn.getInputStream();
+                return "";
+            }catch (Exception err) {
+
+            }finally
+            {
+                if(response!=200){
+                    Snackbar.make(mContentView, "Sorry , server was unreachable, check url & device connection "+ response, Snackbar.LENGTH_LONG).setAction("Action", null).show();
+                }else{
+                    Snackbar.make(mContentView, "Server connection established", Snackbar.LENGTH_LONG).setAction("Action", null).show();
+                }
+                if (is != null) {
+                    try {
+                        is.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return "";
+            }
+        }
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String result) {
+
+        }
+    }
+
+    //// NOT IN USE CURRENT VERSION
+    public void syncOneByOne(){
+        status_SyncOneByOneResource=true;
+        final AsyncTask<String, Void, Boolean> execute = new FullscreenActivity.SyncOneByOneResource().execute();
+        Log.e("MyCouch", "syncNotifier Running");
+        final Thread th = new Thread(new Runnable() {
+            public void run() {
+                while (status_SyncOneByOneResource) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(!status_SyncOneByOneResource) {
+                                mDialog.dismiss();
+                                status_SyncOneByOneResource=false;
+                                return;
+                            }else {
+                                Log.d("runOnUiThread", "running");
+                                mDialog.setMessage("Downloading, please wait .... ");
+                            }
+                        }
+                    });
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        th.start();
+    }
+    public void syncThreadHandler(){
+        final AsyncTask<String, Void, Boolean> execute = new FullscreenActivity.SyncResource().execute();
+        final Thread th = new Thread(new Runnable() {
+            public void run() {
+                while (status_SyncOneByOneResource) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                        }
+                    });
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        th.start();
+    }
+    class SyncOneByOneResource extends AsyncTask<String, Void, Boolean> {
+        protected void onPreExecute (){
+            synchronizing = true;
+            Log.d("PreExceute","On pre Exceute......");
+        }
+
+        protected Boolean doInBackground(final String... args) {
+            Log.d("DoINBackGround","On doInBackground...");
+            final Database res_Db;
+            final Fuel ful = new Fuel();
+            jsonData = null;
+            attachmentLength= -1;
+            try {
+                URL url = new URL(sys_oldSyncServerURL+"/resources");
+                manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                dbResources = manager.getDatabase("resources");
+                dbResources.delete();
+                res_Db = manager.getExistingDatabase("resources");
+                pull = dbResources.createPullReplication(url);
+                pull.setFilter("apps/by_resource");
+                Map<String, Object> params = new HashMap<String, Object>();
+                params.put("_id", OneByOneResID);
+                //Log.e("MyCouch", " Resource ID "+ lst.get(syncCnt));
+                pull.setFilterParams(params);
+                pull.setContinuous(false);
+                ////pull.setAuthenticator(new BasicAuthenticator(userName, userPw));
+                pull.addChangeListener(new Replication.ChangeListener() {
+                    @Override
+                    public void changed(Replication.ChangeEvent event) {
+                        if(pull.isRunning()){
+                            Log.e("MyCouch", " "+event.getChangeCount());
+                            Log.e("MyCouch", " Document Count "+dbResources.getDocumentCount());
+                        }else {
+                            Log.e("Finished", ""+dbResources.getDocumentCount());
+                            ////// CHECK REMOTE ATTACHMENT FILE SIZE VS LOCAL ATTACHMENT FILE SIZE (length)
+                            Document res_doc = res_Db.getExistingDocument(OneByOneResID);
+                            final List<String> attmentNames = res_doc.getCurrentRevision().getAttachmentNames();
+                            /// IF local document has attachments
+                            if (attmentNames.size() > 0) {
+                                for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                                    resourceCntr = cnt;
+                                    Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment((String) attmentNames.get(cnt));
+                                    ///
+                                    ful.get(sys_oldSyncServerURL+"/resources/"+OneByOneResID).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+                                        @Override
+                                        public void success(Request request, Response response, String s) {
+                                            try {
+                                                jsonData = new JSONObject(s);
+                                                //Log.e("MyCouch", "-- "+jsonData);
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
+                                            try {
+                                                JSONObject jsob = jsonData.getJSONObject("_attachments");
+                                                JSONObject jsoAttachments = jsob.getJSONObject((String) attmentNames.get(resourceCntr));
+                                                attachmentLength = jsoAttachments.getInt("length");
+                                                Log.e("MyCouch", "Attachment Object Content "+jsoAttachments);
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                        @Override
+                                        public void failure(Request request, Response response, FuelError fuelError) {
+                                            Log.e("MyCouch", " "+fuelError);
+
+                                        }
+                                    });
+                                    /// If local attachment length is greater or equal to remote attachment, continue
+                                    /// Else run the replication again
+                                    if(fileAttachment.getLength() >= attachmentLength){
+
+                                        Log.e("MyCouch", "Local = "+fileAttachment.getLength() + "  Remote = " +attachmentLength);
+                                        if(syncCnt <= 1){
+                                            syncCnt++;
+                                            new FullscreenActivity.SyncOneByOneResource().execute();
+                                        }else{
+                                            if (status_SyncOneByOneResource){
+                                            }
+                                            status_SyncOneByOneResource = false;
+                                        }
+
+
+                                    }else{
+                                        Log.e("MyCouch", "Local = "+fileAttachment.getLength() + "  Remote = " +attachmentLength);
+                                        new FullscreenActivity.SyncOneByOneResource().execute();
+                                    }
+                                }
+                            } else if(syncCnt <= 1){
+                                syncCnt++;
+                                new FullscreenActivity.SyncOneByOneResource().execute();
+                            }else{
+                                if (status_SyncOneByOneResource){
+                                    //..mydialog.dismiss();
+                                }
+                                status_SyncOneByOneResource = false;
+                            }
+                            //////////////////////
+
+                        }
+                    }
+                });
+                pull.start();
+
+
+            } catch (Exception e) {
+                Log.e("MyCouch", " "+" Cannot create database", e);
+                return false;
+
+            }
+            return true;
+        }
+        protected void onProgressUpdate(Integer...a){
+            Log.d("onProgress","You are in progress update ... " + a[0]);
+        }
+
+        protected void onPostExecute(final Boolean success) {
+            if (success){
+                Log.d("MyCouch","Download Triggered");
+                status_SyncOneByOneResource=false;
+                mDialog.dismiss();
+                libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_white));
+            }else{
+                Log.d("OnPostExec","");
+            }
+        }
+    }
+    public void testFilteredPuller() throws Throwable {
+
+        URL remote = getReplicationURL();
+
+        CountDownLatch replicationDoneSignal = new CountDownLatch(1);
+        final Database database = manager.getDatabase("resources");
+        final Replication repl = (Replication) database.createPullReplication(remote);
+        repl.setContinuous(false);
+        repl.setFilter("apps/by_resource");
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("_id", OneByOneResID);
+        repl.setFilterParams(map);
+
+        mDialog = new ProgressDialog(context);
+        mDialog.setMessage("Please wait...");
+        mDialog.setCancelable(true);
+        mDialog.show();
+
+
+        repl.addChangeListener(new Replication.ChangeListener() {
+            @Override
+            public void changed(Replication.ChangeEvent event) {
+                Log.e("MyCouch", "Current Status "+repl.getStatus());
+                if(repl.isRunning()){
+                    if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_ACTIVE")) {
+                        Log.e("MyCouch", " " + event.getChangeCount());
+                        Log.e("MyCouch", " Document Count " + database.getDocumentCount());
+                    }else if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")){
+                        mDialog.dismiss();
+                        checkAllDocsInDB();
+                        libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_white));
+                    }
+                    else{
+                        mDialog.setMessage("Data transfer error. Check connection to server.");
+                        libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_yellow));
+                    }
+                }else {
+                    Log.e("MyCouch", "" + database.getDocumentCount());
+                    mDialog.dismiss();
+                    checkAllDocsInDB();
+                }
+
+            }
+        });
+        repl.start();
+
+
+    }
+    //////////////////
+
+
+    class SyncResource extends AsyncTask<String, Void, Boolean> {
+        @Override
+        protected Boolean doInBackground(String... params) {
+            try {
+                URL remote = getReplicationURL();
+                CountDownLatch replicationDoneSignal = new CountDownLatch(1);
+                final Database database;
+                database = manager.getDatabase("resources");
+                final Replication repl = (Replication) database.createPullReplication(remote);
+                repl.setContinuous(false);
+                repl.setFilter("apps/by_resource");
+
+                Map<String, Object> map = new HashMap<String, Object>();
+                map.put("_id", OneByOneResID);
+                repl.setFilterParams(map);
+                repl.addChangeListener(new Replication.ChangeListener() {
+                    @Override
+                    public void changed(Replication.ChangeEvent event) {
+                        Log.e("MyCouch", "Current Status "+repl.getStatus());
+                        if(repl.isRunning()){
+                            if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_ACTIVE")) {
+                                Log.e("MyCouch", " " + event.getChangeCount());
+                                Log.e("MyCouch", " Document Count " + database.getDocumentCount());
+                            }else if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")){
+                                mDialog.dismiss();
+                                checkAllDocsInDB();
+                                libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_white));
+                            }
+                            else{
+                                mDialog.setMessage("Data transfer error. Check connection to server.");
+                            }
+                        }else {
+                            Log.e("MyCouch", "Document Count " + database.getDocumentCount());
+                            mDialog.dismiss();
+                            checkAllDocsInDB();
+                            libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_white));
+
+                        }
+                    }
+                });
+                repl.start();
+            } catch (CouchbaseLiteException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    public URL getReplicationURL(){
+        URL url=null;
+        try {
+            url = new URL(sys_oldSyncServerURL + "/resources");
+        }catch(Exception err){
+            Log.d("TAG", "Error with URL ");
+        }
+        return url;
+    }
+
+    public void checkAllDocsInDB(){
+        try {
+            Database database = manager.getDatabase("resources");
+            database.getAllDocs(new QueryOptions());
+            Query queryAllDocs = database.createAllDocumentsQuery();
+            QueryEnumerator queryEnumerator = queryAllDocs.run();
+            for (Iterator<QueryRow> it = queryEnumerator; it.hasNext();) {
+                QueryRow row = it.next();
+                Document document = row.getDocument();
+                Revision revision = document.getCurrentRevision();
+                Log.d("MyCouch", document.getId() + " : " +  revision.getAttachments().size());
+            }
+
+            Log.d("MyCouch", "done looping over all docs ");
+
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void openDoc(String docId) {
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database res_Db = manager.getExistingDatabase("resources");
+            Document res_doc = res_Db.getExistingDocument(docId);
+            String oppenwith = (String) res_doc.getProperty("openWith");
+            Log.e("MYAPP", " membersWithID  = " + docId +"and Open with "+ oppenwith);
+            List<String> attmentNames = res_doc.getCurrentRevision().getAttachmentNames();
+            if(oppenwith.equalsIgnoreCase("HTML")){
+                /*if (attmentNames.size() <= 1) {
+                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                        openImage(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
+                    }
+                }*/
+                indexFilePath=null;
+                if (attmentNames.size() > 1) {
+                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                        downloadHTMLContent(docId, (String) attmentNames.get(cnt));
+                    }
+                    if(indexFilePath!=null){
+                        openHTML(indexFilePath);
+                    }
+                }else{
+                    openImage(docId, (String) attmentNames.get(0), getExtension(attmentNames.get(0)));
+                }
+
+            }else if(oppenwith.equalsIgnoreCase("PDF.js")){
+                if (attmentNames.size() > 0) {
+                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                        openPDF(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
+                        break;
+                    }
+                }
+
+            }else if(oppenwith.equalsIgnoreCase("MP3")){
+                if (attmentNames.size() > 0) {
+                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                        openAudioVideo(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
+                        break;
+                    }
+                }
+
+            }else if(oppenwith.equalsIgnoreCase("Bell-Reader")){
+                if (attmentNames.size() > 0) {
+                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                        openPDF(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
+                        break;
+                    }
+                }
+            }else if(oppenwith.equalsIgnoreCase("Flow Video Player")){
+                if (attmentNames.size() > 0) {
+                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                        openAudioVideo(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
+                        break;
+                    }
+                }
+
+            }else if(oppenwith.equalsIgnoreCase("BeLL Video Book Player")){
+                if (attmentNames.size() > 0) {
+                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+
+                    }
+                }
+
+            }else if(oppenwith.equalsIgnoreCase("Native Video")){
+                if (attmentNames.size() > 0) {
+                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                        openAudioVideo(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
+                        break;
+                    }
+                }
+
+            }
+        } catch (Exception Er) {
+
+        }
+    }
+
+    public void openHTML(String index) {
+        final String mainFile =  index;
+        try {
+            try{
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setPackage("org.mozilla.firefox");
+                intent.setDataAndType(Uri.parse(mainFile),"text/html");
+                intent.setComponent(new ComponentName("org.mozilla.firefox", "org.mozilla.firefox.App"));
+                this.startActivity(intent);
+                ///intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+            }catch(Exception err){
+                Log.e("Error", err.getMessage());
+                File myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
+                File dst = new File(myDir,"firefox_49_0_multi_android.apk");
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            }
+
+        } catch (Exception Er) {
+            Er.printStackTrace();
+
+        }
+
+    }
+
+    public void downloadHTMLContent(String docId, final String fileName) {
+        final String myfilename =  fileName;
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database res_Db = manager.getExistingDatabase("resources");
+            Document res_doc = res_Db.getExistingDocument(docId);
+            final Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment(fileName);
+            int lth= (int) fileAttachment.getLength();
+            try{
+                InputStream in = fileAttachment.getContent();
+                String root = Environment.getExternalStorageDirectory().toString();
+                File newDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2/"+docId);
+                if (!newDir.exists()){
+                    newDir.mkdirs();
+                }
+
+                File myDir = new File(root + "/ole_temp2/"+docId);
+                File dst = new File(myDir,fileAttachment.getName().replace(" ", ""));
+                String filepath[]= dst.toString().split("/");
+                int defaultLength = myDir.getPath().split("/").length;
+                String path= myDir.getPath();
+                //Log.e("tag", " Location  "+ dst.toString() + " Default :" + defaultLength + " fpath: "+filepath.length);
+                for(int cnt= defaultLength; cnt < (filepath.length-1);cnt++){
+                    path = path +"/"+ filepath[cnt];
+                    myDir = new File(path);
+                    if (!myDir.exists()){
+                        myDir.mkdirs();
+                    }
+                }
+                try {
+                    BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(dst));
+                    byte[] buff = new byte[1024];
+                    int len;
+                    while ((len = in.read(buff)) > 0) {
+                        out.write(buff, 0, len);
+                    }
+
+                    Log.e("tag", " Saved "+ dst.toString()+" Original length: "+ lth );
+
+                    in.close();
+                    out.close();
+                    if(dst.getName().equalsIgnoreCase("index.html") && (filepath.length - defaultLength)==1 ){
+                        indexFilePath = dst.toString();
+                    }
+
+                }catch(Exception err){
+                    Log.e("tag", " Saving "+ err.getMessage());
+                }
+            }catch(Exception err){
+                err.printStackTrace();
+            }
+        } catch (Exception Er) {
+            Er.printStackTrace();
+
+        }
+    }
+
+    public void openImage(String docId, final String fileName, String player) {
+        final String myfilename =  fileName;
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database res_Db = manager.getExistingDatabase("resources");
+            Document res_doc = res_Db.getExistingDocument(docId);
+            final Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment(fileName);
+            try{
+                File src = new File(fileAttachment.getContentURL().getPath());
+                InputStream in = new FileInputStream(src);
+                String root = Environment.getExternalStorageDirectory().toString();
+                File myDir = new File(root + "/ole_temp");
+                if (!myDir.exists()){
+                    myDir.mkdirs();
+                }
+                File dst = new File(myDir,fileAttachment.getName().replace(" ", ""));
+                try {
+                    FileOutputStream out = new FileOutputStream(dst);
+                    byte[] buff = new byte[1024];
+                    int read = 0;
+                    while ((read = in.read(buff)) > 0) {
+                        out.write(buff, 0, read);
+                    }
+                    in.close();
+                    out.close();
+                    Log.e("tag", " Copied PDF "+ dst.toString());
+                }catch(Exception err){
+                    err.printStackTrace();
+                }
+                Intent intent = new Intent();
+                intent.setAction(android.content.Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.fromFile(dst), "image/*");
+                //Log.e("tag", " URL Path "+ Uri.fromFile(dst).getPath());;
+                startActivity(intent);
+            }catch(Exception err){
+
+            }
+        } catch (Exception Er) {
+            Er.printStackTrace();
+
+        }
+
+    }
+
+    public static void mkDirs(File root, List<String> dirs, int depth) {
+        if (depth == 0) return;
+        for (String s : dirs) {
+            File subdir = new File(root, s);
+            subdir.mkdir();
+            mkDirs(subdir, dirs, depth - 1);
+        }
+    }
+
+    public void openPDF(String docId, final String fileName, String player) {
+        final String myfilename =  fileName;
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database res_Db = manager.getExistingDatabase("resources");
+            Document res_doc = res_Db.getExistingDocument(docId);
+            final Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment(fileName);
+
+            android.app.AlertDialog alertDialog = new android.app.AlertDialog.Builder(this).create();
+            alertDialog.setTitle("Open Document");
+            alertDialog.setMessage("Select which application you wish to open document with");
+            alertDialog.setButton(android.app.AlertDialog.BUTTON_POSITIVE, "Adobe PDF Reader", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    try{
+                        File src = new File(fileAttachment.getContentURL().getPath());
+                        InputStream in = new FileInputStream(src);
+                        String root = Environment.getExternalStorageDirectory().toString();
+                        File myDir = new File(root + "/ole_temp");
+                        if (!myDir.exists()){
+                            myDir.mkdirs();
+                        }
+                        File dst = new File(myDir,fileAttachment.getName().replace(" ", ""));
+                        try {
+                            FileOutputStream out = new FileOutputStream(dst);
+                            byte[] buff = new byte[1024];
+                            int read = 0;
+                            while ((read = in.read(buff)) > 0) {
+                                out.write(buff, 0, read);
+                            }
+                            in.close();
+                            out.close();
+                            Log.e("tag", " Copied PDF "+ dst.toString());
+                        }catch(Exception err){
+                            err.printStackTrace();
+                        } ///
+
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setPackage("com.adobe.reader");
+                        intent.setDataAndType(Uri.fromFile(dst), "application/pdf");
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+
+
+                    }catch(Exception err){
+                        File myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
+                        File dst = new File(myDir,"adobe_reader.apk");
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                    }
+
+                } });
+
+            alertDialog.setButton(android.app.AlertDialog.BUTTON_NEGATIVE, "In-App PDF Viewer", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+
+                    try{
+                        File src = new File(fileAttachment.getContentURL().getPath());
+                        InputStream in = new FileInputStream(src);
+                        String root = Environment.getExternalStorageDirectory().toString();
+                        File myDir = new File(root + "/ole_temp");
+                        if (!myDir.exists()){
+                            myDir.mkdirs();
+                        }
+                        File dst = new File(myDir,fileAttachment.getName().replace(" ", ""));
+                        try {
+                            FileOutputStream out = new FileOutputStream(dst);
+                            byte[] buff = new byte[1024];
+                            int read = 0;
+                            while ((read = in.read(buff)) > 0) {
+                                out.write(buff, 0, read);
+                            }
+                            in.close();
+                            out.close();
+                            Log.e("tag", " Copied PDF "+ dst.toString());
+                        }catch(Exception err){
+                            err.printStackTrace();
+                        } ///
+
+
+                        Intent intent = new Intent(FullscreenActivity.this, MyPdfViewerActivity.class);
+                        Log.e("tag", " URL Path "+ Uri.fromFile(dst).getPath());
+                        intent.putExtra(net.sf.andpdf.pdfviewer.PdfViewerActivity.EXTRA_PDFFILENAME, Uri.fromFile(dst).getPath());
+                        startActivity(intent);
+
+
+                    }catch(Exception err){
+
+                    }
+                }});
+            alertDialog.setButton(android.app.AlertDialog.BUTTON_NEUTRAL, "Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+
+
+                }});
+            alertDialog.show();
+
+        } catch (Exception Er) {
+            Er.printStackTrace();
+
+        }
+
+    }
+
+    public void openAudioVideo(String docId,String fileName, String player) {
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database res_Db = manager.getExistingDatabase("resources");
+            Document res_doc = res_Db.getExistingDocument(docId);
+            Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment(fileName);
+
+            File src = new File(fileAttachment.getContentURL().getPath());
+            String root = Environment.getExternalStorageDirectory().toString();
+            File myDir = new File(root + "/ole_temp");
+            deleteDirectory(myDir);
+            myDir.mkdirs();
+            String diskFileName = fileAttachment.getName();
+            diskFileName = diskFileName.replace(" ", "");
+            File dst = new File(myDir,diskFileName);
+
+            InputStream in = new FileInputStream(src);
+            OutputStream out = new FileOutputStream(dst);
+
+            // Transfer bytes from in to out
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
+            }
+            in.close();
+            out.close();
+            dst.setReadable(true);
+            String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(dst).toString());
+            String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+            intent = new Intent();
+            intent.setAction(Intent.ACTION_VIEW);
+            Log.e("tag","- "+ mimetype +" - ");
+
+            if(mimetype=="audio/mpeg"){
+                intent.setDataAndType(Uri.fromFile(dst),mimetype);
+                this.startActivity(intent);
+            }else{
+                try {
+                    intent.setDataAndType(Uri.fromFile(dst),mimetype);
+                    this.startActivity(intent);
+                }catch (Exception Er) {
+                    Log.e("tag", Er.getMessage());
+                }
+            }
+        } catch (Exception Er) {
+            Log.e("tag", Er.getMessage());
+        }
+    }
+
+    public String getExtension(final String filename) {
+        if (filename == null){
+            return null;
+        }
+        final String afterLastSlash = filename.substring(filename.lastIndexOf('/') + 1);
+        final int afterLastBackslash = afterLastSlash.lastIndexOf('\\') + 1;
+        final int dotIndex = afterLastSlash.indexOf('.', afterLastBackslash);
+        return (dotIndex == -1) ? "" : afterLastSlash.substring(dotIndex + 1);
+    }
+
+    public boolean deleteDirectory(File path) {
+        if(path.exists()) {
+            if (path.isDirectory()) {
+                File[] files = path.listFiles();
+                for (int i=0; i<files.length; i++) {
+                    deleteDirectory(files[i]);
+                }
+            }
+            return path.delete();
+        }
+
+        return false;
+    }
+
+
+
 }
