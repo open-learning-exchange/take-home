@@ -163,6 +163,9 @@ public class TabFragment2 extends Fragment {
             AndroidContext androidContext = new AndroidContext(context);
             Manager manager = null;
             try {
+
+                Log.d("tag2", "Loading Course List ");
+
                 manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                 Database db = manager.getExistingDatabase("membercourseprogress");
                 Database groups_Db = manager.getExistingDatabase("groups");
@@ -178,7 +181,6 @@ public class TabFragment2 extends Fragment {
                 Map<String, Object> course_properties = null;
 
                 for (Iterator<QueryRow> it = results; it.hasNext(); ) {
-                    Log.d("tag2", "HEREVEE ");
 
                     QueryRow row = it.next();
                     String docId = (String) row.getValue();

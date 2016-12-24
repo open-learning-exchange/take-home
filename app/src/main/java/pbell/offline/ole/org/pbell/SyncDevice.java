@@ -40,6 +40,14 @@ import com.github.kittinunf.fuel.core.FuelError;
 import com.github.kittinunf.fuel.core.Request;
 import com.github.kittinunf.fuel.core.Response;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.params.HttpParams;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -73,7 +81,7 @@ public class SyncDevice extends AppCompatActivity {
     TextView tv;
     View clcview;
     String message ="";
-    String str_memberID;
+    String str_memberID,str_resourceId;
     //////Replication push,pull;
     FloatingActionButton fab;
     Boolean wipeClearn =false;
@@ -91,6 +99,8 @@ public class SyncDevice extends AppCompatActivity {
 
     ProgressDialog[] progressDialog = new ProgressDialog[databaseList.length];
 
+    JSONObject designViewDoc;
+
     AndroidContext androidContext;
     int syncCnt=0;
     int pushsyncCnt=0;
@@ -101,6 +111,9 @@ public class SyncDevice extends AppCompatActivity {
     Boolean synchronizingPull = true;
     Boolean synchronizingPush = true;
     JSONObject jsonData;
+    int doc_rating,doc_timesRated;
+    ArrayList<String> doc_comments;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -155,6 +168,22 @@ public class SyncDevice extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 synchronizingPull=false;
+
+                try{
+                    designViewDoc = new JSONObject();
+                    JSONObject filter = new JSONObject();
+                    try {
+                        filter.put("by_resource","function(doc, req){return doc._id === req.query._id;}");
+                        designViewDoc.put("filters",filter);
+                    } catch (JSONException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                    new RunCreateDocTask().execute("");
+                }catch(Exception err){
+                    ///err.printStackTrace();
+                }
+
                 triggerMemberResourceDownload();
             }
 
@@ -168,8 +197,6 @@ public class SyncDevice extends AppCompatActivity {
                 ///Log.v("Switch State=", ""+isChecked);
             }
         });
-
-
 
 
         fab = (FloatingActionButton) findViewById(R.id.checkConnection);
@@ -195,9 +222,108 @@ public class SyncDevice extends AppCompatActivity {
         });
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-
-
     }
+
+
+    ////// Create Filtered Replication View File
+
+    public static String createDocument(String hostUrl, String databaseName, JSONObject jsonDoc,String DocId) {
+        try {
+            HttpPut httpPutRequest = new HttpPut(hostUrl +"/"+ databaseName+"/"+DocId);
+            StringEntity body = new StringEntity(jsonDoc.toString(), "utf8");
+            httpPutRequest.setEntity(body);
+            httpPutRequest.setHeader("Accept", "application/json");
+            httpPutRequest.setHeader("Content-type", "application/json");
+            // timeout params
+            HttpParams params = httpPutRequest.getParams();
+            params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, Integer.valueOf(1000));
+            params.setParameter(CoreConnectionPNames.SO_TIMEOUT, Integer.valueOf(1000));
+            httpPutRequest.setParams(params);
+
+            JSONObject jsonResult = sendCouchRequest(httpPutRequest);
+
+            Log.v("Request =", ""+hostUrl);
+            Log.v("Returned from couch=", ""+jsonResult);
+
+            if (!jsonResult.getBoolean("ok")) {
+                return null;
+            }else if(jsonResult.getString("error")=="conflict"){
+                Log.v("Responce : ", jsonResult.getString("reason"));
+            }
+            return jsonResult.getString("rev");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private static JSONObject sendCouchRequest(HttpUriRequest request) {
+        try {
+            HttpResponse httpResponse = (HttpResponse) new DefaultHttpClient().execute(request);
+            HttpEntity entity = httpResponse.getEntity();
+            if (entity != null) {
+                // Read the content stream
+                InputStream instream = entity.getContent();
+                // Convert content stream to a String
+                String resultString = convertStreamToString(instream);
+                instream.close();
+                // Transform the String into a JSONObject
+                JSONObject jsonResult = new JSONObject(resultString);
+                return jsonResult;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static String convertStreamToString(InputStream is) {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is), 8192);
+        StringBuilder sb = new StringBuilder();
+
+        String line = null;
+        try {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line + "\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return sb.toString();
+    }
+
+    class RunCreateDocTask extends AsyncTask<String, Void, Boolean> {
+
+        private Exception exception;
+
+        protected Boolean doInBackground(String... urls) {
+            try {
+                createDocument(sys_oldSyncServerURL, "resources", designViewDoc,"_design/apps");
+                return true;
+            } catch (Exception e) {
+                this.exception = e;
+
+                return null;
+            }
+        }
+
+        protected void onPostExecute(Boolean docResult) {
+
+        }
+    }
+
+    /////// End Filtered Replication View File
+
+
+
+
+
 
     public void triggerMemberResourceDownload(){
         if(!synchronizingPull) {
@@ -253,8 +379,32 @@ public class SyncDevice extends AppCompatActivity {
     public void pushSyncNotifier(){
         BuildMemberListArray();
         for(int cnt=0;cnt<str_memberIdList.length;cnt++){
-            updateLocalMembers(str_memberIdList[cnt]);
+            ///updateLocalMembers(str_memberIdList[cnt]);
         }
+        //Todo read resource database and pass id's to function update it.
+
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database resources_db = manager.getExistingDatabase("resources");
+            Query query = resources_db.createAllDocumentsQuery();
+            query.setAllDocsMode(Query.AllDocsMode.ONLY_CONFLICTS);
+            QueryEnumerator result = query.run();
+            for (Iterator<QueryRow> it = result; it.hasNext(); ) {
+                QueryRow row = it.next();
+                if (row.getConflictingRevisions().size() > 0) {
+                    Log.e("MyCouch", "Resource Id "+row.getDocumentId());;
+                   // Log.w("MYAPP", "Conflict in document: %s", row.getDocumentId());
+                   /// beginConflictResolution(row.getDocument());
+                }
+            }
+
+        }catch(Exception err){
+
+        }
+
+
+        /////updateLocalResources(resourceId);
+    /*
         final AsyncTask<Void, Integer, String> execute = new TestAsyncPush().execute();
         Log.e("MyCouch", "push_SyncNotifier Running");
         final Thread th = new Thread(new Runnable() {
@@ -275,6 +425,8 @@ public class SyncDevice extends AppCompatActivity {
             }
         });
         th.start();
+
+        */
 
     }
 
@@ -525,6 +677,8 @@ public class SyncDevice extends AppCompatActivity {
         }
     }
 
+
+
     public boolean BuildMemberListArray(){
         AndroidContext androidContext = new AndroidContext(this);
         Manager manager = null;
@@ -537,6 +691,8 @@ public class SyncDevice extends AppCompatActivity {
             //orderedQuery.setEndKey("a");
             ///orderedQuery.setDescending(false);
             //orderedQuery.setLimit(0);
+
+
             QueryEnumerator results = orderedQuery.run();
             str_memberIdList = new String[results.getCount()];
             str_memberNameList = new String[results.getCount()];
@@ -562,6 +718,74 @@ public class SyncDevice extends AppCompatActivity {
 
 
 
+    }
+
+    public void updateLocalResources(String resourceId){
+        str_resourceId = resourceId;
+        final Fuel ful = new Fuel();
+
+        ful.get(sys_oldSyncServerURL+"/resources/"+resourceId).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+            @Override
+            public void success(Request request, Response response, String s) {
+                try {
+                    jsonData = new JSONObject(s);
+                    Log.e("MyCouch", "-- "+jsonData);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    int remote_rating = (int) jsonData.get("sum");
+                    int remote_timesRated = (int) jsonData.get("timesRated");
+                    ArrayList<String> remote_comments = (ArrayList<String>) jsonData.get("comments");
+                    Manager manager = null;
+                    Database ratingHolder;
+                    //int doc_noOfVisits;
+                    //int total_visits=0;
+                    //String max_lastLoginDate="";
+
+                    try {
+                        manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                        ratingHolder = manager.getDatabase("resourcerating");
+                        Document retrievedDocument = ratingHolder.getExistingDocument(str_resourceId);
+                        if(retrievedDocument != null) {
+                            Map<String, Object> properties = retrievedDocument.getProperties();
+                            if (properties.containsKey("sum")) {
+                                doc_rating = (int) properties.get("sum");
+                                doc_timesRated = (int) properties.get("timesRated");
+                                ArrayList<String> doc_comments = (ArrayList<String>) properties.get("comments");
+                                ///total_visits = doc_noOfVisits + remote_NoOfVisits;
+
+                                Database resources_db = manager.getExistingDatabase("resources");
+                                Document resourceDoc = resources_db.getExistingDocument(str_resourceId);
+
+                                /// Save total no of visits for member in member database
+                                Map<String, Object> doc_properties = new HashMap<String, Object>();
+                                doc_properties.putAll(resourceDoc.getProperties());
+                                doc_properties.put("sum", (doc_rating+remote_rating));
+                                doc_properties.put("timesRated", (doc_timesRated+remote_timesRated));
+                                doc_properties.put("timesRated", (doc_timesRated+remote_timesRated));
+                                resourceDoc.putProperties(doc_properties);
+
+                                Log.e("MyCouch Remote", "Rating Sum :  -----  "+(doc_rating+remote_rating));
+                                Log.e("MyCouch Remote", "Times rated :  -----  "+ (doc_timesRated+remote_timesRated));
+                                Log.e("MyCouch Remote", "Times rated :  -----  "+ (doc_timesRated+remote_timesRated));
+
+                            }
+                        }
+                    }catch(Exception Err){
+                        Log.e("MyCouch Remote Error", " :  "+ Err.getMessage());
+
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+            @Override
+            public void failure(Request request, Response response, FuelError fuelError) {
+                Log.e("MyCouch", " "+fuelError);
+
+            }
+        });
     }
 
     public void updateLocalMembers(String memberId){
@@ -655,4 +879,5 @@ public class SyncDevice extends AppCompatActivity {
             return false;
         }
     }
+
 }

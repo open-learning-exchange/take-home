@@ -6,6 +6,7 @@ package pbell.offline.ole.org.pbell;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -30,11 +31,17 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
 import net.sf.andpdf.pdfviewer.PdfViewerActivity;
@@ -48,8 +55,12 @@ import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
 
+import java.io.RandomAccessFile;
+import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -97,6 +108,7 @@ public class TabFragment1 extends Fragment {
     ///////////////////////////
     private RatingBar ratingBar;
     private TextView txtRatingValue;
+    private EditText txtComment;
 
     ///////////////////
     // Log tag
@@ -111,6 +123,7 @@ public class TabFragment1 extends Fragment {
 
     AssetManager assetManager;
     AssetFileDescriptor afd;
+    String indexFilePath;
 
 
 
@@ -120,24 +133,7 @@ public class TabFragment1 extends Fragment {
 
         CustomListView = this;
         assetManager = getActivity().getAssets();
-//        try {
-//            afd = assetManager.openFd("begin.mp4");
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
 
-
-
-
-
-        //Just Download
-        //HTML
-        //PDF.js
-        //Bell-Reader
-        //MP3
-        //Flow Video Player
-        //BeLL Video Book Player
-        //Native Video
         settings = context.getSharedPreferences(PREFS_NAME, 0);
         sys_username = settings.getString("pf_username","");
         sys_oldSyncServerURL = settings.getString("pf_sysncUrl","");
@@ -160,14 +156,8 @@ public class TabFragment1 extends Fragment {
         }
 
 
-        ///loadUserDetails();
-        ///if (!resourceList.isEmpty()) {
-            resourceList.clear();
-            LoadShelfResourceList();
-
-        //}
-
-        //setListData();
+        resourceList.clear();
+        LoadShelfResourceList();
 
         View rootView = inflater.inflate(R.layout.tab_fragment_1, container, false);
 
@@ -178,8 +168,8 @@ public class TabFragment1 extends Fragment {
             listView.setAdapter(adapter);
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 public void onItemClick(AdapterView<?> adapter, View v, int position, long id) {
-///
-               RateResourceDialog(resourceIdList[position],resourceTitleList[position]);
+                    // todo change rating style
+              RateResourceDialog(resourceIdList[position],resourceTitleList[position]);
                     openDoc(resourceIdList[position]);
                 }
             });
@@ -188,13 +178,8 @@ public class TabFragment1 extends Fragment {
         }
 
         //////copyAssets();
-        copyAPK();
-        //pDialog = new ProgressDialog(context);
-        // Showing progress dialog before making http request
-        //pDialog.setMessage("Loading...");
-        //pDialog.show();
-
-        // changing action bar color
+        copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
+        copyAPK(R.raw.firefox_49_0_multi_android, "firefox_49_0_multi_android.apk");
         //getActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#1b1b1b")));
         return rootView;
 
@@ -209,39 +194,15 @@ public class TabFragment1 extends Fragment {
         }
     }
 
-    private void copyAssets() {
-        InputStream in = getResources().openRawResource(R.raw.bgin);
+
+    private void copyAPK(int resource, String apkUrl) {
+        InputStream in = getResources().openRawResource(resource);
         String root = Environment.getExternalStorageDirectory().toString();
         File myDir = new File(root + "/ole_temp2");
         if (!myDir.exists()){
             myDir.mkdirs();
         }
-        File dst = new File(myDir,"bgin.mp4");
-        try {
-            FileOutputStream out = new FileOutputStream(dst);
-            byte[] buff = new byte[1024];
-            int read = 0;
-            while ((read = in.read(buff)) > 0) {
-                out.write(buff, 0, read);
-            }
-            in.close();
-            out.close();
-            Log.e("tag", "Video file copied "+ dst.toString());
-        }catch(Exception err){
-            err.printStackTrace();
-        } ///
-
-
-    }
-
-    private void copyAPK() {
-        InputStream in = getResources().openRawResource(R.raw.adobe_reader);
-        String root = Environment.getExternalStorageDirectory().toString();
-        File myDir = new File(root + "/ole_temp2");
-        if (!myDir.exists()){
-            myDir.mkdirs();
-        }
-        File dst = new File(myDir,"adobe_reader.apk");
+        File dst = new File(myDir,apkUrl);
         try {
             FileOutputStream out = new FileOutputStream(dst);
             byte[] buff = new byte[1024];
@@ -266,41 +227,162 @@ public class TabFragment1 extends Fragment {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database res_Db = manager.getExistingDatabase("resources");
             Document res_doc = res_Db.getExistingDocument(docId);
-            Log.e("MYAPP", " membersWithID  = " + docId);
-
+            String oppenwith = (String) res_doc.getProperty("openWith");
+            Log.e("MYAPP", " membersWithID  = " + docId +"and Open with "+ oppenwith);
             List<String> attmentNames = res_doc.getCurrentRevision().getAttachmentNames();
-            if (attmentNames.size() > 0) {
-                for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
-                    Log.e("MYAPP", " membersWithResource  = " + getExtension(attmentNames.get(cnt)));
-                    switch (getExtension(attmentNames.get(cnt))){
-                        case "mp3":
-                            openAudioVideo(docId,(String) attmentNames.get(cnt),getExtension(attmentNames.get(cnt)));
-                            break;
-                        case "mov":
-                            openAudioVideo(docId,(String) attmentNames.get(cnt),getExtension(attmentNames.get(cnt)));
-                            break;
-                        case "mp4":
-                            openAudioVideo(docId,(String) attmentNames.get(cnt),getExtension(attmentNames.get(cnt)));
-                           break;
-                        case "pdf":
-                            openPDF(docId,(String) attmentNames.get(cnt),getExtension(attmentNames.get(cnt)));
-                            break;
-                        case "jpg":
-                        case "JPEG":
-                        case "png":
-                        case "PNG":
-                        case "gif":
-                        case "GIF":
-                            openImage(docId,(String) attmentNames.get(cnt),getExtension(attmentNames.get(cnt)));
-                            break;
-                        default:
-                            Toast.makeText(getContext(), getExtension(attmentNames.get(cnt)) + " File type not supported yet ", Toast.LENGTH_LONG).show();
-                            break;
+            if(oppenwith.equalsIgnoreCase("HTML")){
+                /*if (attmentNames.size() <= 1) {
+                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                        openImage(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
+                    }
+                }*/
+                indexFilePath=null;
+                if (attmentNames.size() > 1) {
+                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                        downloadHTMLContent(docId, (String) attmentNames.get(cnt));
+                    }
+                    if(indexFilePath!=null){
+                        openHTML(indexFilePath);
+                    }
+                }else{
+                    openImage(docId, (String) attmentNames.get(0), getExtension(attmentNames.get(0)));
+                }
+
+            }else if(oppenwith.equalsIgnoreCase("PDF.js")){
+                if (attmentNames.size() > 0) {
+                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                        openPDF(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
+                        break;
+                    }
+                }
+
+            }else if(oppenwith.equalsIgnoreCase("MP3")){
+                if (attmentNames.size() > 0) {
+                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                        openAudioVideo(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
+                        break;
+                    }
+                }
+
+            }else if(oppenwith.equalsIgnoreCase("Bell-Reader")){
+                if (attmentNames.size() > 0) {
+                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                        openPDF(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
+                        break;
+                    }
+                }
+            }else if(oppenwith.equalsIgnoreCase("Flow Video Player")){
+                if (attmentNames.size() > 0) {
+                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                        openAudioVideo(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
+                        break;
+                    }
+                }
+
+            }else if(oppenwith.equalsIgnoreCase("BeLL Video Book Player")){
+                if (attmentNames.size() > 0) {
+                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+
+                    }
+                }
+
+            }else if(oppenwith.equalsIgnoreCase("Native Video")){
+                if (attmentNames.size() > 0) {
+                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                        openAudioVideo(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
+                        break;
                     }
                 }
 
             }
         } catch (Exception Er) {
+
+        }
+    }
+
+    public void openHTML(String index) {
+        final String mainFile =  index;
+        try {
+            try{
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setPackage("org.mozilla.firefox");
+                intent.setDataAndType(Uri.parse(mainFile),"text/html");
+                intent.setComponent(new ComponentName("org.mozilla.firefox", "org.mozilla.firefox.App"));
+                this.startActivity(intent);
+                ///intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+            }catch(Exception err){
+                Log.e("Error", err.getMessage());
+                File myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
+                File dst = new File(myDir,"firefox_49_0_multi_android.apk");
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            }
+
+        } catch (Exception Er) {
+            Er.printStackTrace();
+
+        }
+
+    }
+
+    public void downloadHTMLContent(String docId, final String fileName) {
+        final String myfilename =  fileName;
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database res_Db = manager.getExistingDatabase("resources");
+            Document res_doc = res_Db.getExistingDocument(docId);
+            final Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment(fileName);
+            int lth= (int) fileAttachment.getLength();
+            try{
+                    InputStream in = fileAttachment.getContent();
+                    String root = Environment.getExternalStorageDirectory().toString();
+                    File newDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2/"+docId);
+                    if (!newDir.exists()){
+                        newDir.mkdirs();
+                    }
+
+                    File myDir = new File(root + "/ole_temp2/"+docId);
+                    File dst = new File(myDir,fileAttachment.getName().replace(" ", ""));
+                    String filepath[]= dst.toString().split("/");
+                    int defaultLength = myDir.getPath().split("/").length;
+                    String path= myDir.getPath();
+                    //Log.e("tag", " Location  "+ dst.toString() + " Default :" + defaultLength + " fpath: "+filepath.length);
+                    for(int cnt= defaultLength; cnt < (filepath.length-1);cnt++){
+                        path = path +"/"+ filepath[cnt];
+                        myDir = new File(path);
+                        if (!myDir.exists()){
+                            myDir.mkdirs();
+                        }
+                    }
+                    try {
+                        BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(dst));
+                        byte[] buff = new byte[1024];
+                        int len;
+                        while ((len = in.read(buff)) > 0) {
+                            out.write(buff, 0, len);
+                        }
+
+                        Log.e("tag", " Saved "+ dst.toString()+" Original length: "+ lth );
+
+                        in.close();
+                        out.close();
+                        if(dst.getName().equalsIgnoreCase("index.html") && (filepath.length - defaultLength)==1 ){
+                            indexFilePath = dst.toString();
+                        }
+
+                    }catch(Exception err){
+                        Log.e("tag", " Saving "+ err.getMessage());
+                    }
+            }catch(Exception err){
+                err.printStackTrace();
+            }
+        } catch (Exception Er) {
+            Er.printStackTrace();
 
         }
     }
@@ -341,7 +423,7 @@ public class TabFragment1 extends Fragment {
                 intent.setDataAndType(Uri.fromFile(dst), "image/*");
                 //Log.e("tag", " URL Path "+ Uri.fromFile(dst).getPath());;
                 startActivity(intent);
-                }catch(Exception err){
+            }catch(Exception err){
 
             }
         } catch (Exception Er) {
@@ -349,6 +431,15 @@ public class TabFragment1 extends Fragment {
 
         }
 
+    }
+
+    public static void mkDirs(File root, List<String> dirs, int depth) {
+        if (depth == 0) return;
+        for (String s : dirs) {
+            File subdir = new File(root, s);
+            subdir.mkdir();
+            mkDirs(subdir, dirs, depth - 1);
+        }
     }
 
     public void openPDF(String docId, final String fileName, String player) {
@@ -648,16 +739,17 @@ public class TabFragment1 extends Fragment {
 
     public void RateResourceDialog(String resourceId, String title){
         // custom dialog
+        final String resourceID = resourceId;
         final Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.rate_resource_dialog);
         dialog.setTitle("Rate this resource");
 
+        txtComment = (EditText) dialog.findViewById(R.id.editTextComment);
+
 
         ratingBar = (RatingBar) dialog.findViewById(R.id.ratingBar);
         ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
-            public void onRatingChanged(RatingBar ratingBar, float rating,
-                                        boolean fromUser) {
-
+            public void onRatingChanged(RatingBar ratingBar, float rating,boolean fromUser) {
                 ///txtRatingValue.setText(String.valueOf(rating));
 
             }
@@ -667,14 +759,66 @@ public class TabFragment1 extends Fragment {
         dialogButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                saveRating(ratingBar.getRating(),String.valueOf(txtComment.getText()),resourceID);
                 // openDoc(resourceIdList[position]);
-                Toast.makeText(getActivity(),String.valueOf(ratingBar.getRating()),Toast.LENGTH_SHORT).show();
-
                 dialog.dismiss();
             }
         });
 
         dialog.show();
+
+    }
+
+
+    public int saveRating(float rate,String comment,String resourceId){
+        AndroidContext androidContext = new AndroidContext(getActivity());
+        Manager manager = null;
+        Database resourceRating;
+        int doc_rating,doc_timesRated; String doc_comments;
+
+        Toast.makeText(getActivity(),String.valueOf(rate),Toast.LENGTH_SHORT).show();
+        ArrayList<String> commentList = new ArrayList<String>();
+
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            resourceRating = manager.getDatabase("resourcerating");
+            Document retrievedDocument = resourceRating.getExistingDocument(resourceId);
+            if(retrievedDocument != null) {
+                Map<String, Object> properties = retrievedDocument.getProperties();
+                if(properties.containsKey("sum")){
+                    doc_rating = (int) properties.get("sum") ;
+                    doc_timesRated  = (int) properties.get("timesRated") ;
+                    ///doc_comments = (String) properties.get("comments");
+                    commentList = (ArrayList<String>) properties.get("comments");
+                    commentList.add(comment);
+                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    newProperties.putAll(retrievedDocument.getProperties());
+                    newProperties.put("sum", (doc_rating + rate));
+                    newProperties.put("timesRated", doc_timesRated + 1);
+                    newProperties.put("comments", commentList);
+                    retrievedDocument.putProperties(newProperties);
+                    return doc_rating;
+                }
+            }
+            else{
+                Document newdocument = resourceRating.getDocument(resourceId);
+                Map<String, Object> newProperties = new HashMap<String, Object>();
+                newProperties.put("sum", 1);
+                newProperties.put("timesRated", 1);
+                commentList.add(comment);
+                newProperties.put("comments", commentList);
+                newdocument.putProperties(newProperties);
+                return 1;
+            }
+
+
+        }catch(Exception err){
+            Log.e("VISITS", "ERR : " +err.getMessage());
+
+
+        }
+
+        return 0;
 
     }
 
@@ -834,3 +978,4 @@ public class TabFragment1 extends Fragment {
     }
 
 }
+

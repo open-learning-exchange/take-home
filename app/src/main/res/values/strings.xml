@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Take It Home</string>
+    <string name="app_name">Take-Home</string>
     <string name="action_syncUrl">Sync Server Url</string>
     <string name="action_syncNow">Sync Device</string>
     <string name="action_settings">Settings</string>
@@ -7,10 +7,10 @@
     <string name="action_help">Help</string>
     <string name="action_about">About</string>
     <string name="section_format">Hello World from section: %1$d</string>
-    <string name="title_activity_login">Take It Home</string>
+    <string name="title_activity_login">Take-Home</string>
 
     <!-- Related to First Time Dialog -->
-    <string name="fst_welcome">OLE Personal Bell</string>
+    <string name="fst_welcome">Take Home</string>
     <string name="fst_aboutapp">My Library</string>
     <string name="fst_instruction">It appears your device hasn\'t yet been linked to the BeLL network.
         If you know your BeLL server\'s url, please enter it bellow or contact your coach / group leader for assistance</string>
@@ -22,7 +22,7 @@
     <string name="bbtext_Achievments">Achievements</string>
     <string name="bbtext_MyLibrary">My Library</string>
     <string name="bbtext_Courses">Courses Progress</string>
-    <string name="bbtext_Meetups">Meetups</string>
+    <string name="bbtext_Meetups">My Meetups</string>
 
     <!-- Strings related to Fragment 0 / Achievements -->
     <string name="frg1_Visits">Visits</string>
@@ -62,4 +62,38 @@
     <string name="launch_course">Launch Course</string>
     <string name="open_course">Open Course</string>
     <string name="title_activity_course">Course</string>
+
+    <string name="title_activity__dashboard">_dashboard</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="bbtext_MyTutors">My Tutors</string>
+
+    <string name="title_activity_fullscreen">FullscreenActivity</string>
+    <string name="btn_home">My Home</string>
+    <string name="bbtext_Home">My Home</string>
+    <string name="txtLibrary">Library</string>
+    <string name="txtCourses">Courses</string>
+    <string name="txtMeetups">Meetups</string>
+    <string name="txtLogout">Logout</string>
+    <string name="txtSettings">Settings</string>
+
+    <string name="title_activity_fullscreen_login">FullscreenLogin</string>
+    <string name="txtFeedback">Feedback</string>
+    <string name="txtMember_Login">Member Login</string>
+    <string name="txtWelcome">Welcome</string>
+    <string name="txtDemo">Demo Mode</string>
+    <string name="txtLogin">Login</string>
+    <string name="txt_Password">Password</string>
+
+    <string name="title_activity_test">test</string>
+    <string name="btnSetup">Setup</string>
+    <string name="txtDownloadUserInfo">Loading User Info</string>
+    <string name="txtDownloadingFrom">Downloading From</string>
+    <string name="txtfrom">FROM</string>
+    <string name="txtTo">TO</string>
+
+    <string name="title_activity_fullscreen9">FullscreenActivity9</string>
+    <string name="fst_material_offline" >This material is not on this device (offline). Do you want to open it online or download into this device.</string>
+    <string name="txtDownload">Download</string>
+    <string name="txtOpenOnline" >Open Online</string>
 </resources>
