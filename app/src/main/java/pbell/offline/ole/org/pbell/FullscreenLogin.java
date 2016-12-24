@@ -479,6 +479,16 @@ public class FullscreenLogin extends AppCompatActivity {
 
         }
 
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database dbResources = manager.getDatabase("resources");
+            dbResources.delete();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+
 
     }
 
