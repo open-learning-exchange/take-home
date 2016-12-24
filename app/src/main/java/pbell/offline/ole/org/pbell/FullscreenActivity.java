@@ -70,10 +70,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -97,11 +99,11 @@ public class FullscreenActivity extends AppCompatActivity {
             sys_usergender, sys_uservisits= "";
     int sys_uservisits_Int=0;
     Object[] sys_membersWithResource;
-    boolean userShelfSynced =false;
+    boolean userShelfSynced =true;
     boolean synchronizing = true;
     JSONObject jsonData;
     Database dbResources;
-    int syncCnt,resourceNo=0;
+    int syncCnt,resourceNo,allresDownload=0;
     AndroidContext androidContext;
     Replication pull;
     Manager manager;
@@ -158,9 +160,11 @@ public class FullscreenActivity extends AppCompatActivity {
 
         /////////////////////////
 
+        LoadShelfResourceList();
 
+/*
         try {
-            Set<String> mwr = settings.getStringSet("membersWithResource", null);
+            Set<String> mwr = settings.getStringSet("membersNoOfResources", null);
             sys_membersWithResource = mwr.toArray();
             for (int cnt = 0; cnt < sys_membersWithResource.length; cnt++) {
 
@@ -173,6 +177,8 @@ public class FullscreenActivity extends AppCompatActivity {
         }catch(Exception err){
             Log.e("TakeHome", " MembersWithResource Array" + err.getMessage());
         }
+
+*/
 
         TextView lblName = (TextView) findViewById(R.id.lblName);
         lblName.setText(" "+sys_userfirstname +" "+sys_userlastname);
@@ -201,7 +207,7 @@ public class FullscreenActivity extends AppCompatActivity {
             closeDialogue.show();
         }
 
-        LoadShelfResourceList();
+
 
     }
     @Override
@@ -305,6 +311,12 @@ public class FullscreenActivity extends AppCompatActivity {
                     }
 
                 });
+                //////////// Save list in Preferences
+
+                /*     SharedPreferences.Editor editor = settings.edit();
+                Set<String> set = new HashSet<String>(Arrays.asList(resourceIdList));
+                editor.putStringSet("membersNoOfResources", set);
+            */
             }
             db.close();
 
@@ -330,7 +342,7 @@ public class FullscreenActivity extends AppCompatActivity {
         TextView txtResourceId = (TextView) dialog2.findViewById(R.id.txtResourceID);
         txtResourceId.setText(title);
 
-
+        //// Open material online
         Button dialogBtnOpenFileOnline = (Button) dialog2.findViewById(R.id.btnOpenOnline);
         dialogBtnOpenFileOnline.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -349,13 +361,13 @@ public class FullscreenActivity extends AppCompatActivity {
             dialogBtnOpenFileOnline.setEnabled(false);
         }
 
-
+        //// Download Only selected file
         Button dialogBtnDownoadFile = (Button) dialog2.findViewById(R.id.btnDownloadFile);
         dialogBtnDownoadFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 dialog2.dismiss();
-                OneByOneResID = rs_ID;
+                ///OneByOneResID = rs_ID;
                 try {
                     //testFilteredPuller();
 
@@ -364,6 +376,35 @@ public class FullscreenActivity extends AppCompatActivity {
                     mDialog.setCancelable(true);
                     mDialog.show();
                     final AsyncTask<String, Void, Boolean> execute = new SyncResource().execute();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    mDialog = new ProgressDialog(context);
+                    mDialog.setMessage("Error Downloading Resource. Check connection to server and try again");
+                    mDialog.setCancelable(true);
+                    mDialog.show();
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+
+                }
+            }
+        });
+
+        //// Download all offline resources on button click
+        Button dialogBtnDownoadAll= (Button) dialog2.findViewById(R.id.btnDownloadAll);
+        dialogBtnDownoadAll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog2.dismiss();
+                OneByOneResID = rs_ID;
+                try {
+                    //testFilteredPuller();
+                    mDialog = new ProgressDialog(context);
+                    mDialog.setMessage("Please wait...");
+                    mDialog.setCancelable(true);
+                    mDialog.show();
+                    allresDownload=0;
+                    final AsyncTask<String, Void, Boolean> executeAll = new SyncAllResource().execute();
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -719,6 +760,60 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     }
 
+    class SyncAllResource extends AsyncTask<String, Void, Boolean> {
+        @Override
+        protected Boolean doInBackground(String... params) {
+            try {
+                URL remote = getReplicationURL();
+                CountDownLatch replicationDoneSignal = new CountDownLatch(1);
+                final Database database;
+                database = manager.getDatabase("resources");
+                final Replication repl = (Replication) database.createPullReplication(remote);
+                repl.setContinuous(false);
+                repl.setFilter("apps/by_resource");
+
+                Map<String, Object> map = new HashMap<String, Object>();
+                map.put("_id", resourceIdList[allresDownload]);
+                repl.setFilterParams(map);
+                repl.addChangeListener(new Replication.ChangeListener() {
+                    @Override
+                    public void changed(Replication.ChangeEvent event) {
+                        Log.e("MyCouch", "Current Status "+repl.getStatus());
+                        if(repl.isRunning()){
+                            if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_ACTIVE")) {
+                                Log.e("MyCouch", " " + event.getChangeCount());
+                                Log.e("MyCouch", " Document Count " + database.getDocumentCount());
+                            }else if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")){
+                                //mDialog.dismiss();
+                                //checkAllDocsInDB();
+                               // libraryButtons[allresDownload].setTextColor(getResources().getColor(R.color.ole_white));
+                            }
+                            else{
+                                mDialog.setMessage("Data transfer error. Check connection to server.");
+                            }
+                        }else {
+                            Log.e("MyCouch", "Document Count " + database.getDocumentCount());
+                            if(allresDownload<libraryButtons.length){
+                                //mDialog.show();
+                                final AsyncTask<String, Void, Boolean> executeAll = new SyncAllResource().execute();
+                                libraryButtons[allresDownload].setTextColor(getResources().getColor(R.color.ole_white));
+                                allresDownload++;
+                            }else{
+                                mDialog.dismiss();
+                                checkAllDocsInDB();
+                            }
+
+                        }
+                    }
+                });
+                repl.start();
+            } catch (CouchbaseLiteException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
     public URL getReplicationURL(){
         URL url=null;
         try {
@@ -743,6 +838,7 @@ public class FullscreenActivity extends AppCompatActivity {
             }
 
             Log.d("MyCouch", "done looping over all docs ");
+            mDialog.dismiss();
 
         } catch (CouchbaseLiteException e) {
             e.printStackTrace();

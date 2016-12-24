@@ -92,7 +92,8 @@
             android:gravity="center"
             android:layout_marginBottom="20dp"
             android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp">
+            android:layout_marginRight="10dp"
+            android:weightSum="5">
 
             <Button
                 android:layout_width="0dp"
@@ -102,29 +103,38 @@
                 android:layout_gravity="center"
                 android:background="@drawable/rounded_corners_black_blue"
                 android:layout_marginTop="5dp"
-                android:layout_weight="2"
+                android:layout_weight="1.5"
                 android:textAlignment="center"
                 android:textAllCaps="false"
                 android:textColor="@color/ole_white" />
 
-            <LinearLayout
-                android:orientation="horizontal"
+            <Button
                 android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"></LinearLayout>
+                android:layout_height="wrap_content"
+                android:text="@string/txtDownload"
+                android:layout_gravity="center"
+                android:background="@drawable/rounded_corners_black_blue"
+                android:layout_marginTop="5dp"
+                android:layout_weight="1.5"
+                android:textAlignment="center"
+                android:textAllCaps="false"
+                android:textColor="@color/ole_white"
+                android:id="@+id/btnDownloadFile"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp" />
 
             <Button
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="@string/txtDownload"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/txtDownladAll"
+                android:id="@+id/btnDownloadAll"
                 android:layout_gravity="center"
-            android:background="@drawable/rounded_corners_black_blue"
-            android:layout_marginTop="5dp"
-            android:layout_weight="2"
-            android:textAlignment="center"
-            android:textAllCaps="false"
-            android:textColor="@color/ole_white"
-                android:id="@+id/btnDownloadFile" />
+                android:background="@drawable/rounded_corners_black_blue"
+                android:layout_weight="1.5"
+                android:textAlignment="center"
+                android:textAllCaps="false"
+                android:textColor="@color/ole_white"
+                android:layout_marginTop="5dp" />
         </LinearLayout>
     </LinearLayout>
 
