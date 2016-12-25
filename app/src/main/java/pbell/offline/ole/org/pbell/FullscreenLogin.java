@@ -3,9 +3,13 @@ package pbell.offline.ole.org.pbell;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
@@ -23,6 +27,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
@@ -36,6 +41,7 @@ import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.replicator.Replication;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
@@ -45,6 +51,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -123,6 +130,10 @@ public class FullscreenLogin extends AppCompatActivity {
         });
 
         restorePref();
+
+        connectWiFi();
+
+
     }
 
     @Override
@@ -291,7 +302,9 @@ public class FullscreenLogin extends AppCompatActivity {
         dialog = dialogB.create();
         dialog.show();
 
-        ///dialogDetails = dialogbuilder.create();
+        WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        wifiManager.setWifiEnabled(true);
+        ////wifiManager.isWifiEnabled()
 
         final EditText txtSuncURL = (EditText) dialog.findViewById(R.id.txtNewSyncURL);
         txtSuncURL.setText(sys_oldSyncServerURL);
@@ -450,14 +463,7 @@ public class FullscreenLogin extends AppCompatActivity {
         protected void onProgressUpdate(Integer...a){
             Log.d("onProgress","You are in progress update ... " + a[0]);
             if(syncCnt != (databaseList.length-2)){
-                //tv.setText(tv.getText().toString()+" \n Pulled "+databaseList[syncCnt]+ "\n Pulling "+ databaseList[syncCnt+1]+"....." );
-                //tv.scrollTo(0,(tv.getLineCount()*20+syncCnt));
-                //tv.requestFocus();
             }else{
-                //tv.setText(tv.getText().toString()+" \n Pulled "+ databaseList[syncCnt] );
-                //tv.scrollTo(0,(tv.getLineCount()*20)+syncCnt);
-                //tv.requestFocus();
-                //mDialog.setMessage(databaseList[syncCnt+1]+"Count");
             }
         }
 
@@ -491,6 +497,35 @@ public class FullscreenLogin extends AppCompatActivity {
 
 
     }
+
+    public void connectWiFi() {
+        WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        wifiManager.setWifiEnabled(false);
+        String networkSSID = "\"Leonard's iPhone\"";
+        String password="\"0l3gh@n@\"";
+
+        WifiConfiguration conf = new WifiConfiguration();
+        conf.SSID = "\"" + networkSSID + "\"";
+        conf.preSharedKey = "\"" + password + "\"";
+//      conf.hiddenSSID = true;
+//      conf.wepTxKeyIndex = 0;
+        conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+//        conf.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
+//      conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
+
+        conf.status = WifiConfiguration.Status.ENABLED;
+        conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
+        conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
+        conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+        conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
+        conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
+        conf.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
+        int netId = wifiManager.addNetwork(conf);
+        wifiManager.enableNetwork(netId, true);
+        wifiManager.setWifiEnabled(true);
+    }
+
+
 
 
 

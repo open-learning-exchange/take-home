@@ -3,6 +3,7 @@ package pbell.offline.ole.org.pbell;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
@@ -12,6 +13,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -127,12 +129,14 @@ public class FullscreenActivity extends AppCompatActivity {
     Dialog dialog2;
     String OneByOneResID="";
     int resButtonId;
+    boolean userInfoDisplayed = false;
 
     ArrayList<String> lst;
 
     ImageView[] imageView;
     static Uri videoURl;
     static Intent intent;
+    MediaPlayer sd_Slidin;
 
     int resourceCntr,attachmentLength;
     @Override
@@ -169,24 +173,6 @@ public class FullscreenActivity extends AppCompatActivity {
 
         LoadShelfResourceList();
 
-/*
-        try {
-            Set<String> mwr = settings.getStringSet("membersNoOfResources", null);
-            sys_membersWithResource = mwr.toArray();
-            for (int cnt = 0; cnt < sys_membersWithResource.length; cnt++) {
-
-                Log.e("MYAPP", " members With Resource Synced  = " + sys_membersWithResource[cnt]);
-                if (sys_membersWithResource[cnt].equals(sys_usercouchId)) {
-                    userShelfSynced = true;
-                    break;
-                }
-            }
-        }catch(Exception err){
-            Log.e("TakeHome", " MembersWithResource Array" + err.getMessage());
-        }
-
-*/
-
         TextView lblName = (TextView) findViewById(R.id.lblName);
         lblName.setText(" "+sys_userfirstname +" "+sys_userlastname);
 
@@ -214,12 +200,15 @@ public class FullscreenActivity extends AppCompatActivity {
             closeDialogue.show();
         }
 
+        sd_Slidin = MediaPlayer.create(this, R.raw.wave);
 
-
-
-
-
-
+        Button btnLogout = (Button) findViewById(R.id.btnLogout);
+        btnLogout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
 
     }
     @Override
@@ -238,14 +227,6 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         });
         */
-
-
-
-
-
-
-
-
 
     }
 /*
@@ -1319,10 +1300,12 @@ public class FullscreenActivity extends AppCompatActivity {
             public void onAnimationStart(Animation animation) {
                 libraryLayout.setVisibility(View.VISIBLE);
 
+
             }
 
             @Override
             public void onAnimationEnd(Animation animation) {
+                //sd_Slidin.stop();
 
             }
 
@@ -1366,10 +1349,14 @@ public class FullscreenActivity extends AppCompatActivity {
             public void onAnimationStart(Animation animation) {
                 MeetupLayout.setVisibility(View.VISIBLE);
 
+
+
             }
 
             @Override
             public void onAnimationEnd(Animation animation) {
+
+                //sd_Slidin = null;
                 coursesLayout.startAnimation(translateAnimationCourses);
             }
 
@@ -1389,12 +1376,14 @@ public class FullscreenActivity extends AppCompatActivity {
             @Override
             public void onAnimationStart(Animation animation) {
                 TutorsLayout.setVisibility(View.VISIBLE);
+                //sd_Slidin.start();
 
             }
 
             @Override
             public void onAnimationEnd(Animation animation) {
                 MeetupLayout.startAnimation(translateAnimationMeetup);
+
             }
 
             @Override
@@ -1408,7 +1397,67 @@ public class FullscreenActivity extends AppCompatActivity {
 
     }
 
+    public void toggleTopUserInfo(){
+        final LinearLayout userInfoLayout = (LinearLayout) findViewById(R.id.layoutUserInfo);
+        //userInfoLayout.setVisibility(View.INVISIBLE);
 
+        final TranslateAnimation translateShowUserInfo = new TranslateAnimation(0, 0, 0, -200);
+        translateShowUserInfo.setInterpolator(new LinearInterpolator());
+        translateShowUserInfo.setDuration(500);
+        translateShowUserInfo.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                userInfoLayout.setVisibility(View.VISIBLE);
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                userInfoDisplayed=true;
+                //userInfoLayout.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
+        final TranslateAnimation translateHideUserInfo = new TranslateAnimation(0, 0, -100, 0);
+        translateHideUserInfo.setInterpolator(new LinearInterpolator());
+        translateHideUserInfo.setDuration(500);
+        translateHideUserInfo.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                userInfoLayout.setVisibility(View.VISIBLE);
+            }
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                userInfoDisplayed=false;
+                //userInfoLayout.setVisibility(View.INVISIBLE);
+            }
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
+
+
+
+
+        ImageView imgProfileImage = (ImageView) findViewById(R.id.imageProfilePics);
+        imgProfileImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!userInfoDisplayed){
+                    userInfoLayout.startAnimation(translateShowUserInfo);
+                }else{
+                    userInfoLayout.startAnimation(translateHideUserInfo);
+                }
+            }
+        });
+    }
 
 
 }
