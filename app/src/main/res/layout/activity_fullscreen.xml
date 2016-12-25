@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#0099cc"
+    android:animateLayoutChanges="true"
     tools:context="pbell.offline.ole.org.pbell.FullscreenActivity">
 
     <!-- The primary full-screen view. This can be replaced with whatever view
@@ -15,6 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true"
+        android:animateLayoutChanges="true"
         android:id="@+id/fullscreen_content">
 
         <LinearLayout
@@ -25,6 +27,7 @@
             android:orientation="vertical"
             tools:ignore="UselessParent"
             android:weightSum="6"
+            android:animateLayoutChanges="true"
             android:background="@color/ole_white">
 
             <LinearLayout
@@ -33,6 +36,7 @@
                 android:layout_weight="0.5"
                 android:layout_height="0dp"
                 android:background="@color/ole_black_blue"
+                android:animateLayoutChanges="true"
                 android:weightSum="10">
 
                 <Button
@@ -80,6 +84,7 @@
                     android:orientation="horizontal"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
+                    android:animateLayoutChanges="true"
                     android:layout_weight="1"></LinearLayout>
 
                 <Button
@@ -117,6 +122,7 @@
                 android:layout_marginRight="2dp"
                 android:layout_marginLeft="2dp"
                 android:layout_marginStart="1dp"
+                android:animateLayoutChanges="true"
                 android:paddingTop="2dp">
 
                 <LinearLayout
@@ -125,6 +131,7 @@
                     android:layout_height="match_parent"
                     android:layout_weight="0.7"
                     android:textAlignment="center"
+                    android:animateLayoutChanges="true"
                     android:gravity="center">
 
                     <ImageView
@@ -141,6 +148,7 @@
                     android:textAlignment="center"
                     android:weightSum="3.5"
                     android:gravity="center"
+                    android:animateLayoutChanges="true"
                     android:paddingLeft="5dp">
 
                     <LinearLayout
@@ -149,6 +157,7 @@
                         android:layout_height="0dp"
                         android:layout_weight="1"
                         android:textAlignment="center"
+                        android:animateLayoutChanges="true"
                         android:gravity="left">
 
                         <TextView
@@ -165,6 +174,7 @@
                         android:layout_height="0dp"
                         android:layout_weight="1.3"
                         android:textAlignment="center"
+                        android:animateLayoutChanges="true"
                         android:gravity="center">
 
                         <TextView
@@ -182,6 +192,7 @@
                         android:layout_height="0dp"
                         android:layout_weight="1"
                         android:textAlignment="center"
+                        android:animateLayoutChanges="true"
                         android:gravity="center">
 
                         <TextView
@@ -201,6 +212,7 @@
                     android:layout_weight="2.1"
                     android:textAlignment="center"
                     android:weightSum="4"
+                    android:animateLayoutChanges="true"
                     android:gravity="center">
                     <LinearLayout
                         android:orientation="vertical"
@@ -208,6 +220,7 @@
                         android:layout_height="0dp"
                         android:layout_weight="1"
                         android:textAlignment="center"
+                        android:animateLayoutChanges="true"
                         android:gravity="right">
 
                         <TextView
@@ -224,6 +237,7 @@
                         android:layout_height="0dp"
                         android:layout_weight="2"
                         android:textAlignment="center"
+                        android:animateLayoutChanges="true"
                         android:gravity="center">
 
                         <ExpandableListView
@@ -236,6 +250,7 @@
                         android:layout_height="0dp"
                         android:layout_weight="1"
                         android:textAlignment="center"
+                        android:animateLayoutChanges="true"
                         android:gravity="center"></LinearLayout>
 
                 </LinearLayout>
@@ -252,7 +267,9 @@
                 android:layout_marginEnd="1dp"
                 android:layout_marginLeft="1dp"
                 android:layout_marginRight="1dp"
-                android:layout_marginStart="1dp">
+                android:animateLayoutChanges="true"
+                android:layout_marginStart="1dp"
+                android:id="@+id/layoutMasterLibrary">
 
                 <LinearLayout
                     android:orientation="horizontal"
@@ -261,6 +278,7 @@
                     android:layout_weight="0.5"
                     android:textAlignment="center"
                     android:gravity="center"
+                    android:animateLayoutChanges="true"
                     android:background="@drawable/rounded_corners_left">
 
                     <TextView
@@ -283,6 +301,7 @@
                     android:id="@+id/layout_mylibrary"
                     android:gravity="center"
                     android:layout_gravity="center"
+                    android:animateLayoutChanges="true"
                     android:weightSum="5">
 
                     <ScrollView
@@ -311,6 +330,7 @@
                     android:layout_weight="0.1"
                     android:textAlignment="center"
                     android:gravity="center"
+                    android:animateLayoutChanges="true"
                     android:background="@drawable/rounded_corners_right"></LinearLayout>
 
             </LinearLayout>
@@ -324,7 +344,9 @@
                 android:layout_marginEnd="1dp"
                 android:layout_marginRight="1dp"
                 android:layout_marginLeft="1dp"
-                android:layout_marginStart="1dp">
+                android:animateLayoutChanges="true"
+                android:layout_marginStart="1dp"
+                android:id="@+id/layoutMasterCoursesProgress">
 
                 <LinearLayout
                     android:orientation="horizontal"
@@ -333,6 +355,7 @@
                     android:layout_weight="0.5"
                     android:textAlignment="center"
                     android:gravity="center"
+                    android:animateLayoutChanges="true"
                     android:background="@drawable/rounded_corners_left">
 
                     <TextView
@@ -351,6 +374,7 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="3.4"
+                    android:animateLayoutChanges="true"
                     android:background="@color/ole_yellow"></LinearLayout>
                 <LinearLayout
                     android:orientation="horizontal"
@@ -359,6 +383,7 @@
                     android:layout_weight="0.1"
                     android:textAlignment="center"
                     android:gravity="center"
+                    android:animateLayoutChanges="true"
                     android:background="@drawable/rounded_corners_right"></LinearLayout>
             </LinearLayout>
 
@@ -373,7 +398,9 @@
                 android:layout_marginLeft="1dp"
                 android:layout_marginRight="1dp"
                 android:layout_marginStart="1dp"
-                android:layout_marginTop="1dp">
+                android:animateLayoutChanges="true"
+                android:layout_marginTop="1dp"
+                android:id="@+id/layoutMasterMeetup">
 
                 <LinearLayout
                     android:orientation="horizontal"
@@ -382,6 +409,7 @@
                     android:layout_weight="0.5"
                     android:textAlignment="center"
                     android:gravity="center"
+                    android:animateLayoutChanges="true"
                     android:background="@drawable/rounded_corners_left">
 
                     <TextView
@@ -400,6 +428,7 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="3.4"
+                    android:animateLayoutChanges="true"
                     android:background="@color/ole_green"></LinearLayout>
                 <LinearLayout
                     android:orientation="horizontal"
@@ -408,6 +437,7 @@
                     android:layout_weight="0.1"
                     android:textAlignment="center"
                     android:gravity="center"
+                    android:animateLayoutChanges="true"
                     android:background="@drawable/rounded_corners_right"></LinearLayout>
             </LinearLayout>
 
@@ -422,7 +452,9 @@
                 android:layout_marginLeft="1dp"
                 android:layout_marginRight="1dp"
                 android:layout_marginStart="1dp"
-                android:baselineAligned="false">
+                android:animateLayoutChanges="true"
+                android:baselineAligned="false"
+                android:id="@+id/layoutMasterTutors">
 
                 <LinearLayout
                     android:orientation="horizontal"
@@ -431,6 +463,7 @@
                     android:layout_weight="0.5"
                     android:textAlignment="center"
                     android:gravity="center"
+                    android:animateLayoutChanges="true"
                     android:background="@drawable/rounded_corners_left">
 
                     <TextView
@@ -449,6 +482,7 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="3.4"
+                    android:animateLayoutChanges="true"
                     android:background="@color/ole_blue"></LinearLayout>
                 <LinearLayout
                     android:orientation="horizontal"
@@ -457,6 +491,7 @@
                     android:layout_weight="0.1"
                     android:textAlignment="center"
                     android:gravity="center"
+                    android:animateLayoutChanges="true"
                     android:background="@drawable/rounded_corners_right"></LinearLayout>
             </LinearLayout>
 
