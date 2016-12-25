@@ -1,5 +1,7 @@
 package pbell.offline.ole.org.pbell;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -25,11 +27,16 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -209,11 +216,57 @@ public class FullscreenActivity extends AppCompatActivity {
 
 
 
+
+
+
+
+
     }
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
+        animateLayoutBars();
+        /*
+        final LinearLayout libraryLayout = (LinearLayout) findViewById(R.id.layoutMasterLibrary);
+        int layoutWidth = libraryLayout.getLayoutParams().width;
+        int animationSpeed = (layoutWidth * 1000) / 100;
+        libraryLayout.animate().translationXBy(20).setDuration(500).setInterpolator(new LinearInterpolator()).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                //libraryLayout.setVisibility(View.GONE);
+            }
+        });
+        */
+
+
+
+
+
+
+
+
+
     }
+/*
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+         LinearLayout libraryLayout = (LinearLayout) findViewById(R.id.layholder_library);
+        /*libraryLayout.animate()
+                .translationY(0)
+                .alpha(0.0f)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        libraryLayout.setVisibility(View.GONE);
+                    }
+                });
+        if(hasFocus){
+            libraryLayout.getId().startAnimation(AnimationUtils.loadAnimation(FullscreenActivity.this,
+                    android.R.anim.slide_in_left|android.R.anim.fade_in));
+        }
+    }*/
 
 
     public String curdate(){
@@ -783,6 +836,7 @@ public class FullscreenActivity extends AppCompatActivity {
                             if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_ACTIVE")) {
                                 Log.e("MyCouch", " " + event.getChangeCount());
                                 Log.e("MyCouch", " Document Count " + database.getDocumentCount());
+
                             }else if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")){
                                 //mDialog.dismiss();
                                 //checkAllDocsInDB();
@@ -1250,6 +1304,110 @@ public class FullscreenActivity extends AppCompatActivity {
 
         return false;
     }
+
+
+    public void animateLayoutBars(){
+
+    /////////  Layout Slide in Animation from bottom to up
+        final LinearLayout libraryLayout = (LinearLayout) findViewById(R.id.layoutMasterLibrary);
+        libraryLayout.setVisibility(View.INVISIBLE);
+        final TranslateAnimation translateAnimationLibrary = new TranslateAnimation(-1000, 0, 0, 0);
+        translateAnimationLibrary.setInterpolator(new LinearInterpolator());
+        translateAnimationLibrary.setDuration(500);
+        translateAnimationLibrary.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                libraryLayout.setVisibility(View.VISIBLE);
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
+
+        final LinearLayout coursesLayout = (LinearLayout) findViewById(R.id.layoutMasterCoursesProgress);
+        coursesLayout.setVisibility(View.INVISIBLE);
+        final TranslateAnimation translateAnimationCourses = new TranslateAnimation(1000, 0, 0, 0);
+        translateAnimationCourses.setInterpolator(new LinearInterpolator());
+        translateAnimationCourses.setDuration(500);
+        translateAnimationCourses.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                coursesLayout.setVisibility(View.VISIBLE);
+
+            }
+            @Override
+            public void onAnimationEnd(Animation animation) {
+
+                libraryLayout.startAnimation(translateAnimationLibrary);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
+        final LinearLayout MeetupLayout = (LinearLayout) findViewById(R.id.layoutMasterMeetup);
+        MeetupLayout.setVisibility(View.INVISIBLE);
+        final TranslateAnimation translateAnimationMeetup = new TranslateAnimation(-1000, 0, 0, 0);
+        translateAnimationMeetup.setInterpolator(new LinearInterpolator());
+        translateAnimationMeetup.setDuration(500);
+        translateAnimationMeetup.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                MeetupLayout.setVisibility(View.VISIBLE);
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                coursesLayout.startAnimation(translateAnimationCourses);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
+
+        final LinearLayout TutorsLayout = (LinearLayout) findViewById(R.id.layoutMasterTutors);
+        TutorsLayout.setVisibility(View.INVISIBLE);
+        final TranslateAnimation translateAnimationTutors = new TranslateAnimation(1000, 0, 0, 0);
+        translateAnimationTutors.setInterpolator(new LinearInterpolator());
+        translateAnimationTutors.setDuration(500);
+        translateAnimationTutors.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                TutorsLayout.setVisibility(View.VISIBLE);
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                MeetupLayout.startAnimation(translateAnimationMeetup);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+        TutorsLayout.startAnimation(translateAnimationTutors);
+
+
+
+    }
+
 
 
 
