@@ -1,11 +1,4 @@
----
-title: takehome.md
-layout: post
-author: leonard.mensah
-permalink: /takehome.md/
-source-id: 1JUePcj0W9mg6Ea__lakJK-Zd6ZFXchmqdbztLqIU4Cs
-published: true
----
+
 Getting started with "Android Take It Home" Bell application development.
 
 To be able to debug / repackage / build on the android mobile application, you need to
@@ -32,7 +25,8 @@ To be able to debug / repackage / build on the android mobile application, you n
 
 * Navigate to into the Android studio -> take-home and select the settings.gradle file to import and open the project.
 
-@todo : http://stackoverflow.com/questions/37397810/android-studio-unable-to-run-avd
+@todo : 
+http://stackoverflow.com/questions/37397810/android-studio-unable-to-run-avd
 
 [https://www.virtualbox.org/ticket/14294](https://www.virtualbox.org/ticket/14294) NB Virtualbox version needs lower equal 4.3.28
 
@@ -56,7 +50,15 @@ To be able to debug / repackage / build on the android mobile application, you n
 
 ![image alt text]({{ site.url }}/public/BMbpD6rCZ1qoniF20u7H2A_img_5.png)
 
+
+
+Download these two files into {projectFolder}\take-home\app\src\main\res\raw
+https://drive.google.com/open?id=0Bw7aA5bLT2P9TTBNSDl3VzgtVnc
+https://drive.google.com/open?id=0Bw7aA5bLT2P9UmhlcHA1R1BoZnM
+
+
 * The emulator will be opened with application installed. You have successfully configured the development environment to get you started. 
+
 
 ## NEXT ---> Understanding the flow of the android application 
 
