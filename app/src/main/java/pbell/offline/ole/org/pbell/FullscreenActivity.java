@@ -407,7 +407,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
                     mDialog = new ProgressDialog(context);
                     mDialog.setMessage("Please wait...");
-                    mDialog.setCancelable(true);
+                    mDialog.setCancelable(false);
                     mDialog.show();
                     final AsyncTask<String, Void, Boolean> execute = new SyncResource().execute();
 
@@ -435,7 +435,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     //testFilteredPuller();
                     mDialog = new ProgressDialog(context);
                     mDialog.setMessage("Please wait...");
-                    mDialog.setCancelable(true);
+                    mDialog.setCancelable(false);
                     mDialog.show();
                     allresDownload=0;
                     final AsyncTask<String, Void, Boolean> executeAll = new SyncAllResource().execute();
