@@ -39,10 +39,12 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.TranslateAnimation;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -138,6 +140,11 @@ public class FullscreenActivity extends AppCompatActivity {
     static Intent intent;
     MediaPlayer sd_Slidin;
 
+
+    private List<Resource> resourceList = new ArrayList<Resource>();
+    private ListView listView;
+    private CustomListAdapter adapter;
+
     int resourceCntr,attachmentLength;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -171,6 +178,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
         /////////////////////////
 
+        resourceList.clear();
         LoadShelfResourceList();
 
         TextView lblName = (TextView) findViewById(R.id.lblName);
@@ -209,6 +217,15 @@ public class FullscreenActivity extends AppCompatActivity {
                 finish();
             }
         });
+
+        Button btnMyLibrary = (Button) findViewById(R.id.btnLibrary);
+        btnMyLibrary.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                populateLibraryDialogList();
+            }
+        });
+
 
     }
     @Override
@@ -249,6 +266,30 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     }*/
 
+    public void populateLibraryDialogList(){
+        AlertDialog.Builder dialogBMyLibrary = new AlertDialog.Builder(this);
+        // custom dialog
+        dialogBMyLibrary.setView(R.layout.dialog_my_library);
+        dialogBMyLibrary.setCancelable(true);
+        Dialog dialogMyLibrary = dialogBMyLibrary.create();
+        dialogMyLibrary.show();
+        listView = (ListView) findViewById(R.id.list);
+        adapter = new CustomListAdapter(this, resourceList);
+        try {
+            adapter = new CustomListAdapter(this, resourceList);
+            listView.setAdapter(adapter);
+            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                public void onItemClick(AdapterView<?> adapter, View v, int position, long id) {
+                    // todo change rating style
+                    //RateResourceDialog(resourceIdList[position],resourceTitleList[position]);
+                    openDoc(resourceIdList[position]);
+                }
+            });
+        }catch (Exception err){
+            Log.e("adapter", " "+err);
+        }
+    }
+
 
     public String curdate(){
         Calendar cal= Calendar.getInstance();
@@ -277,6 +318,7 @@ public class FullscreenActivity extends AppCompatActivity {
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database db = manager.getExistingDatabase("shelf");
+            Database resource_Db = manager.getDatabase("resources");
             Query orderedQuery = chViews.ReadShelfByIdView(db).createQuery();
             orderedQuery.setDescending(true);
             QueryEnumerator results = orderedQuery.run();
@@ -288,13 +330,46 @@ public class FullscreenActivity extends AppCompatActivity {
                 String docId = (String) row.getValue();
                 Document doc = db.getExistingDocument(docId);
                 Map<String, Object> properties = doc.getProperties();
+                Map<String, Object> resource_properties = null;
                 if(memberId.equals((String) properties.get("memberId"))) {
                     String myresTitile = ((String) properties.get("resourceTitle"));
                     String myresId = ((String) properties.get("resourceId"));
+                    String myresType,myresDec,myresExt = "";
                     resourceTitleList[rsLstCnt]=myresTitile;
                     resourceIdList[rsLstCnt]=myresId;
                     Log.e("tag", "MEMBER ID "+ (String) properties.get("resourceTitle"));
-                    rsLstCnt++;
+                    try {
+                        Document resource_doc = resource_Db.getExistingDocument((String) properties.get("resourceId"));
+                        Log.e("tag", "RES ID "+ (String) properties.get("resourceId"));
+                        try {
+                            resource_properties = resource_doc.getProperties();
+                        }catch(Exception errs){
+                            Log.e("tag", "OBJECT ERROR "+ errs.toString());
+                        }
+                        myresTitile = (String) resource_properties.get("title")+"";
+                        myresId = (String) properties.get("resourceId")+"";
+                        myresDec = (String) resource_properties.get("author")+"";
+                        myresType = (String) resource_properties.get("averageRating")+"";
+                        myresExt = (String) resource_properties.get("openWith")+"";
+                        rsLstCnt++;
+                    }catch(Exception err){
+                        Log.e("tag", "ERROR "+ err.getMessage());
+                        myresTitile = "Unknown resource .. ";
+                        myresId = "";
+                        myresDec = "Not yet downloaded.. Please sync";
+                        myresType = "";
+                        rsLstCnt++;
+                    }
+                    Resource resource = new Resource();
+                    resource.setTitle(myresTitile);
+                    resource.setThumbnailUrl(getIconType(myresExt));
+                    resource.setDescription(myresDec);
+                    resource.setRating(myresType);
+
+                    resource.setGenre(null);
+                    // adding resource to resources array
+                    resourceList.add(resource);
+                    resourceNo++;
                 }
             }
 
@@ -323,7 +398,6 @@ public class FullscreenActivity extends AppCompatActivity {
                 row2.addView(libraryButtons[ButtonCnt]);
                 try {
                     manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                    Database resource_Db = manager.getExistingDatabase("resources");
                     Document resource_doc = resource_Db.getExistingDocument((String) resourceIdList[ButtonCnt]);
                     Map<String, Object> resource_properties = resource_doc.getProperties();
                     Log.e("tag", "RES ID " + (String) resource_properties.get("resourceId"));
@@ -880,7 +954,28 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     }
 
+    public int getIconType(String myresExt){
 
+        int img = R.drawable.web;
+        switch (myresExt){
+            case "Flow Video Player":
+                img = R.drawable.video;
+                break;
+            case "MP3":
+                img = R.drawable.mp3;
+                break;
+            case "PDF.js":
+                img = R.drawable.pdf;
+                break;
+            case "":
+                img = R.drawable.web;
+                break;
+            default:
+                img = R.drawable.web;
+                break;
+        }
+        return img;
+    }
     public void openDoc(String docId) {
         AndroidContext androidContext = new AndroidContext(context);
         Manager manager = null;
@@ -1285,7 +1380,6 @@ public class FullscreenActivity extends AppCompatActivity {
 
         return false;
     }
-
 
     public void animateLayoutBars(){
 
