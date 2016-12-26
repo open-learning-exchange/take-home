@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.wifi.ScanResult;
@@ -78,8 +79,9 @@ public class FullscreenLogin extends AppCompatActivity {
             sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
             sys_usergender,sys_uservisits= "";
     Object[] sys_membersWithResource;
-    private Dialog dialog;
+    private Dialog dialog,promptDialog;
     private ProgressDialog mDialog;
+
 
 
     final Context context = this;
@@ -130,9 +132,6 @@ public class FullscreenLogin extends AppCompatActivity {
         });
 
         restorePref();
-
-        connectWiFi();
-
 
     }
 
@@ -295,51 +294,62 @@ public class FullscreenLogin extends AppCompatActivity {
     }
 
     public void getSyncURLDialog(){
+
+        final WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
         AlertDialog.Builder dialogB = new AlertDialog.Builder(this);
-        // custom dialog
         dialogB.setView(R.layout.dialog_setup);
         dialogB.setCancelable(true);
         dialog = dialogB.create();
         dialog.show();
-
-        WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
-        wifiManager.setWifiEnabled(true);
-        ////wifiManager.isWifiEnabled()
-
         final EditText txtSuncURL = (EditText) dialog.findViewById(R.id.txtNewSyncURL);
         txtSuncURL.setText(sys_oldSyncServerURL);
+
         Button dialogButton = (Button) dialog.findViewById(R.id.btnNewSaveSyncURL);
         dialogButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 sys_oldSyncServerURL = txtSuncURL.getText().toString();
-
                 SharedPreferences.Editor editor = settings.edit();
                 editor.putString("pf_sysncUrl", sys_oldSyncServerURL);
                 editor.commit();
-
                 dialog.dismiss();
-                //Intent intent = new Intent(context,NewSync.class);
-                //startActivity(intent);
-                ///dialog.getOwnerActivity().setVisible(false);
-                ///initSyncLoginDetails();
                 mDialog = new ProgressDialog(context);
                 mDialog.setMessage("Please wait...");
                 mDialog.setCancelable(false);
-
-
                 try {
+                    mDialog.show();
                     syncNotifier();
-                    //initDB();
-                    //startSync();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-
-                mDialog.show();
             }
         });
+        if(wifiManager.isWifiEnabled()) {
+            dialog.show();
+            ////
+        }else{
+            DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface int_dialog, int which) {
+                    switch (which){
+                        case DialogInterface.BUTTON_POSITIVE:
+                            //Yes button clicked
+                            wifiManager.setWifiEnabled(true);
+                            dialog.show();
+                            break;
+
+                        case DialogInterface.BUTTON_NEGATIVE:
+                            //No button clicked
+                            finish();
+                            break;
+                    }
+                }
+            };
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setMessage("Wifi is off. Are you sure you want to turn it on?").setPositiveButton("Yes", dialogClickListener)
+                    .setNegativeButton("No", dialogClickListener).show();
+        }
 
     }
 
