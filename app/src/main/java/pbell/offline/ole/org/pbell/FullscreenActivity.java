@@ -12,6 +12,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
@@ -139,6 +140,8 @@ public class FullscreenActivity extends AppCompatActivity {
     static Uri videoURl;
     static Intent intent;
     MediaPlayer sd_Slidin;
+    Database database;
+    Replication repl;
 
 
     private List<Resource> resourceList = new ArrayList<Resource>();
@@ -273,7 +276,8 @@ public class FullscreenActivity extends AppCompatActivity {
         dialogBMyLibrary.setCancelable(true);
         Dialog dialogMyLibrary = dialogBMyLibrary.create();
         dialogMyLibrary.show();
-        listView = (ListView) findViewById(R.id.list);
+        dialogMyLibrary.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        listView = (ListView) dialogMyLibrary.findViewById(R.id.list);
         adapter = new CustomListAdapter(this, resourceList);
         try {
             adapter = new CustomListAdapter(this, resourceList);
@@ -346,17 +350,17 @@ public class FullscreenActivity extends AppCompatActivity {
                         }catch(Exception errs){
                             Log.e("tag", "OBJECT ERROR "+ errs.toString());
                         }
-                        myresTitile = (String) resource_properties.get("title")+"";
-                        myresId = (String) properties.get("resourceId")+"";
+                        //myresTitile = (String) resource_properties.get("title")+"";
+                        //myresId = (String) properties.get("resourceId")+"";
                         myresDec = (String) resource_properties.get("author")+"";
                         myresType = (String) resource_properties.get("averageRating")+"";
                         myresExt = (String) resource_properties.get("openWith")+"";
                         rsLstCnt++;
                     }catch(Exception err){
                         Log.e("tag", "ERROR "+ err.getMessage());
-                        myresTitile = "Unknown resource .. ";
-                        myresId = "";
-                        myresDec = "Not yet downloaded.. Please sync";
+                        //myresTitile = "Unknown resource .. ";
+                        //myresId = "";
+                        myresDec = "";
                         myresType = "";
                         rsLstCnt++;
                     }
@@ -414,17 +418,14 @@ public class FullscreenActivity extends AppCompatActivity {
                             MaterialClickDialog(false,resourceTitleList[view.getId()],resourceIdList[view.getId()],view.getId());
                         }else{
                             openDoc(resourceIdList[view.getId()]);
+                            Log.e("MyCouch", "Clicked to open "+ resourceIdList[view.getId()]);
+
                         }
 
                     }
 
                 });
                 //////////// Save list in Preferences
-
-                /*     SharedPreferences.Editor editor = settings.edit();
-                Set<String> set = new HashSet<String>(Arrays.asList(resourceIdList));
-                editor.putStringSet("membersNoOfResources", set);
-            */
             }
             db.close();
 
@@ -475,7 +476,7 @@ public class FullscreenActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 dialog2.dismiss();
-                ///OneByOneResID = rs_ID;
+                OneByOneResID = rs_ID;
                 try {
                     //testFilteredPuller();
 
@@ -483,7 +484,8 @@ public class FullscreenActivity extends AppCompatActivity {
                     mDialog.setMessage("Please wait...");
                     mDialog.setCancelable(false);
                     mDialog.show();
-                    final AsyncTask<String, Void, Boolean> execute = new SyncResource().execute();
+                    syncThreadHandler();
+                    //final AsyncTask<String, Void, Boolean> execute = new SyncResource().execute();
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -621,6 +623,7 @@ public class FullscreenActivity extends AppCompatActivity {
         });
         th.start();
     }
+
     public void syncThreadHandler(){
         final AsyncTask<String, Void, Boolean> execute = new FullscreenActivity.SyncResource().execute();
         final Thread th = new Thread(new Runnable() {
@@ -826,13 +829,12 @@ public class FullscreenActivity extends AppCompatActivity {
             try {
                 URL remote = getReplicationURL();
                 CountDownLatch replicationDoneSignal = new CountDownLatch(1);
-                final Database database;
                 database = manager.getDatabase("resources");
-                final Replication repl = (Replication) database.createPullReplication(remote);
+                repl = database.createPullReplication(remote);
                 repl.setContinuous(false);
                 repl.setFilter("apps/by_resource");
-
                 Map<String, Object> map = new HashMap<String, Object>();
+
                 map.put("_id", OneByOneResID);
                 repl.setFilterParams(map);
                 repl.addChangeListener(new Replication.ChangeListener() {
@@ -977,8 +979,7 @@ public class FullscreenActivity extends AppCompatActivity {
         return img;
     }
     public void openDoc(String docId) {
-        AndroidContext androidContext = new AndroidContext(context);
-        Manager manager = null;
+
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database res_Db = manager.getExistingDatabase("resources");
@@ -1052,7 +1053,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
             }
         } catch (Exception Er) {
-
+            Log.d("MyCouch", "Opening resource error "+Er.getMessage());
         }
     }
 
