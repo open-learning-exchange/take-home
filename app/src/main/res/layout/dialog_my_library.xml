@@ -2,29 +2,25 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:weightSum="4"
     android:gravity="center">
 
     <LinearLayout
         android:orientation="vertical"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:weightSum="8"
-        android:layout_weight="4"
         android:gravity="center"
-        android:background="@drawable/rounded_corners_all"
-        android:layout_margin="5dp">
+        android:layout_margin="5dp"
+        android:background="@drawable/slideframe1">
 
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1.2"
             android:gravity="top"
-            android:layout_gravity="top">
+            android:layout_gravity="top"
+            android:layout_height="wrap_content">
             <TextView
                 android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:text="@string/txtLibrary"
                 android:id="@+id/textView4"
@@ -33,31 +29,28 @@
                 android:typeface="serif"
                 android:textStyle="bold"
                 android:textAlignment="center"
-                android:textColor="@color/ole_black_blue" />
+                android:textColor="@color/ole_yellow"
+                android:paddingBottom="5dp" />
         </LinearLayout>
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="6.8"
-            android:weightSum="10">
+            android:background="@color/ole_white"
+            android:layout_height="match_parent"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="74dp"
+            android:layout_marginLeft="70dp"
+            android:layout_marginRight="70dp">
 
-            <LinearLayout
-                android:orientation="vertical"
+            <ListView
+                android:id="@+id/list"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="3.2"
-                android:background="@drawable/rounded_corners_white">
-                <ListView
-                    android:id="@+id/list"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:divider="@color/list_divider"
-                    android:dividerHeight="1dp"
-                    android:fastScrollEnabled="false"
-                    android:listSelector="@drawable/list_row_selector" />
-
-            </LinearLayout>
+                android:divider="@color/list_divider"
+                android:dividerHeight="1dp"
+                android:fastScrollEnabled="false"
+                android:listSelector="@drawable/list_row_selector"
+                android:layout_weight="3.2" />
 
         </LinearLayout>
     </LinearLayout>
