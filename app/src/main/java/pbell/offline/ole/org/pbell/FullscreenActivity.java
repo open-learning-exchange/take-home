@@ -31,11 +31,15 @@ import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Layout;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LinearInterpolator;
@@ -184,15 +188,10 @@ public class FullscreenActivity extends AppCompatActivity {
         resourceList.clear();
         LoadShelfResourceList();
 
-        TextView lblName = (TextView) findViewById(R.id.lblName);
-        lblName.setText(" "+sys_userfirstname +" "+sys_userlastname);
+        ///Update user info
+        updateUI();
 
-        TextView lblVisits= (TextView) findViewById(R.id.lblVisits);
-        if(sys_uservisits==""){
-            lblVisits.setText(""+sys_uservisits_Int+" Visits");
-        }else{
-            lblVisits.setText(""+sys_uservisits+" Visits");
-        }
+        /// Todo :- Sync user usage data back to server
 
 
         if (!userShelfSynced){
@@ -228,54 +227,35 @@ public class FullscreenActivity extends AppCompatActivity {
                 populateLibraryDialogList();
             }
         });
-
-
     }
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         animateLayoutBars();
-        /*
-        final LinearLayout libraryLayout = (LinearLayout) findViewById(R.id.layoutMasterLibrary);
-        int layoutWidth = libraryLayout.getLayoutParams().width;
-        int animationSpeed = (layoutWidth * 1000) / 100;
-        libraryLayout.animate().translationXBy(20).setDuration(500).setInterpolator(new LinearInterpolator()).setListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                super.onAnimationEnd(animation);
-                //libraryLayout.setVisibility(View.GONE);
-            }
-        });
-        */
-
     }
-/*
+
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
-         LinearLayout libraryLayout = (LinearLayout) findViewById(R.id.layholder_library);
-        /*libraryLayout.animate()
-                .translationY(0)
-                .alpha(0.0f)
-                .setListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        super.onAnimationEnd(animation);
-                        libraryLayout.setVisibility(View.GONE);
-                    }
-                });
-        if(hasFocus){
-            libraryLayout.getId().startAnimation(AnimationUtils.loadAnimation(FullscreenActivity.this,
-                    android.R.anim.slide_in_left|android.R.anim.fade_in));
-        }
-    }*/
+
+    }
 
     public void populateLibraryDialogList(){
         AlertDialog.Builder dialogBMyLibrary = new AlertDialog.Builder(this);
         // custom dialog
         dialogBMyLibrary.setView(R.layout.dialog_my_library);
         dialogBMyLibrary.setCancelable(true);
-        Dialog dialogMyLibrary = dialogBMyLibrary.create();
+        final Dialog dialogMyLibrary = dialogBMyLibrary.create();
         dialogMyLibrary.show();
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        DisplayMetrics metrics = new DisplayMetrics();
+        display.getMetrics(metrics);
+        Double width = metrics.widthPixels*.8;
+        Double height = metrics.heightPixels*.8;
+        Window win = dialogMyLibrary.getWindow();
+        win.setLayout(width.intValue(), height.intValue());
+
+
         dialogMyLibrary.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         listView = (ListView) dialogMyLibrary.findViewById(R.id.list);
         adapter = new CustomListAdapter(this, resourceList);
@@ -284,9 +264,14 @@ public class FullscreenActivity extends AppCompatActivity {
             listView.setAdapter(adapter);
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 public void onItemClick(AdapterView<?> adapter, View v, int position, long id) {
-                    // todo change rating style
-                    //RateResourceDialog(resourceIdList[position],resourceTitleList[position]);
-                    openDoc(resourceIdList[position]);
+                    if(libraryButtons[position].getCurrentTextColor()==getResources().getColor(R.color.ole_yellow)){
+                        MaterialClickDialog(false,resourceTitleList[position],resourceIdList[position],position);
+                        dialogMyLibrary.dismiss();
+                    }else{
+                        openDoc(resourceIdList[position]);
+                        Log.e("MyCouch", "Clicked to open "+ resourceIdList[position]);
+
+                    }
                 }
             });
         }catch (Exception err){
@@ -484,8 +469,8 @@ public class FullscreenActivity extends AppCompatActivity {
                     mDialog.setMessage("Please wait...");
                     mDialog.setCancelable(false);
                     mDialog.show();
-                    syncThreadHandler();
-                    //final AsyncTask<String, Void, Boolean> execute = new SyncResource().execute();
+                    ///syncThreadHandler();
+                    final AsyncTask<String, Void, Boolean> execute = new SyncResource().execute();
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -595,7 +580,7 @@ public class FullscreenActivity extends AppCompatActivity {
     //// NOT IN USE CURRENT VERSION
     public void syncOneByOne(){
         status_SyncOneByOneResource=true;
-        final AsyncTask<String, Void, Boolean> execute = new FullscreenActivity.SyncOneByOneResource().execute();
+        //final AsyncTask<String, Void, Boolean> execute = new FullscreenActivity.SyncOneByOneResource().execute();
         Log.e("MyCouch", "syncNotifier Running");
         final Thread th = new Thread(new Runnable() {
             public void run() {
@@ -623,7 +608,6 @@ public class FullscreenActivity extends AppCompatActivity {
         });
         th.start();
     }
-
     public void syncThreadHandler(){
         final AsyncTask<String, Void, Boolean> execute = new FullscreenActivity.SyncResource().execute();
         final Thread th = new Thread(new Runnable() {
@@ -822,7 +806,6 @@ public class FullscreenActivity extends AppCompatActivity {
     }
     //////////////////
 
-
     class SyncResource extends AsyncTask<String, Void, Boolean> {
         @Override
         protected Boolean doInBackground(String... params) {
@@ -895,9 +878,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                 Log.e("MyCouch", " Document Count " + database.getDocumentCount());
 
                             }else if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")){
-                                //mDialog.dismiss();
-                                //checkAllDocsInDB();
-                               // libraryButtons[allresDownload].setTextColor(getResources().getColor(R.color.ole_white));
+                                checkAllDocsInDB();
                             }
                             else{
                                 mDialog.setMessage("Data transfer error. Check connection to server.");
@@ -908,6 +889,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                 //mDialog.show();
                                 final AsyncTask<String, Void, Boolean> executeAll = new SyncAllResource().execute();
                                 libraryButtons[allresDownload].setTextColor(getResources().getColor(R.color.ole_white));
+                                checkAllDocsInDB();
                                 allresDownload++;
                             }else{
                                 mDialog.dismiss();
@@ -946,6 +928,18 @@ public class FullscreenActivity extends AppCompatActivity {
                 Document document = row.getDocument();
                 Revision revision = document.getCurrentRevision();
                 Log.d("MyCouch", document.getId() + " : " +  revision.getAttachments().size());
+                if(document.getId().equalsIgnoreCase(OneByOneResID)){
+                    Resource resource = resourceList.get(resButtonId);
+                    resource.setTitle((String) document.getProperty("title"));
+                    String OpenWith = (String) document.getProperty("openWith");
+                    if( OpenWith.equalsIgnoreCase("Flow Video Player") || OpenWith.equalsIgnoreCase("MP3") || OpenWith.equalsIgnoreCase("PDF.js")   ||OpenWith.equalsIgnoreCase("HTML")){
+                        resource.setThumbnailUrl(getIconType((String) document.getProperty("openWith")));
+                    }else{
+                        resource.setThumbnailUrl(getIconType("-"));
+                    }
+                    Log.d("MyCouch", "Found resource : Making "+(String) document.getProperty("openWith"));
+                    resourceList.set(resButtonId,resource);
+                }
             }
 
             Log.d("MyCouch", "done looping over all docs ");
@@ -969,11 +963,14 @@ public class FullscreenActivity extends AppCompatActivity {
             case "PDF.js":
                 img = R.drawable.pdf;
                 break;
-            case "":
+            case "HTML":
+                img = R.drawable.htmlimage;
+                break;
+            case "-":
                 img = R.drawable.web;
                 break;
             default:
-                img = R.drawable.web;
+                img = R.drawable.unknownresource1;
                 break;
         }
         return img;
@@ -1552,6 +1549,19 @@ public class FullscreenActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    public void updateUI(){
+
+        TextView lblName = (TextView) findViewById(R.id.lblName);
+        lblName.setText(" "+sys_userfirstname +" "+sys_userlastname);
+        TextView lblVisits = (TextView) findViewById(R.id.lblVisits);
+        if(sys_uservisits==""){
+            lblVisits.setText(""+sys_uservisits_Int);
+        }else{
+            lblVisits.setText(""+sys_uservisits);
+        }
+
     }
 
 

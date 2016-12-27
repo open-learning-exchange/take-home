@@ -36,10 +36,10 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="30dp"
+            android:layout_marginTop="35dp"
             android:layout_marginBottom="74dp"
-            android:layout_marginLeft="70dp"
-            android:layout_marginRight="70dp">
+            android:layout_marginLeft="75dp"
+            android:layout_marginRight="75dp">
 
             <ListView
                 android:id="@+id/list"

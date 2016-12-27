@@ -70,7 +70,8 @@ public class CustomListAdapter extends BaseAdapter {
         title.setText(r.getTitle());
 
         // rating
-        rating.setText(" " + String.valueOf(r.getDescription()));
+        //rating.setText(" " + String.valueOf(r.getDescription()));
+        rating.setText(" ");
 
         // genre
         String genreStr = "";
