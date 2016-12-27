@@ -227,6 +227,14 @@ public class FullscreenActivity extends AppCompatActivity {
                 populateLibraryDialogList();
             }
         });
+
+        TextView lblMyLibrary = (TextView) findViewById(R.id.lblMyLibrary);
+        lblMyLibrary.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                populateLibraryDialogList();
+            }
+        });
     }
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {

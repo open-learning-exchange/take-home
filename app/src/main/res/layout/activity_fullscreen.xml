@@ -288,7 +288,7 @@
                         android:text="@string/bbtext_MyLibrary"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:id="@+id/textView10"
+                        android:id="@+id/lblMyLibrary"
                         android:layout_weight="1"
                         android:textAlignment="center"
                         tools:textStyle="bold"
@@ -306,7 +306,7 @@
                     android:layout_gravity="center"
                     android:animateLayoutChanges="true"
                     android:weightSum="5"
-                    android:alpha="0.6">
+                    android:alpha="0.8">
 
                     <ScrollView
                         android:layout_width="match_parent"
@@ -382,7 +382,7 @@
                     android:layout_weight="3.4"
                     android:animateLayoutChanges="true"
                     android:background="@color/ole_yellow"
-                    android:alpha="0.6"></LinearLayout>
+                    android:alpha="0.8"></LinearLayout>
                 <LinearLayout
                     android:orientation="horizontal"
                     android:layout_width="0dp"
@@ -437,7 +437,7 @@
                     android:layout_weight="3.4"
                     android:animateLayoutChanges="true"
                     android:background="@color/ole_green"
-                    android:alpha="0.6"></LinearLayout>
+                    android:alpha="0.8"></LinearLayout>
                 <LinearLayout
                     android:orientation="horizontal"
                     android:layout_width="0dp"
@@ -493,7 +493,7 @@
                     android:layout_weight="3.4"
                     android:animateLayoutChanges="true"
                     android:background="@color/ole_blue"
-                    android:alpha="0.6"></LinearLayout>
+                    android:alpha="0.8"></LinearLayout>
                 <LinearLayout
                     android:orientation="horizontal"
                     android:layout_width="0dp"
