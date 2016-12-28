@@ -119,7 +119,21 @@ public class FullscreenLogin extends AppCompatActivity {
         SignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                authenticateUser();
+                if(authenticateUser()){
+
+                }else {
+                    AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
+                    builder1.setMessage("Login incorrect or Not found. Check and try again.");
+                    builder1.setCancelable(true);
+                    builder1.setNegativeButton("Okay",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+                    AlertDialog alert11 = builder1.create();
+                    alert11.show();
+                }
             }
         });
 

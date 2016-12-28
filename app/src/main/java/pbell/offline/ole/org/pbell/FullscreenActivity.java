@@ -764,7 +764,6 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     }
     public void testFilteredPuller() throws Throwable {
-
         URL remote = getReplicationURL();
 
         CountDownLatch replicationDoneSignal = new CountDownLatch(1);
@@ -894,7 +893,7 @@ public class FullscreenActivity extends AppCompatActivity {
                         }else {
                             Log.e("MyCouch", "Document Count " + database.getDocumentCount());
                             if(allresDownload<libraryButtons.length){
-                                //mDialog.show();
+                                mDialog.show();
                                 final AsyncTask<String, Void, Boolean> executeAll = new SyncAllResource().execute();
                                 libraryButtons[allresDownload].setTextColor(getResources().getColor(R.color.ole_white));
                                 checkAllDocsInDB();
@@ -951,7 +950,7 @@ public class FullscreenActivity extends AppCompatActivity {
             }
 
             Log.d("MyCouch", "done looping over all docs ");
-            mDialog.dismiss();
+            ///mDialog.dismiss();
 
         } catch (CouchbaseLiteException e) {
             e.printStackTrace();
