@@ -97,7 +97,7 @@ public class FullscreenActivity extends AppCompatActivity {
     boolean synchronizing = true;
     JSONObject jsonData;
     Database dbResources;
-    int syncCnt,resourceNo,allresDownload=0;
+    int syncCnt,resourceNo,allresDownload,allhtmlDownload=0;
     AndroidContext androidContext;
     Replication pull;
     Manager manager;
@@ -134,6 +134,7 @@ public class FullscreenActivity extends AppCompatActivity {
     Button dialogBtnDownoadAll,dialogBtnDownoadFile,dialogBtnOpenFileOnline;
     private long enqueue;
     int resourceCntr,attachmentLength;
+    List<String> htmlResourceList = new ArrayList<String>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -154,8 +155,7 @@ public class FullscreenActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
                 if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
-                    long downloadId = intent.getLongExtra(
-                            DownloadManager.EXTRA_DOWNLOAD_ID, 0);
+                    long downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0);
                     DownloadManager.Query query = new DownloadManager.Query();
                     query.setFilterById(enqueue);
                     Cursor c = downloadManager.query(query);
@@ -168,12 +168,21 @@ public class FullscreenActivity extends AppCompatActivity {
                                 if(resourceTitleList[allresDownload]!=null) {
                                     new downloadAllResourceToDisk().execute();
                                 }else{
-                                    mDialog.dismiss();
-                                    alertDialogOkay("Download completed. Enjoy");
+                                    if(allhtmlDownload<htmlResourceList.size()) {
+                                        new SyncAllHTMLResource().execute();
+                                    }else{
+                                        mDialog.dismiss();
+                                        alertDialogOkay("Download Completed");
+                                    }
                                 }
                             }else {
-                                mDialog.dismiss();
-                                alertDialogOkay("Download Completed");
+                                if(allhtmlDownload<htmlResourceList.size()) {
+                                    new SyncAllHTMLResource().execute();
+                                }else{
+                                    mDialog.dismiss();
+                                    alertDialogOkay("Download Completed");
+                                }
+
                             }
                         }else if(DownloadManager.STATUS_FAILED ==c.getInt(columnIndex)){
                             alertDialogOkay("Download Failed"+resourceTitleList[allresDownload]);
@@ -182,8 +191,12 @@ public class FullscreenActivity extends AppCompatActivity {
                                 if(resourceTitleList[allresDownload]!=null) {
                                     new downloadAllResourceToDisk().execute();
                                 }else{
-                                    mDialog.dismiss();
-                                    alertDialogOkay("Download completed. Enjoy");
+                                    if(allhtmlDownload<htmlResourceList.size()) {
+                                        new SyncAllHTMLResource().execute();
+                                    }else{
+                                        mDialog.dismiss();
+                                        alertDialogOkay("Download Completed");
+                                    }
                                 }
                             }
                         }
@@ -529,7 +542,8 @@ public class FullscreenActivity extends AppCompatActivity {
                     mDialog.setMessage("Downloading resource, please wait..."+resourceTitleList[allresDownload]);
                     mDialog.setCancelable(false);
                     mDialog.show();
-
+                    htmlResourceList.clear();
+                    allhtmlDownload=0;
                     new downloadAllResourceToDisk().execute();
                   //  downloadAllResourcesWithCouch();
                 } catch (Exception e) {
@@ -925,6 +939,56 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     }
 
+    class SyncAllHTMLResource extends AsyncTask<String, Void, Boolean> {
+        @Override
+        protected Boolean doInBackground(String... params) {
+            try {
+                URL remote = getReplicationURL();
+                CountDownLatch replicationDoneSignal = new CountDownLatch(1);
+                final Database database;
+                database = manager.getDatabase("resources");
+                final Replication repl = (Replication) database.createPullReplication(remote);
+                repl.setContinuous(false);
+                repl.setDocIds(htmlResourceList);
+                repl.addChangeListener(new Replication.ChangeListener() {
+                    @Override
+                    public void changed(Replication.ChangeEvent event) {
+                        Log.e("MyCouch", "Current Status "+repl.getStatus());
+                        if(repl.isRunning()){
+                            if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_ACTIVE")) {
+                                Log.e("MyCouch", " " + event.getChangeCount());
+                                Log.e("MyCouch", " Document Count " + database.getDocumentCount());
+                                mDialog.setMessage("Downloading HTML resources now .. "+ database.getDocumentCount() +"/"+ htmlResourceList.size());
+
+
+                            }else if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")){
+                                mDialog.dismiss();
+                                alertDialogOkay("Download Completed");
+
+                            }
+                            else{
+                                mDialog.setMessage("Data transfer error. Check connection to server.");
+
+                            }
+                        }else {
+                            Log.e("MyCouch", "Document Count Last " + database.getDocumentCount());
+                            mDialog.dismiss();
+                            dbDiagnosticCheck();
+                        }
+                    }
+                });
+                repl.start();
+            } catch (CouchbaseLiteException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+        protected void onPostExecute(final Boolean success) {
+            mDialog.dismiss();
+            alertDialogOkay("Download Completed");
+        }
+    }
+
     public URL getReplicationURL(){
         URL url=null;
         try {
@@ -958,6 +1022,43 @@ public class FullscreenActivity extends AppCompatActivity {
                     Log.d("MyCouch", "Found resource : Making "+(String) document.getProperty("openWith"));
                     resourceList.set(resButtonId,resource);
                 }
+            }
+
+            Log.d("MyCouch", "done looping over all docs ");
+            ///mDialog.dismiss();
+
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void dbDiagnosticCheck(){
+        try {
+            Database database = manager.getDatabase("resources");
+            database.getAllDocs(new QueryOptions());
+            Query queryAllDocs = database.createAllDocumentsQuery();
+            QueryEnumerator queryEnumerator = queryAllDocs.run();
+            for (Iterator<QueryRow> it = queryEnumerator; it.hasNext();) {
+                QueryRow row = it.next();
+                Document document = row.getDocument();
+                Revision revision = document.getCurrentRevision();
+                Log.d("MyCouch", document.getId() + " : " +  revision.getAttachments().size());
+                for(int cnt=0; cnt<resourceIdList.length;cnt++) {
+                    if (document.getId().equalsIgnoreCase(resourceIdList[cnt])) {
+                        libraryButtons[cnt].setTextColor(getResources().getColor(R.color.ole_white));
+                        Resource resource = resourceList.get(cnt);
+                        resource.setTitle((String) document.getProperty("title"));
+                        String OpenWith = (String) document.getProperty("openWith");
+                        if (OpenWith.equalsIgnoreCase("Flow Video Player") || OpenWith.equalsIgnoreCase("MP3") || OpenWith.equalsIgnoreCase("PDF.js") || OpenWith.equalsIgnoreCase("HTML")) {
+                            resource.setThumbnailUrl(getIconType((String) document.getProperty("openWith")));
+                        } else {
+                            resource.setThumbnailUrl(getIconType("-"));
+                        }
+                        Log.d("MyCouch", "Found resource : Making " + (String) document.getProperty("openWith"));
+                        resourceList.set(cnt, resource);
+                    }
+                }
+
             }
 
             Log.d("MyCouch", "done looping over all docs ");
@@ -1657,7 +1758,6 @@ public class FullscreenActivity extends AppCompatActivity {
                     try {
                         try {
                             jsonData = new JSONObject(s);
-                            //BeLL Video Book Player,Native Video,Flow Video Player,Bell-Reader,MP3,PDF.js
                             String openWith = (String) jsonData.get("openWith");
                             Log.e("MyCouch", "Open With -- " + openWith);
                             if(!openWith.equalsIgnoreCase("HTML")) {
@@ -1674,13 +1774,18 @@ public class FullscreenActivity extends AppCompatActivity {
                                 }
                             }else{
                                 Log.e("MyCouch", "-- HTML NOT PART OF DOWNLOADS " );
+                                htmlResourceList.add(resourceIdList[allresDownload]);
                                 if(allresDownload<libraryButtons.length) {
                                     allresDownload++;
                                     if(resourceTitleList[allresDownload]!=null) {
                                         new downloadAllResourceToDisk().execute();
                                     }else{
-                                        mDialog.dismiss();
-                                        alertDialogOkay("Download completed. Enjoy");
+                                        if(allhtmlDownload<htmlResourceList.size()) {
+                                            new SyncAllHTMLResource().execute();
+                                        }else{
+                                            mDialog.dismiss();
+                                            alertDialogOkay("Download Completed");
+                                        }
                                     }
                                 }
                             }
