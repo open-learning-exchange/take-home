@@ -165,16 +165,26 @@ public class FullscreenActivity extends AppCompatActivity {
                             libraryButtons[allresDownload].setTextColor(getResources().getColor(R.color.ole_white));
                             if(allresDownload<libraryButtons.length) {
                                 allresDownload++;
-                                new downloadAllResourceToDisk().execute();
-                                //checkAllDocsInDB();
+                                if(resourceTitleList[allresDownload]!=null) {
+                                    new downloadAllResourceToDisk().execute();
+                                }else{
+                                    mDialog.dismiss();
+                                    alertDialogOkay("Download completed. Enjoy");
+                                }
                             }else {
+                                mDialog.dismiss();
                                 alertDialogOkay("Download Completed");
                             }
                         }else if(DownloadManager.STATUS_FAILED ==c.getInt(columnIndex)){
                             alertDialogOkay("Download Failed"+resourceTitleList[allresDownload]);
                             if(allresDownload<libraryButtons.length) {
                                 allresDownload++;
-                                new downloadAllResourceToDisk().execute();
+                                if(resourceTitleList[allresDownload]!=null) {
+                                    new downloadAllResourceToDisk().execute();
+                                }else{
+                                    mDialog.dismiss();
+                                    alertDialogOkay("Download completed. Enjoy");
+                                }
                             }
                         }
                     }
@@ -515,6 +525,10 @@ public class FullscreenActivity extends AppCompatActivity {
                     File myDir = new File(root + "/ole_temp");
                     deleteDirectory(myDir);
                     myDir.mkdirs();
+                    mDialog = new ProgressDialog(context);
+                    mDialog.setMessage("Downloading resource, please wait..."+resourceTitleList[allresDownload]);
+                    mDialog.setCancelable(false);
+                    mDialog.show();
 
                     new downloadAllResourceToDisk().execute();
                   //  downloadAllResourcesWithCouch();
@@ -1643,17 +1657,32 @@ public class FullscreenActivity extends AppCompatActivity {
                     try {
                         try {
                             jsonData = new JSONObject(s);
-                            JSONObject _attachments = (JSONObject) jsonData.get("_attachments");
-                            Iterator<String> keys = _attachments.keys();
-                            if( keys.hasNext() ){
-                                String key = (String)keys.next();
-                                Log.e("MyCouch", "-- "+key);
-                                String encodedkey = URLEncoder.encode(key, "utf-8");
-                                //String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(key);
-                                File file = new File(encodedkey);
-                                String extension= encodedkey.substring(encodedkey.lastIndexOf("."));
-                                String diskFileName = resourceIdList[allresDownload]+extension;
-                                downloadWithDownloadManager(sys_oldSyncServerURL+"/resources/" + resourceIdList[allresDownload]+"/"+key,diskFileName);
+                            //BeLL Video Book Player,Native Video,Flow Video Player,Bell-Reader,MP3,PDF.js
+                            String openWith = (String) jsonData.get("openWith");
+                            Log.e("MyCouch", "Open With -- " + openWith);
+                            if(!openWith.equalsIgnoreCase("HTML")) {
+                                JSONObject _attachments = (JSONObject) jsonData.get("_attachments");
+                                Iterator<String> keys = _attachments.keys();
+                                if (keys.hasNext()) {
+                                    String key = (String) keys.next();
+                                    Log.e("MyCouch", "-- " + key);
+                                    String encodedkey = URLEncoder.encode(key, "utf-8");
+                                    File file = new File(encodedkey);
+                                    String extension = encodedkey.substring(encodedkey.lastIndexOf("."));
+                                    String diskFileName = resourceIdList[allresDownload] + extension;
+                                    downloadWithDownloadManager(sys_oldSyncServerURL + "/resources/" + resourceIdList[allresDownload] + "/" + encodedkey, diskFileName);
+                                }
+                            }else{
+                                Log.e("MyCouch", "-- HTML NOT PART OF DOWNLOADS " );
+                                if(allresDownload<libraryButtons.length) {
+                                    allresDownload++;
+                                    if(resourceTitleList[allresDownload]!=null) {
+                                        new downloadAllResourceToDisk().execute();
+                                    }else{
+                                        mDialog.dismiss();
+                                        alertDialogOkay("Download completed. Enjoy");
+                                    }
+                                }
                             }
 
                         } catch (JSONException e) {
@@ -1687,6 +1716,7 @@ public class FullscreenActivity extends AppCompatActivity {
         request.setDestinationInExternalPublicDir("ole_temp",FileName);
 
 // get download service and enqueue file
+        mDialog.setMessage("Downloading  \" "+resourceTitleList[allresDownload]+" \" . please wait...");
         downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
         enqueue = downloadManager.enqueue(request);
     }
