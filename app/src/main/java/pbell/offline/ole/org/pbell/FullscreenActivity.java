@@ -169,6 +169,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                 allresDownload++;
                                 if(resourceTitleList[allresDownload]!=null) {
                                     new downloadAllResourceToDisk().execute();
+                                    openFromDiskDirectly = true;
                                 }else{
                                     if(allhtmlDownload<htmlResourceList.size()) {
                                         new SyncAllHTMLResource().execute();
@@ -180,6 +181,7 @@ public class FullscreenActivity extends AppCompatActivity {
                             }else {
                                 if(allhtmlDownload<htmlResourceList.size()) {
                                     new SyncAllHTMLResource().execute();
+                                    openFromDiskDirectly = true;
                                 }else{
                                     mDialog.dismiss();
                                     alertDialogOkay("Download Completed");
@@ -192,6 +194,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                 allresDownload++;
                                 if(resourceTitleList[allresDownload]!=null) {
                                     new downloadAllResourceToDisk().execute();
+                                    openFromDiskDirectly = true;
                                 }else{
                                     if(allhtmlDownload<htmlResourceList.size()) {
                                         new SyncAllHTMLResource().execute();
@@ -553,7 +556,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
                     //// Todo Decide which option is best
                     new downloadAllResourceToDisk().execute();
-                    ////new SyncAllResource().execute();
+                    //new SyncAllResource().execute();
                 } catch (Exception e) {
                     e.printStackTrace();
                 } catch (Throwable throwable) {
@@ -856,7 +859,6 @@ public class FullscreenActivity extends AppCompatActivity {
                 repl.setContinuous(false);
                 repl.setFilter("apps/by_resource");
                 Map<String, Object> map = new HashMap<String, Object>();
-
                 map.put("_id", OneByOneResID);
                 repl.setFilterParams(map);
                 repl.addChangeListener(new Replication.ChangeListener() {
@@ -909,6 +911,7 @@ public class FullscreenActivity extends AppCompatActivity {
                         Log.e("MyCouch", "Current Status "+repl.getStatus());
                         if(repl.isRunning()){
                             if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_ACTIVE")) {
+                                openFromDiskDirectly = false;
                                 Log.e("MyCouch", " " + event.getChangeCount());
                                 Log.e("MyCouch", " Document Count " + database.getDocumentCount());
                                 libraryButtons[database.getDocumentCount()].setTextColor(getResources().getColor(R.color.ole_white));
@@ -1094,20 +1097,15 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public void openDoc(String docId) {
-
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database res_Db = manager.getExistingDatabase("resources");
             Document res_doc = res_Db.getExistingDocument(docId);
             String oppenwith = (String) res_doc.getProperty("openWith");
-            Log.e("MYAPP", " membersWithID  = " + docId +"and Open with "+ oppenwith);
+            Log.e("MYAPP", " membersWithID  = " + docId +" and Open with "+ oppenwith);
             List<String> attmentNames = res_doc.getCurrentRevision().getAttachmentNames();
+/////HTML
             if(oppenwith.equalsIgnoreCase("HTML")){
-                /*if (attmentNames.size() <= 1) {
-                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
-                        openImage(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
-                    }
-                }*/
                 indexFilePath=null;
                 if (attmentNames.size() > 1) {
                     for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
@@ -1119,35 +1117,149 @@ public class FullscreenActivity extends AppCompatActivity {
                 }else{
                     openImage(docId, (String) attmentNames.get(0), getExtension(attmentNames.get(0)));
                 }
-
+////PDF
             }else if(oppenwith.equalsIgnoreCase("PDF.js")){
-                if (attmentNames.size() > 0) {
-                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
-                        openPDF(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
-                        break;
+                if(openFromDiskDirectly) {
+                    Log.e("MyCouch", " Command Video name -:  "+docId);
+                    String filenameOnly="";
+                    String root = Environment.getExternalStorageDirectory().toString();
+                    File myDir = new File(root + "/ole_temp");
+                    for (File f : myDir.listFiles()) {
+                        if (f.isFile()) {
+                            if (f.getName().indexOf(".") > 0) {
+                                filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
+                            }
+                            Log.e("MyCouch", " File name -:  "+ f.getName() +" Filename only "+filenameOnly);
+                            if (filenameOnly.equalsIgnoreCase(docId)) {
+                                try{
+                                    mDialog.dismiss();
+                                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                                    intent.setPackage("com.adobe.reader");
+                                    intent.setDataAndType(Uri.fromFile(f), "application/pdf");
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                    startActivity(intent);
+                                }catch(Exception err){
+                                    myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
+                                    File dst = new File(myDir,"adobe_reader.apk");
+                                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                                    intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(intent);
+                                }
+                            }
+                        }
+                    }
+                }else {
+                    if (attmentNames.size() > 0) {
+                        for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                            openPDF(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
+                            break;
+                        }
                     }
                 }
-
+////MP3
             }else if(oppenwith.equalsIgnoreCase("MP3")){
-                if (attmentNames.size() > 0) {
-                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
-                        openAudioVideo(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
-                        break;
+                if(openFromDiskDirectly) {
+                    Log.e("MyCouch", " Command Video name -:  "+docId);
+                    String filenameOnly="";
+                    String root = Environment.getExternalStorageDirectory().toString();
+                    File myDir = new File(root + "/ole_temp");
+                    for (File f : myDir.listFiles()) {
+                        if (f.isFile()) {
+                            if (f.getName().indexOf(".") > 0) {
+                                filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
+                            }
+                            Log.e("MyCouch", " File name -:  "+ f.getName() +" Filename only "+filenameOnly);
+                            if (filenameOnly.equalsIgnoreCase(docId)) {
+                                mDialog.dismiss();
+                                intent = new Intent();
+                                intent.setAction(Intent.ACTION_VIEW);
+                                String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(f).toString());
+                                String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                                intent.setDataAndType(Uri.fromFile(f), mimetype);
+                                this.startActivity(intent);
+                            }
+                        }
+                    }
+                }else {
+                    if (attmentNames.size() > 0) {
+                        for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                            openAudioVideo(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
+                            break;
+                        }
                     }
                 }
-
+/// BELL READER
             }else if(oppenwith.equalsIgnoreCase("Bell-Reader")){
-                if (attmentNames.size() > 0) {
-                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
-                        openPDF(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
-                        break;
+                if(openFromDiskDirectly) {
+                    Log.e("MyCouch", " Command Video name -:  "+docId);
+                    String filenameOnly="";
+                    String root = Environment.getExternalStorageDirectory().toString();
+                    File myDir = new File(root + "/ole_temp");
+                    for (File f : myDir.listFiles()) {
+                        if (f.isFile()) {
+                            if (f.getName().indexOf(".") > 0) {
+                                filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
+                            }
+                            Log.e("MyCouch", " File name -:  "+ f.getName() +" Filename only "+filenameOnly);
+                            if (filenameOnly.equalsIgnoreCase(docId)) {
+                                try{
+                                    mDialog.dismiss();
+                                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                                    intent.setPackage("com.adobe.reader");
+                                    intent.setDataAndType(Uri.fromFile(f), "application/pdf");
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                    startActivity(intent);
+                                }catch(Exception err){
+                                    myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
+                                    File dst = new File(myDir,"adobe_reader.apk");
+                                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                                    intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(intent);
+                                }
+                            }
+                        }
                     }
+                }else{
+                        if (attmentNames.size() > 0) {
+                            for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                                openPDF(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
+                                break;
+                            }
+                        }
                 }
+  /////VIDEO
             }else if(oppenwith.equalsIgnoreCase("Flow Video Player")){
-                if (attmentNames.size() > 0) {
-                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
-                        openAudioVideo(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
-                        break;
+
+                if(openFromDiskDirectly) {
+                    Log.e("MyCouch", " Command Video name -:  "+docId);
+                    String filenameOnly="";
+                    String root = Environment.getExternalStorageDirectory().toString();
+                    File myDir = new File(root + "/ole_temp");
+                    for (File f : myDir.listFiles()) {
+                        if (f.isFile()) {
+                            if (f.getName().indexOf(".") > 0) {
+                                filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
+                            }
+                            Log.e("MyCouch", " File name -:  "+ f.getName() +" Filename only "+filenameOnly);
+                            if (filenameOnly.equalsIgnoreCase(docId)) {
+                                mDialog.dismiss();
+                                intent = new Intent();
+                                intent.setAction(Intent.ACTION_VIEW);
+                                String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(f).toString());
+                                String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                                intent.setDataAndType(Uri.fromFile(f), mimetype);
+                                this.startActivity(intent);
+                            }
+                        }
+                    }
+                }else{
+                    if (attmentNames.size() > 0) {
+                        for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                            openAudioVideo(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
+                            break;
+                        }
                     }
                 }
 
@@ -1157,12 +1269,36 @@ public class FullscreenActivity extends AppCompatActivity {
 
                     }
                 }
-
+/// Native Video
             }else if(oppenwith.equalsIgnoreCase("Native Video")){
-                if (attmentNames.size() > 0) {
-                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
-                        openAudioVideo(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
-                        break;
+                if(openFromDiskDirectly) {
+                    Log.e("MyCouch", " Command Video name -:  "+docId);
+                    String filenameOnly="";
+                    String root = Environment.getExternalStorageDirectory().toString();
+                    File myDir = new File(root + "/ole_temp");
+                    for (File f : myDir.listFiles()) {
+                        if (f.isFile()) {
+                            if (f.getName().indexOf(".") > 0) {
+                                filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
+                            }
+                            Log.e("MyCouch", " File name -:  "+ f.getName() +" Filename only "+filenameOnly);
+                            if (filenameOnly.equalsIgnoreCase(docId)) {
+                                mDialog.dismiss();
+                                intent = new Intent();
+                                intent.setAction(Intent.ACTION_VIEW);
+                                String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(f).toString());
+                                String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                                intent.setDataAndType(Uri.fromFile(f), mimetype);
+                                this.startActivity(intent);
+                            }
+                        }
+                    }
+                }else {
+                    if (attmentNames.size() > 0) {
+                        for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                            openAudioVideo(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
+                            break;
+                        }
                     }
                 }
 
@@ -1171,6 +1307,8 @@ public class FullscreenActivity extends AppCompatActivity {
             Log.d("MyCouch", "Opening resource error "+Er.getMessage());
         }
     }
+
+
 
     public void openHTML(String index) {
         final String mainFile =  index;
@@ -1438,61 +1576,63 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public void openAudioVideo(String docId,String fileName, String player) {
-        AndroidContext androidContext = new AndroidContext(context);
-        Manager manager = null;
-        try {
-            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-            Database res_Db = manager.getExistingDatabase("resources");
-            Document res_doc = res_Db.getExistingDocument(docId);
-            Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment(fileName);
 
-            File src = new File(fileAttachment.getContentURL().getPath());
-            String root = Environment.getExternalStorageDirectory().toString();
-            File myDir = new File(root + "/ole_temp");
-            deleteDirectory(myDir);
-            myDir.mkdirs();
-            String diskFileName = fileAttachment.getName();
-            diskFileName = diskFileName.replace(" ", "");
-            File dst = new File(myDir,diskFileName);
+            AndroidContext androidContext = new AndroidContext(context);
+            Manager manager = null;
+            try {
 
-            InputStream in = new FileInputStream(src);
-            OutputStream out = new FileOutputStream(dst);
+                    manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                    Database res_Db = manager.getExistingDatabase("resources");
+                    Document res_doc = res_Db.getExistingDocument(docId);
+                    Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment(fileName);
+                    File src = new File(fileAttachment.getContentURL().getPath());
+                    String root = Environment.getExternalStorageDirectory().toString();
+                    File myDir = new File(root + "/ole_temp");
+                    deleteDirectory(myDir);
+                    myDir.mkdirs();
+                    String diskFileName = fileAttachment.getName();
+                    diskFileName = diskFileName.replace(" ", "");
+                    File dst = new File(myDir, diskFileName);
 
-            // Transfer bytes from in to out
-            byte[] buf = new byte[1024];
-            int len;
-            while ((len = in.read(buf)) > 0) {
-                out.write(buf, 0, len);
-            }
-            in.close();
-            out.close();
-            dst.setReadable(true);
-            String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(dst).toString());
-            String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-            intent = new Intent();
-            intent.setAction(Intent.ACTION_VIEW);
-            Log.e("tag","- "+ mimetype +" - ");
+                    InputStream in = new FileInputStream(src);
+                    OutputStream out = new FileOutputStream(dst);
 
-            if(mimetype=="audio/mpeg"){
+                    // Transfer bytes from in to out
+                    byte[] buf = new byte[1024];
+                    int len;
+                    while ((len = in.read(buf)) > 0) {
+                        out.write(buf, 0, len);
+                    }
+                    in.close();
+                    out.close();
+                    dst.setReadable(true);
+                    String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(dst).toString());
+                    String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                    intent = new Intent();
+                    intent.setAction(Intent.ACTION_VIEW);
+                    Log.e("tag", "- " + mimetype + " - ");
+
+                    if (mimetype == "audio/mpeg") {
+                        mDialog.dismiss();
+                        intent.setDataAndType(Uri.fromFile(dst), mimetype);
+                        this.startActivity(intent);
+                    } else {
+                        try {
+                            mDialog.dismiss();
+                            intent.setDataAndType(Uri.fromFile(dst), mimetype);
+                            this.startActivity(intent);
+                        } catch (Exception Er) {
+                            Log.e("tag", Er.getMessage());
+                            mDialog.dismiss();
+                            alertDialogOkay("Couldn't open resource try again");
+                        }
+                    }
+            } catch (Exception Er) {
+                Log.e("tag", Er.getMessage());
                 mDialog.dismiss();
-                intent.setDataAndType(Uri.fromFile(dst),mimetype);
-                this.startActivity(intent);
-            }else{
-                try {
-                    mDialog.dismiss();
-                    intent.setDataAndType(Uri.fromFile(dst),mimetype);
-                    this.startActivity(intent);
-                }catch (Exception Er) {
-                    Log.e("tag", Er.getMessage());
-                    mDialog.dismiss();
-                    alertDialogOkay("Couldn't open resource try again");
-                }
+                alertDialogOkay("Couldn't open resource try again");
             }
-        } catch (Exception Er) {
-            Log.e("tag", Er.getMessage());
-            mDialog.dismiss();
-            alertDialogOkay("Couldn't open resource try again");
-        }
+
     }
 
     public String getExtension(final String filename) {
@@ -1727,6 +1867,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 public void success(Request request, Response response, String s) {
                     try {
                         try {
+                            openFromDiskDirectly = true;
                             jsonData = new JSONObject(s);
                             String openWith = (String) jsonData.get("openWith");
                             Log.e("MyCouch", "Open With -- " + openWith);
