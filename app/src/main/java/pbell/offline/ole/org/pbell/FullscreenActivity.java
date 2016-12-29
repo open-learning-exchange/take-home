@@ -104,6 +104,7 @@ public class FullscreenActivity extends AppCompatActivity {
     boolean status_SyncOneByOneResource = false;
     private ProgressDialog mDialog;
     String indexFilePath;
+    boolean openFromDiskDirectly = false;
 
 
     CouchViews chViews = new CouchViews();
@@ -128,6 +129,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
 
     private List<Resource> resourceList = new ArrayList<Resource>();
+    private List<String> resIDArrayList = new ArrayList<String>();
     private ListView listView;
     private CustomListAdapter adapter;
     Boolean calbackStatus,syncALLInOneStarted=false;
@@ -227,6 +229,7 @@ public class FullscreenActivity extends AppCompatActivity {
         /////////////////////////
 
         resourceList.clear();
+        resIDArrayList.clear();
         LoadShelfResourceList();
 
         ///Update user info
@@ -317,6 +320,10 @@ public class FullscreenActivity extends AppCompatActivity {
                         MaterialClickDialog(false,resourceTitleList[position],resourceIdList[position],position);
                         dialogMyLibrary.dismiss();
                     }else{
+                        mDialog = new ProgressDialog(context);
+                        mDialog.setMessage("Opening please "+resourceTitleList[position]+"wait...");
+                        mDialog.setCancelable(true);
+                        mDialog.show();
                         openDoc(resourceIdList[position]);
                         Log.e("MyCouch", "Clicked to open "+ resourceIdList[position]);
 
@@ -344,12 +351,6 @@ public class FullscreenActivity extends AppCompatActivity {
         String displayedDate = dayOfTheWeek + "  |  "+dayNumber+" " + month_name+" "+year;
         return displayedDate;
     }
-/*
-    @SuppressLint("InlinedApi")
-    private void show() {
-        // Show the system bar
-    }
-    */
 
     public void LoadShelfResourceList() {
         String memberId = sys_usercouchId;
@@ -375,6 +376,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     String myresType,myresDec,myresExt = "";
                     resourceTitleList[rsLstCnt]=myresTitile;
                     resourceIdList[rsLstCnt]=myresId;
+                    resIDArrayList.add(myresId);
                     Log.e("tag", "MEMBER ID "+ (String) properties.get("resourceTitle"));
                     try {
                         Document resource_doc = resource_Db.getExistingDocument((String) properties.get("resourceId"));
@@ -451,6 +453,10 @@ public class FullscreenActivity extends AppCompatActivity {
                         if(libraryButtons[view.getId()].getCurrentTextColor()==getResources().getColor(R.color.ole_yellow)){
                             MaterialClickDialog(false,resourceTitleList[view.getId()],resourceIdList[view.getId()],view.getId());
                         }else{
+                            mDialog = new ProgressDialog(context);
+                            mDialog.setMessage("Opening please "+resourceTitleList[view.getId()]+"wait...");
+                            mDialog.setCancelable(true);
+                            mDialog.show();
                             openDoc(resourceIdList[view.getId()]);
                             Log.e("MyCouch", "Clicked to open "+ resourceIdList[view.getId()]);
 
@@ -544,8 +550,10 @@ public class FullscreenActivity extends AppCompatActivity {
                     mDialog.show();
                     htmlResourceList.clear();
                     allhtmlDownload=0;
+
+                    //// Todo Decide which option is best
                     new downloadAllResourceToDisk().execute();
-                  //  downloadAllResourcesWithCouch();
+                    ////new SyncAllResource().execute();
                 } catch (Exception e) {
                     e.printStackTrace();
                 } catch (Throwable throwable) {
@@ -892,13 +900,9 @@ public class FullscreenActivity extends AppCompatActivity {
                 CountDownLatch replicationDoneSignal = new CountDownLatch(1);
                 final Database database;
                 database = manager.getDatabase("resources");
-                final Replication repl = (Replication) database.createPullReplication(remote);
+                final Replication repl = database.createPullReplication(remote);
                 repl.setContinuous(false);
-                repl.setFilter("apps/by_resource");
-
-                Map<String, Object> map = new HashMap<String, Object>();
-                map.put("_id", resourceIdList[allresDownload]);
-                repl.setFilterParams(map);
+                repl.setDocIds(resIDArrayList);
                 repl.addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
@@ -907,26 +911,21 @@ public class FullscreenActivity extends AppCompatActivity {
                             if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_ACTIVE")) {
                                 Log.e("MyCouch", " " + event.getChangeCount());
                                 Log.e("MyCouch", " Document Count " + database.getDocumentCount());
+                                libraryButtons[database.getDocumentCount()].setTextColor(getResources().getColor(R.color.ole_white));
+                                mDialog.setMessage("Please wait, downloading resource.\n  This action might take a while.");
 
                             }else if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")){
-                                //checkAllDocsInDB();
+                                checkAllDocsInDB();
+                                mDialog.dismiss();
                             }
                             else{
                                 mDialog.setMessage("Data transfer error. Check connection to server.");
                             }
                         }else {
                             Log.e("MyCouch", "Document Count " + database.getDocumentCount());
-                            if(allresDownload<libraryButtons.length){
-                                mDialog.show();
-                                final AsyncTask<String, Void, Boolean> executeAll = new SyncAllResource().execute();
-                                libraryButtons[allresDownload].setTextColor(getResources().getColor(R.color.ole_white));
-                                //checkAllDocsInDB();
-                                allresDownload++;
-
-                            }else{
-                                syncALLInOneStarted=false;
-                                mDialog.dismiss();
-                            }
+                            syncALLInOneStarted=false;
+                            mDialog.dismiss();
+                            alertDialogOkay("Downloaded complete. Thank you for waiting. Enjoy !! ");
 
                         }
                     }
@@ -959,8 +958,6 @@ public class FullscreenActivity extends AppCompatActivity {
                                 Log.e("MyCouch", " " + event.getChangeCount());
                                 Log.e("MyCouch", " Document Count " + database.getDocumentCount());
                                 mDialog.setMessage("Downloading HTML resources now .. "+ database.getDocumentCount() +"/"+ htmlResourceList.size());
-
-
                             }else if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")){
                                 mDialog.dismiss();
                                 alertDialogOkay("Download Completed");
@@ -1043,7 +1040,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 Document document = row.getDocument();
                 Revision revision = document.getCurrentRevision();
                 Log.d("MyCouch", document.getId() + " : " +  revision.getAttachments().size());
-                for(int cnt=0; cnt<resourceIdList.length;cnt++) {
+                for(int cnt=0; cnt<=resourceIdList.length;cnt++) {
                     if (document.getId().equalsIgnoreCase(resourceIdList[cnt])) {
                         libraryButtons[cnt].setTextColor(getResources().getColor(R.color.ole_white));
                         Resource resource = resourceList.get(cnt);
@@ -1056,12 +1053,13 @@ public class FullscreenActivity extends AppCompatActivity {
                         }
                         Log.d("MyCouch", "Found resource : Making " + (String) document.getProperty("openWith"));
                         resourceList.set(cnt, resource);
+                        Log.d("MyCouch", "done looping over all docs ");
                     }
                 }
 
             }
 
-            Log.d("MyCouch", "done looping over all docs ");
+
             ///mDialog.dismiss();
 
         } catch (CouchbaseLiteException e) {
@@ -1178,6 +1176,7 @@ public class FullscreenActivity extends AppCompatActivity {
         final String mainFile =  index;
         try {
             try{
+                mDialog.dismiss();
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setPackage("org.mozilla.firefox");
                 intent.setDataAndType(Uri.parse(mainFile),"text/html");
@@ -1186,6 +1185,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 ///intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
             }catch(Exception err){
+                mDialog.dismiss();
                 Log.e("Error", err.getMessage());
                 File myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
                 File dst = new File(myDir,"firefox_49_0_multi_android.apk");
@@ -1197,6 +1197,8 @@ public class FullscreenActivity extends AppCompatActivity {
 
         } catch (Exception Er) {
             Er.printStackTrace();
+            mDialog.dismiss();
+            alertDialogOkay("Couldnt open resource try again");
 
         }
 
@@ -1291,7 +1293,10 @@ public class FullscreenActivity extends AppCompatActivity {
                     Log.e("tag", " Copied PDF "+ dst.toString());
                 }catch(Exception err){
                     err.printStackTrace();
+                    mDialog.dismiss();
+                    alertDialogOkay("Couldn't open resource try again");
                 }
+                mDialog.dismiss();
                 Intent intent = new Intent();
                 intent.setAction(android.content.Intent.ACTION_VIEW);
                 intent.setDataAndType(Uri.fromFile(dst), "image/*");
@@ -1299,10 +1304,14 @@ public class FullscreenActivity extends AppCompatActivity {
                 startActivity(intent);
             }catch(Exception err){
 
+                mDialog.dismiss();
+                alertDialogOkay("Couldn't open resource try again");
             }
         } catch (Exception Er) {
             Er.printStackTrace();
 
+            mDialog.dismiss();
+            alertDialogOkay("Couldn't open resource try again");
         }
 
     }
@@ -1352,8 +1361,10 @@ public class FullscreenActivity extends AppCompatActivity {
                             Log.e("tag", " Copied PDF "+ dst.toString());
                         }catch(Exception err){
                             err.printStackTrace();
+                            mDialog.dismiss();
+                            alertDialogOkay("Couldn't open resource try again");
                         } ///
-
+                        mDialog.dismiss();
                         Intent intent = new Intent(Intent.ACTION_VIEW);
                         intent.setPackage("com.adobe.reader");
                         intent.setDataAndType(Uri.fromFile(dst), "application/pdf");
@@ -1396,9 +1407,11 @@ public class FullscreenActivity extends AppCompatActivity {
                             Log.e("tag", " Copied PDF "+ dst.toString());
                         }catch(Exception err){
                             err.printStackTrace();
+                            mDialog.dismiss();
+                            alertDialogOkay("Couldn't open resource try again");
                         } ///
 
-
+                        mDialog.dismiss();
                         Intent intent = new Intent(FullscreenActivity.this, MyPdfViewerActivity.class);
                         Log.e("tag", " URL Path "+ Uri.fromFile(dst).getPath());
                         intent.putExtra(net.sf.andpdf.pdfviewer.PdfViewerActivity.EXTRA_PDFFILENAME, Uri.fromFile(dst).getPath());
@@ -1406,7 +1419,8 @@ public class FullscreenActivity extends AppCompatActivity {
 
 
                     }catch(Exception err){
-
+                        mDialog.dismiss();
+                        alertDialogOkay("Couldn't open resource try again");
                     }
                 }});
             alertDialog.setButton(android.app.AlertDialog.BUTTON_NEUTRAL, "Cancel", new DialogInterface.OnClickListener() {
@@ -1460,18 +1474,24 @@ public class FullscreenActivity extends AppCompatActivity {
             Log.e("tag","- "+ mimetype +" - ");
 
             if(mimetype=="audio/mpeg"){
+                mDialog.dismiss();
                 intent.setDataAndType(Uri.fromFile(dst),mimetype);
                 this.startActivity(intent);
             }else{
                 try {
+                    mDialog.dismiss();
                     intent.setDataAndType(Uri.fromFile(dst),mimetype);
                     this.startActivity(intent);
                 }catch (Exception Er) {
                     Log.e("tag", Er.getMessage());
+                    mDialog.dismiss();
+                    alertDialogOkay("Couldn't open resource try again");
                 }
             }
         } catch (Exception Er) {
             Log.e("tag", Er.getMessage());
+            mDialog.dismiss();
+            alertDialogOkay("Couldn't open resource try again");
         }
     }
 
@@ -1698,56 +1718,6 @@ public class FullscreenActivity extends AppCompatActivity {
         alert11.show();
     }
 
-    public void downloadAllResourcesWithCouch(){
-        try {
-            mDialog = new ProgressDialog(context);
-                    mDialog.setMessage("Please wait...");
-                    mDialog.setCancelable(false);
-                    mDialog.show();
-                    allresDownload=0;
-                    syncALLInOneStarted=true;
-                    final AsyncTask<String, Void, Boolean> executeAll = new SyncAllResource().execute();
-                    final Thread th = new Thread(new Runnable() {
-                        public void run() {
-                            while (syncALLInOneStarted) {
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Log.e("MyCouch", "Current SyncALLResource Status "+executeAll.getStatus());
-                                        /// Display executeAll.getStatus()FINISHED;
-                                        if(!syncALLInOneStarted){
-                                            alertDialogOkay("All resources downloaded successfully. Thank you for waiting. Enjoy !! ");
-                                            return;
-                                           // executeAll.getStatus();
-                                            /// Stop all GUI
-                                        }else{
-                                            checkAllDocsInDB();
-                                            mDialog.setMessage("Please wait, downloading [ "+resourceTitleList[allresDownload]+" ].\n  It might take a while.");
-
-                                        }
-                                    }
-                                });
-                                try {
-                                    Thread.sleep(200);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }
-                    });
-                    th.start();
-        } catch (Exception e) {
-            e.printStackTrace();
-             mDialog = new ProgressDialog(context);
-                    mDialog.setMessage("Error Downloading Resource. Check connection to server and try again");
-                    mDialog.setCancelable(true);
-                    mDialog.show();
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-
-        }
-    }
-
     class downloadAllResourceToDisk extends AsyncTask<String, Void, Boolean> {
         @Override
         protected Boolean doInBackground(String... params) {
@@ -1770,6 +1740,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                     File file = new File(encodedkey);
                                     String extension = encodedkey.substring(encodedkey.lastIndexOf("."));
                                     String diskFileName = resourceIdList[allresDownload] + extension;
+                                    createResourceDoc(resourceIdList[allresDownload],(String) jsonData.get("title"), (String) jsonData.get("openWith"));
                                     downloadWithDownloadManager(sys_oldSyncServerURL + "/resources/" + resourceIdList[allresDownload] + "/" + encodedkey, diskFileName);
                                 }
                             }else{
@@ -1824,6 +1795,26 @@ public class FullscreenActivity extends AppCompatActivity {
         mDialog.setMessage("Downloading  \" "+resourceTitleList[allresDownload]+" \" . please wait...");
         downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
         enqueue = downloadManager.enqueue(request);
+    }
+
+    public void createResourceDoc(String manualResId,String manualResTitle, String manualResopenWith){
+        Database database = null;
+        try {
+            database = manager.getDatabase("resources");
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put("title", manualResTitle);
+            properties.put("openWith", manualResopenWith);
+           // properties.put("resourceType", manualResType);
+            Document document = database.getDocument(manualResId);
+            try {
+                document.putProperties(properties);
+            } catch (CouchbaseLiteException e) {
+                Log.e("MyCouch", "Cannot save document", e);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
 

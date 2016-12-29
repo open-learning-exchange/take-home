@@ -111,6 +111,7 @@ public class FullscreenLogin extends AppCompatActivity {
     Replication[] push = new Replication[databaseList.length];
     Replication[] pull= new Replication[databaseList.length];
 
+
     Database[] db = new Database[databaseList.length];
     Manager[] manager = new Manager[databaseList.length];
     boolean syncmembers,openMemberList= false;
@@ -623,15 +624,6 @@ public class FullscreenLogin extends AppCompatActivity {
             manager = new Manager[databaseList.length];
             try {
                 manager[syncCnt] = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                // if(wipeClearn){
-                //try{
-                //   db[syncCnt] = manager[syncCnt].getExistingDatabase(databaseList[syncCnt]);
-                //    db[syncCnt].delete();
-                // }catch(Exception err){
-                //      Log.e("MyCouch", "Delete Error "+ err.getLocalizedMessage());
-                //   }
-                //}
-
                 db[syncCnt] = manager[syncCnt].getDatabase(databaseList[syncCnt]);
                 URL url = new URL(sys_oldSyncServerURL+"/"+databaseList[syncCnt]);
                 pull[syncCnt]=  db[syncCnt].createPullReplication(url);
@@ -641,7 +633,6 @@ public class FullscreenLogin extends AppCompatActivity {
                     public void changed(Replication.ChangeEvent event) {
                         if(pull[syncCnt] .isRunning()){
                             Log.e("MyCouch", databaseList[syncCnt]+" "+event.getChangeCount());
-                            //message = String.valueOf(event.getChangeCount());
                         }else {
                             Log.e("Finished", databaseList[syncCnt]+" "+ db[syncCnt].getDocumentCount());
                             if(syncCnt < (databaseList.length-2)){
