@@ -1,57 +1,43 @@
 package pbell.offline.ole.org.pbell;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.Dialog;
+import android.app.DownloadManager;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.media.MediaPlayer;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
-import android.provider.ContactsContract;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.os.Handler;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.text.Layout;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.couchbase.lite.Attachment;
 import com.couchbase.lite.CouchbaseLiteException;
@@ -70,8 +56,6 @@ import com.github.kittinunf.fuel.core.FuelError;
 import com.github.kittinunf.fuel.core.Request;
 import com.github.kittinunf.fuel.core.Response;
 
-import net.sf.andpdf.pdfviewer.*;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -79,28 +63,22 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
-import static pbell.offline.ole.org.pbell.R.color.red;
 
 public class FullscreenActivity extends AppCompatActivity {
 
@@ -146,12 +124,15 @@ public class FullscreenActivity extends AppCompatActivity {
     MediaPlayer sd_Slidin;
     Database database;
     Replication repl;
+    DownloadManager downloadManager;
 
 
     private List<Resource> resourceList = new ArrayList<Resource>();
     private ListView listView;
     private CustomListAdapter adapter;
-
+    Boolean calbackStatus,syncALLInOneStarted=false;
+    Button dialogBtnDownoadAll,dialogBtnDownoadFile,dialogBtnOpenFileOnline;
+    private long enqueue;
     int resourceCntr,attachmentLength;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -167,6 +148,43 @@ public class FullscreenActivity extends AppCompatActivity {
                 show();
             }
         });*/
+
+        BroadcastReceiver receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
+                    long downloadId = intent.getLongExtra(
+                            DownloadManager.EXTRA_DOWNLOAD_ID, 0);
+                    DownloadManager.Query query = new DownloadManager.Query();
+                    query.setFilterById(enqueue);
+                    Cursor c = downloadManager.query(query);
+                    if (c.moveToFirst()) {
+                        int columnIndex = c.getColumnIndex(DownloadManager.COLUMN_STATUS);
+                        if (DownloadManager.STATUS_SUCCESSFUL == c.getInt(columnIndex)) {
+                            libraryButtons[allresDownload].setTextColor(getResources().getColor(R.color.ole_white));
+                            if(allresDownload<libraryButtons.length) {
+                                allresDownload++;
+                                new downloadAllResourceToDisk().execute();
+                                //checkAllDocsInDB();
+                            }else {
+                                alertDialogOkay("Download Completed");
+                            }
+                        }else if(DownloadManager.STATUS_FAILED ==c.getInt(columnIndex)){
+                            alertDialogOkay("Download Failed"+resourceTitleList[allresDownload]);
+                            if(allresDownload<libraryButtons.length) {
+                                allresDownload++;
+                                new downloadAllResourceToDisk().execute();
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+
+
         ///////////////////////////////////
         TextView txtcurDate = (TextView) findViewById(R.id.lblDate);
         txtcurDate.setText(curdate());
@@ -445,7 +463,7 @@ public class FullscreenActivity extends AppCompatActivity {
         txtResourceId.setText(title);
 
         //// Open material online
-        Button dialogBtnOpenFileOnline = (Button) dialog2.findViewById(R.id.btnOpenOnline);
+        dialogBtnOpenFileOnline = (Button) dialog2.findViewById(R.id.btnOpenOnline);
         dialogBtnOpenFileOnline.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -455,16 +473,8 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         });
 
-        if (checkConnectionURL()) {
-            Snackbar.make(mContentView, "Checking connection to "+sys_oldSyncServerURL +".... please wait", Snackbar.LENGTH_INDEFINITE).setAction("Action", null).show();
-            new FullscreenActivity.TestConnection().execute(sys_oldSyncServerURL);
-        } else {
-            dialogBtnOpenFileOnline.setText("Not Connected");
-            dialogBtnOpenFileOnline.setEnabled(false);
-        }
-
         //// Download Only selected file
-        Button dialogBtnDownoadFile = (Button) dialog2.findViewById(R.id.btnDownloadFile);
+        dialogBtnDownoadFile = (Button) dialog2.findViewById(R.id.btnDownloadFile);
         dialogBtnDownoadFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -493,99 +503,85 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         });
 
-        //// Download all offline resources on button click
-        Button dialogBtnDownoadAll= (Button) dialog2.findViewById(R.id.btnDownloadAll);
+        //// Download all resources on button click
+        dialogBtnDownoadAll= (Button) dialog2.findViewById(R.id.btnDownloadAll);
         dialogBtnDownoadAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 dialog2.dismiss();
                 OneByOneResID = rs_ID;
                 try {
-                    //testFilteredPuller();
-                    mDialog = new ProgressDialog(context);
-                    mDialog.setMessage("Please wait...");
-                    mDialog.setCancelable(false);
-                    mDialog.show();
-                    allresDownload=0;
-                    final AsyncTask<String, Void, Boolean> executeAll = new SyncAllResource().execute();
+                    String root = Environment.getExternalStorageDirectory().toString();
+                    File myDir = new File(root + "/ole_temp");
+                    deleteDirectory(myDir);
+                    myDir.mkdirs();
 
+                    new downloadAllResourceToDisk().execute();
+                  //  downloadAllResourcesWithCouch();
                 } catch (Exception e) {
                     e.printStackTrace();
-                    mDialog = new ProgressDialog(context);
-                    mDialog.setMessage("Error Downloading Resource. Check connection to server and try again");
-                    mDialog.setCancelable(true);
-                    mDialog.show();
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
 
                 }
             }
         });
+        mDialog = new ProgressDialog(context);
+        mDialog.setMessage("This resource is not downloaded on this device. \n Please wait. Establishing connection with to server so you can download it...");
+        mDialog.setCancelable(false);
+        mDialog.show();
+        new AsyncCheckConnection().execute();
 
     }
 
-    private boolean checkConnectionURL() {
-        ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        if (networkInfo != null && networkInfo.isConnected()) {
-            Log.v("myErrorTag","Network Connected");
-            return true;
-            // fetch data
-        } else {
-
-            Log.v("myErrorTag","Network Not Connected");
-            return false;
-        }
-
-    }
-
-    private class TestConnection extends AsyncTask<String, Void, String> {
+    ///todo check and replace below
+    private class AsyncCheckConnection extends AsyncTask<Void, Void, Void> {
         @Override
-        protected String doInBackground(String... urls) {
-
-            // params comes from the execute() call: params[0] is the url.
-            InputStream is = null;
-            int response=0;
-            try {
-                URL url = new URL(sys_oldSyncServerURL+"/resources");
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setReadTimeout(5000 /* milliseconds */);
-                conn.setConnectTimeout(10000 /* milliseconds */);
-                conn.setRequestMethod("GET");
-                conn.setDoInput(true);
-                // Starts the query
-                conn.connect();
-                response = conn.getResponseCode();
-                Log.d("MyCouch", "The response is: " + response);
-                is = conn.getInputStream();
-                return "";
-            }catch (Exception err) {
-
-            }finally
-            {
-                if(response!=200){
-                    Snackbar.make(mContentView, "Sorry , server was unreachable, check url & device connection "+ response, Snackbar.LENGTH_LONG).setAction("Action", null).show();
-                }else{
-                    Snackbar.make(mContentView, "Server connection established", Snackbar.LENGTH_LONG).setAction("Action", null).show();
-                }
-                if (is != null) {
+        protected Void doInBackground(Void... params) {
+            Fuel ful = new Fuel();
+            ful.get(sys_oldSyncServerURL+"/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+                @Override
+                public void success(Request request, Response response, String s) {
                     try {
-                        is.close();
-                    } catch (IOException e) {
+                        List<String> myList = new ArrayList<String>();
+                        myList.clear();
+                        myList=Arrays.asList(s.split(","));
+                        Log.e("MyCouch", "-- "+myList.size());
+                        if(myList.size() < 8){
+                            mDialog.dismiss();
+                            dialog2.dismiss();
+                            alertDialogOkay("Check the server address again. Saved address isn't the BeLL server");
+                            calbackStatus =  false;
+                        }else{
+                            calbackStatus=true;
+                            mDialog.dismiss();
+                            dialog2.show();
+                            ///alertDialogOkay("Test successful. You can now click on \"Save and Proceed\" ");
+                        }
+
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
-                return "";
-            }
+                @Override
+                public void failure(Request request, Response response, FuelError fuelError) {
+                    dialog2.dismiss();
+                    mDialog.dismiss();
+                    calbackStatus =  false;
+                    alertDialogOkay("Device couldn't reach server ["+sys_oldSyncServerURL+"]. \n Check server address and try again");
+                    Log.e("MyCouch", " "+fuelError);
+
+                }
+            });
+            return null;
         }
-        // onPostExecute displays the results of the AsyncTask.
         @Override
-        protected void onPostExecute(String result) {
+        protected void onPostExecute(Void result) {
 
         }
     }
 
-    //// NOT IN USE CURRENT VERSION
+    //// NOT IN USE IN CURRENT VERSION
     public void syncOneByOne(){
         status_SyncOneByOneResource=true;
         //final AsyncTask<String, Void, Boolean> execute = new FullscreenActivity.SyncOneByOneResource().execute();
@@ -885,7 +881,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                 Log.e("MyCouch", " Document Count " + database.getDocumentCount());
 
                             }else if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")){
-                                checkAllDocsInDB();
+                                //checkAllDocsInDB();
                             }
                             else{
                                 mDialog.setMessage("Data transfer error. Check connection to server.");
@@ -896,11 +892,12 @@ public class FullscreenActivity extends AppCompatActivity {
                                 mDialog.show();
                                 final AsyncTask<String, Void, Boolean> executeAll = new SyncAllResource().execute();
                                 libraryButtons[allresDownload].setTextColor(getResources().getColor(R.color.ole_white));
-                                checkAllDocsInDB();
+                                //checkAllDocsInDB();
                                 allresDownload++;
+
                             }else{
+                                syncALLInOneStarted=false;
                                 mDialog.dismiss();
-                                checkAllDocsInDB();
                             }
 
                         }
@@ -982,6 +979,7 @@ public class FullscreenActivity extends AppCompatActivity {
         }
         return img;
     }
+
     public void openDoc(String docId) {
 
         try {
@@ -1569,6 +1567,128 @@ public class FullscreenActivity extends AppCompatActivity {
             lblVisits.setText(""+sys_uservisits);
         }
 
+    }
+
+    public void alertDialogOkay(String Message){
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
+        builder1.setMessage(Message);
+        builder1.setCancelable(true);
+        builder1.setNegativeButton("Okay",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert11 = builder1.create();
+        alert11.show();
+    }
+
+    public void downloadAllResourcesWithCouch(){
+        try {
+            mDialog = new ProgressDialog(context);
+                    mDialog.setMessage("Please wait...");
+                    mDialog.setCancelable(false);
+                    mDialog.show();
+                    allresDownload=0;
+                    syncALLInOneStarted=true;
+                    final AsyncTask<String, Void, Boolean> executeAll = new SyncAllResource().execute();
+                    final Thread th = new Thread(new Runnable() {
+                        public void run() {
+                            while (syncALLInOneStarted) {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Log.e("MyCouch", "Current SyncALLResource Status "+executeAll.getStatus());
+                                        /// Display executeAll.getStatus()FINISHED;
+                                        if(!syncALLInOneStarted){
+                                            alertDialogOkay("All resources downloaded successfully. Thank you for waiting. Enjoy !! ");
+                                            return;
+                                           // executeAll.getStatus();
+                                            /// Stop all GUI
+                                        }else{
+                                            checkAllDocsInDB();
+                                            mDialog.setMessage("Please wait, downloading [ "+resourceTitleList[allresDownload]+" ].\n  It might take a while.");
+
+                                        }
+                                    }
+                                });
+                                try {
+                                    Thread.sleep(200);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    });
+                    th.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+             mDialog = new ProgressDialog(context);
+                    mDialog.setMessage("Error Downloading Resource. Check connection to server and try again");
+                    mDialog.setCancelable(true);
+                    mDialog.show();
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+
+        }
+    }
+
+    class downloadAllResourceToDisk extends AsyncTask<String, Void, Boolean> {
+        @Override
+        protected Boolean doInBackground(String... params) {
+            Fuel ful = new Fuel();
+            ful.get(sys_oldSyncServerURL+"/resources/" + resourceIdList[allresDownload]).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+                @Override
+                public void success(Request request, Response response, String s) {
+                    try {
+                        try {
+                            jsonData = new JSONObject(s);
+                            JSONObject _attachments = (JSONObject) jsonData.get("_attachments");
+                            Iterator<String> keys = _attachments.keys();
+                            if( keys.hasNext() ){
+                                String key = (String)keys.next();
+                                Log.e("MyCouch", "-- "+key);
+                                String encodedkey = URLEncoder.encode(key, "utf-8");
+                                //String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(key);
+                                File file = new File(encodedkey);
+                                String extension= encodedkey.substring(encodedkey.lastIndexOf("."));
+                                String diskFileName = resourceIdList[allresDownload]+extension;
+                                downloadWithDownloadManager(sys_oldSyncServerURL+"/resources/" + resourceIdList[allresDownload]+"/"+key,diskFileName);
+                            }
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                @Override
+                public void failure(Request request, Response response, FuelError fuelError) {
+                    alertDialogOkay("Error downloading file");
+                    Log.e("MyCouch", " "+fuelError);
+                }
+            });
+            return null;
+        }
+    }
+
+    public void downloadWithDownloadManager(String fileURL, String FileName){
+        String url = fileURL;
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+        request.setDescription(resourceIdList[allresDownload]+"-"+resourceTitleList[allresDownload]);
+        request.setTitle(resourceTitleList[allresDownload]);
+// in order for this if to run, you must use the android 3.2 to compile your app
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            request.allowScanningByMediaScanner();
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+        }
+        Log.e("MyCouch", " Destination is "+FileName);
+        request.setDestinationInExternalPublicDir("ole_temp",FileName);
+
+// get download service and enqueue file
+        downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+        enqueue = downloadManager.enqueue(request);
     }
 
 

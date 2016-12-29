@@ -54,21 +54,40 @@
                 android:textColor="@color/ole_black_blue" />
 
             <LinearLayout
-                android:orientation="vertical"
+                android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="3.2"
-                android:background="@drawable/rounded_corners_white">
+                android:background="@drawable/rounded_corners_white"
+                android:weightSum="4">
 
                 <EditText
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:id="@+id/txtNewSyncURL"
                     android:layout_gravity="center"
                     android:textColor="@color/background_material_dark"
                     android:inputType="textUri"
                     android:hint="http:// [server address] : [port]"
-                    android:textColorHighlight="@color/ole_black_blue" />
+                    android:textColorHighlight="@color/ole_black_blue"
+                    android:layout_weight="3.5" />
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight=".5">
+
+                    <Button
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:id="@+id/btnTestCnnection"
+                        android:background="@drawable/rounded_corners_blue_btn"
+                        android:text="@string/title_activity_test"
+                        android:textColor="@color/ole_white"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginBottom="2dp" />  />
+                </FrameLayout>
+
             </LinearLayout>
 
             <LinearLayout
