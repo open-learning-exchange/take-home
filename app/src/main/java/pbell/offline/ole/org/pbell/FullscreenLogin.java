@@ -40,14 +40,33 @@ import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.replicator.Replication;
+import com.github.kittinunf.fuel.Fuel;
+import com.github.kittinunf.fuel.core.FuelError;
+import com.github.kittinunf.fuel.core.Request;
+import com.github.kittinunf.fuel.core.Response;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.params.HttpParams;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -81,6 +100,7 @@ public class FullscreenLogin extends AppCompatActivity {
     Object[] sys_membersWithResource;
     private Dialog dialog,promptDialog;
     private ProgressDialog mDialog;
+    JSONObject jsonServerData;
 
 
 
@@ -91,13 +111,16 @@ public class FullscreenLogin extends AppCompatActivity {
     Replication[] push = new Replication[databaseList.length];
     Replication[] pull= new Replication[databaseList.length];
 
+
     Database[] db = new Database[databaseList.length];
     Manager[] manager = new Manager[databaseList.length];
     boolean syncmembers,openMemberList= false;
     int syncCnt =0;
     AndroidContext androidContext;
+    JSONObject designViewDoc;
     Database database;
     Replication pullReplication;
+    Button dialogSyncButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,7 +142,11 @@ public class FullscreenLogin extends AppCompatActivity {
         SignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                authenticateUser();
+                if(authenticateUser()){
+
+                }else {
+                    alertDialogOkay("Login incorrect or Not found. Check and try again.");
+                }
             }
         });
 
@@ -131,7 +158,53 @@ public class FullscreenLogin extends AppCompatActivity {
             }
         });
 
+
         restorePref();
+
+    }
+////////
+    private void TestConnectionToServer(String textURL) {
+       // textURL = sys_oldSyncServerURL;
+
+        mDialog = new ProgressDialog(context);
+        mDialog.setMessage("Please wait. Connecting to server...");
+        mDialog.setCancelable(false);
+        mDialog.show();
+
+        final Fuel ful = new Fuel();
+
+        ful.get(textURL+"/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+            @Override
+            public void success(Request request, Response response, String s) {
+                try {
+                    List<String> myList = new ArrayList<String>();
+                    myList.clear();
+                    myList=Arrays.asList(s.split(","));
+                    Log.e("MyCouch", "-- "+myList.size());
+                    if(myList.size() < 8){
+                        mDialog.dismiss();
+                        alertDialogOkay("Check the server address again. What i connected to wasn't the BeLL Server");
+                        dialogSyncButton.setVisibility(View.INVISIBLE);
+                    }else{
+                        mDialog.dismiss();
+                        alertDialogOkay("Test successful. You can now click on \"Save and Proceed\" ");
+                        dialogSyncButton.setVisibility(View.VISIBLE);
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
+            @Override
+            public void failure(Request request, Response response, FuelError fuelError) {
+                mDialog.dismiss();
+                alertDialogOkay("Device couldn't reach server. Check and try again");
+                dialogSyncButton.setVisibility(View.INVISIBLE);
+                Log.e("MyCouch", " "+fuelError);
+
+            }
+        });
 
     }
 
@@ -304,8 +377,18 @@ public class FullscreenLogin extends AppCompatActivity {
         final EditText txtSuncURL = (EditText) dialog.findViewById(R.id.txtNewSyncURL);
         txtSuncURL.setText(sys_oldSyncServerURL);
 
-        Button dialogButton = (Button) dialog.findViewById(R.id.btnNewSaveSyncURL);
-        dialogButton.setOnClickListener(new View.OnClickListener() {
+        Button TestConnButton = (Button) dialog.findViewById(R.id.btnTestCnnection);
+        TestConnButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                TestConnectionToServer(txtSuncURL.getText().toString());
+            }
+        });
+
+
+        dialogSyncButton = (Button) dialog.findViewById(R.id.btnNewSaveSyncURL);
+        dialogSyncButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 sys_oldSyncServerURL = txtSuncURL.getText().toString();
@@ -324,6 +407,9 @@ public class FullscreenLogin extends AppCompatActivity {
                 }
             }
         });
+
+        dialogSyncButton.setVisibility(View.INVISIBLE);
+
         if(wifiManager.isWifiEnabled()) {
             dialog.show();
             ////
@@ -383,35 +469,147 @@ public class FullscreenLogin extends AppCompatActivity {
 
     public void syncNotifier(){
         emptyAllDbs();
+        //// Start creating filtered replication design Document
+        try{
+            designViewDoc = new JSONObject();
+            JSONObject filter = new JSONObject();
+            try {
+                filter.put("by_resource","function(doc, req){return doc._id === req.query._id;}");
+                designViewDoc.put("filters",filter);
+            } catch (JSONException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            new RunCreateDocTask().execute("");
+        }catch(Exception err){
+            err.printStackTrace();
+        }
+        ///// End creating design Document
+    }
 
-        final AsyncTask<Void, Integer, String> execute = new FullscreenLogin.TestAsyncPull().execute();
-        Log.e("MyCouch", "syncNotifier Running");
-        final Thread th = new Thread(new Runnable() {
-            private long startTime = System.currentTimeMillis();
-            public void run() {
-                while (syncmembers) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if(openMemberList) {
-                                mDialog.dismiss();
-                                ////triggerMemberResourceDownload();
-                                openMemberList=false;
+
+    //////// Start creating filtered replication file in couchdb //
+
+    public static String createDocument(String hostUrl, String databaseName, JSONObject jsonDoc,String DocId) {
+        try {
+            HttpPut httpPutRequest = new HttpPut(hostUrl +"/"+ databaseName+"/"+DocId);
+            StringEntity body = new StringEntity(jsonDoc.toString(), "utf8");
+            httpPutRequest.setEntity(body);
+            httpPutRequest.setHeader("Accept", "application/json");
+            httpPutRequest.setHeader("Content-type", "application/json");
+            // timeout params
+            HttpParams params = httpPutRequest.getParams();
+            params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, Integer.valueOf(1000));
+            params.setParameter(CoreConnectionPNames.SO_TIMEOUT, Integer.valueOf(1000));
+            httpPutRequest.setParams(params);
+
+            JSONObject jsonResult = sendCouchRequest(httpPutRequest);
+
+            Log.e("MyCouch",  ""+hostUrl);
+            Log.e("MyCouch",  ""+jsonResult);
+
+            if (!jsonResult.getBoolean("ok")) {
+                return null;
+            }else if(jsonResult.getString("error")=="conflict"){
+                Log.e("MyCouch", jsonResult.getString("reason"));
+            }
+            return jsonResult.getString("rev");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private static JSONObject sendCouchRequest(HttpUriRequest request) {
+        try {
+            HttpResponse httpResponse = (HttpResponse) new DefaultHttpClient().execute(request);
+            HttpEntity entity = httpResponse.getEntity();
+            if (entity != null) {
+                // Read the content stream
+                InputStream instream = entity.getContent();
+                // Convert content stream to a String
+                String resultString = convertStreamToString(instream);
+                instream.close();
+                // Transform the String into a JSONObject
+                JSONObject jsonResult = new JSONObject(resultString);
+                return jsonResult;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static String convertStreamToString(InputStream is) {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is), 8192);
+        StringBuilder sb = new StringBuilder();
+
+        String line = null;
+        try {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line + "\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return sb.toString();
+    }
+
+    class RunCreateDocTask extends AsyncTask<String, Void, Boolean> {
+
+        private Exception exception;
+
+        protected Boolean doInBackground(String... urls) {
+            try {
+                createDocument(sys_oldSyncServerURL, "resources", designViewDoc,"_design/apps");
+                return true;
+            } catch (Exception e) {
+                this.exception = e;
+                return null;
+            }
+        }
+        protected void onPostExecute(Boolean docResult) {
+            /// Start Syncing databases from server
+            final AsyncTask<Void, Integer, String> execute = new FullscreenLogin.TestAsyncPull().execute();
+            Log.e("MyCouch", "syncNotifier Running");
+            final Thread th = new Thread(new Runnable() {
+                private long startTime = System.currentTimeMillis();
+                public void run() {
+                    while (syncmembers) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if(openMemberList) {
+                                    mDialog.dismiss();
+                                    openMemberList=false;
+                                    alertDialogOkay("Completed. Thank you for waiting, you can now \" Sign In \" .");
+                                    syncmembers=false;
+                                    return;
+                                }
+
+                                Log.d("runOnUiThread", "running pull members");
+                                mDialog.setMessage("Downloading, please wait ... " + databaseList[syncCnt] +" ["+ (syncCnt+1) +" / "+ databaseList.length+"]");
                             }
-                            Log.d("runOnUiThread", "running");
-                            mDialog.setMessage("Downloading, please wait .... " + (syncCnt + 1));
+                        });
+                        try {
+                            Thread.sleep(2000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
-                    });
-                    try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
                     }
                 }
-            }
-        });
-        th.start();
+            });
+            th.start();
+        }
     }
+
+    //////// End creating filtered replication file
 
     class TestAsyncPull extends AsyncTask<Void, Integer, String> {
         protected void onPreExecute (){
@@ -426,15 +624,6 @@ public class FullscreenLogin extends AppCompatActivity {
             manager = new Manager[databaseList.length];
             try {
                 manager[syncCnt] = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                // if(wipeClearn){
-                //try{
-                //   db[syncCnt] = manager[syncCnt].getExistingDatabase(databaseList[syncCnt]);
-                //    db[syncCnt].delete();
-                // }catch(Exception err){
-                //      Log.e("MyCouch", "Delete Error "+ err.getLocalizedMessage());
-                //   }
-                //}
-
                 db[syncCnt] = manager[syncCnt].getDatabase(databaseList[syncCnt]);
                 URL url = new URL(sys_oldSyncServerURL+"/"+databaseList[syncCnt]);
                 pull[syncCnt]=  db[syncCnt].createPullReplication(url);
@@ -444,7 +633,6 @@ public class FullscreenLogin extends AppCompatActivity {
                     public void changed(Replication.ChangeEvent event) {
                         if(pull[syncCnt] .isRunning()){
                             Log.e("MyCouch", databaseList[syncCnt]+" "+event.getChangeCount());
-                            //message = String.valueOf(event.getChangeCount());
                         }else {
                             Log.e("Finished", databaseList[syncCnt]+" "+ db[syncCnt].getDocumentCount());
                             if(syncCnt < (databaseList.length-2)){
@@ -533,6 +721,20 @@ public class FullscreenLogin extends AppCompatActivity {
         int netId = wifiManager.addNetwork(conf);
         wifiManager.enableNetwork(netId, true);
         wifiManager.setWifiEnabled(true);
+    }
+
+    public void alertDialogOkay(String Message){
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
+        builder1.setMessage(Message);
+        builder1.setCancelable(true);
+        builder1.setNegativeButton("Okay",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert11 = builder1.create();
+        alert11.show();
     }
 
 
