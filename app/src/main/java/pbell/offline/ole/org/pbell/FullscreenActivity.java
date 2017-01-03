@@ -620,234 +620,6 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     }
 
-    //// NOT IN USE IN CURRENT VERSION
-    public void syncOneByOne(){
-        status_SyncOneByOneResource=true;
-        //final AsyncTask<String, Void, Boolean> execute = new FullscreenActivity.SyncOneByOneResource().execute();
-        Log.e("MyCouch", "syncNotifier Running");
-        final Thread th = new Thread(new Runnable() {
-            public void run() {
-                while (status_SyncOneByOneResource) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if(!status_SyncOneByOneResource) {
-                                mDialog.dismiss();
-                                status_SyncOneByOneResource=false;
-                                return;
-                            }else {
-                                Log.d("runOnUiThread", "running");
-                                mDialog.setMessage("Downloading, please wait .... ");
-                            }
-                        }
-                    });
-                    try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
-        th.start();
-    }
-    public void syncThreadHandler(){
-        final AsyncTask<String, Void, Boolean> execute = new FullscreenActivity.SyncResource().execute();
-        final Thread th = new Thread(new Runnable() {
-            public void run() {
-                while (status_SyncOneByOneResource) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-
-                        }
-                    });
-                    try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
-        th.start();
-    }
-    class SyncOneByOneResource extends AsyncTask<String, Void, Boolean> {
-        protected void onPreExecute (){
-            synchronizing = true;
-            Log.d("PreExceute","On pre Exceute......");
-        }
-
-        protected Boolean doInBackground(final String... args) {
-            Log.d("DoINBackGround","On doInBackground...");
-            final Database res_Db;
-            final Fuel ful = new Fuel();
-            jsonData = null;
-            attachmentLength= -1;
-            try {
-                URL url = new URL(sys_oldSyncServerURL+"/resources");
-                manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                dbResources = manager.getDatabase("resources");
-                dbResources.delete();
-                res_Db = manager.getExistingDatabase("resources");
-                pull = dbResources.createPullReplication(url);
-                pull.setFilter("apps/by_resource");
-                Map<String, Object> params = new HashMap<String, Object>();
-                params.put("_id", OneByOneResID);
-                //Log.e("MyCouch", " Resource ID "+ lst.get(syncCnt));
-                pull.setFilterParams(params);
-                pull.setContinuous(false);
-                ////pull.setAuthenticator(new BasicAuthenticator(userName, userPw));
-                pull.addChangeListener(new Replication.ChangeListener() {
-                    @Override
-                    public void changed(Replication.ChangeEvent event) {
-                        if(pull.isRunning()){
-                            Log.e("MyCouch", " "+event.getChangeCount());
-                            Log.e("MyCouch", " Document Count "+dbResources.getDocumentCount());
-                        }else {
-                            Log.e("Finished", ""+dbResources.getDocumentCount());
-                            ////// CHECK REMOTE ATTACHMENT FILE SIZE VS LOCAL ATTACHMENT FILE SIZE (length)
-                            Document res_doc = res_Db.getExistingDocument(OneByOneResID);
-                            final List<String> attmentNames = res_doc.getCurrentRevision().getAttachmentNames();
-                            /// IF local document has attachments
-                            if (attmentNames.size() > 0) {
-                                for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
-                                    resourceCntr = cnt;
-                                    Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment((String) attmentNames.get(cnt));
-                                    ///
-                                    ful.get(sys_oldSyncServerURL+"/resources/"+OneByOneResID).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
-                                        @Override
-                                        public void success(Request request, Response response, String s) {
-                                            try {
-                                                jsonData = new JSONObject(s);
-                                                //Log.e("MyCouch", "-- "+jsonData);
-                                            } catch (JSONException e) {
-                                                e.printStackTrace();
-                                            }
-                                            try {
-                                                JSONObject jsob = jsonData.getJSONObject("_attachments");
-                                                JSONObject jsoAttachments = jsob.getJSONObject((String) attmentNames.get(resourceCntr));
-                                                attachmentLength = jsoAttachments.getInt("length");
-                                                Log.e("MyCouch", "Attachment Object Content "+jsoAttachments);
-                                            } catch (JSONException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                        @Override
-                                        public void failure(Request request, Response response, FuelError fuelError) {
-                                            Log.e("MyCouch", " "+fuelError);
-
-                                        }
-                                    });
-                                    /// If local attachment length is greater or equal to remote attachment, continue
-                                    /// Else run the replication again
-                                    if(fileAttachment.getLength() >= attachmentLength){
-
-                                        Log.e("MyCouch", "Local = "+fileAttachment.getLength() + "  Remote = " +attachmentLength);
-                                        if(syncCnt <= 1){
-                                            syncCnt++;
-                                            new FullscreenActivity.SyncOneByOneResource().execute();
-                                        }else{
-                                            if (status_SyncOneByOneResource){
-                                            }
-                                            status_SyncOneByOneResource = false;
-                                        }
-
-
-                                    }else{
-                                        Log.e("MyCouch", "Local = "+fileAttachment.getLength() + "  Remote = " +attachmentLength);
-                                        new FullscreenActivity.SyncOneByOneResource().execute();
-                                    }
-                                }
-                            } else if(syncCnt <= 1){
-                                syncCnt++;
-                                new FullscreenActivity.SyncOneByOneResource().execute();
-                            }else{
-                                if (status_SyncOneByOneResource){
-                                    //..mydialog.dismiss();
-                                }
-                                status_SyncOneByOneResource = false;
-                            }
-                            //////////////////////
-
-                        }
-                    }
-                });
-                pull.start();
-
-
-            } catch (Exception e) {
-                Log.e("MyCouch", " "+" Cannot create database", e);
-                return false;
-
-            }
-            return true;
-        }
-        protected void onProgressUpdate(Integer...a){
-            Log.d("onProgress","You are in progress update ... " + a[0]);
-        }
-
-        protected void onPostExecute(final Boolean success) {
-            if (success){
-                Log.d("MyCouch","Download Triggered");
-                status_SyncOneByOneResource=false;
-                mDialog.dismiss();
-                libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_white));
-            }else{
-                Log.d("OnPostExec","");
-            }
-        }
-    }
-    public void testFilteredPuller() throws Throwable {
-        URL remote = getReplicationURL();
-
-        CountDownLatch replicationDoneSignal = new CountDownLatch(1);
-        final Database database = manager.getDatabase("resources");
-        final Replication repl = (Replication) database.createPullReplication(remote);
-        repl.setContinuous(false);
-        repl.setFilter("apps/by_resource");
-
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("_id", OneByOneResID);
-        repl.setFilterParams(map);
-
-        mDialog = new ProgressDialog(context);
-        mDialog.setMessage("Please wait...");
-        mDialog.setCancelable(true);
-        mDialog.show();
-
-
-        repl.addChangeListener(new Replication.ChangeListener() {
-            @Override
-            public void changed(Replication.ChangeEvent event) {
-                Log.e("MyCouch", "Current Status "+repl.getStatus());
-                if(repl.isRunning()){
-                    if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_ACTIVE")) {
-                        Log.e("MyCouch", " " + event.getChangeCount());
-                        Log.e("MyCouch", " Document Count " + database.getDocumentCount());
-                    }else if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")){
-                        mDialog.dismiss();
-                        checkAllDocsInDB();
-                        libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_white));
-                    }
-                    else{
-                        mDialog.setMessage("Data transfer error. Check connection to server.");
-                        libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_yellow));
-                    }
-                }else {
-                    Log.e("MyCouch", "" + database.getDocumentCount());
-                    mDialog.dismiss();
-                    checkAllDocsInDB();
-                }
-
-            }
-        });
-        repl.start();
-
-
-    }
-    //////////////////
-
     class SyncResource extends AsyncTask<String, Void, Boolean> {
         @Override
         protected Boolean doInBackground(String... params) {
@@ -1307,8 +1079,6 @@ public class FullscreenActivity extends AppCompatActivity {
             Log.d("MyCouch", "Opening resource error "+Er.getMessage());
         }
     }
-
-
 
     public void openHTML(String index) {
         final String mainFile =  index;
@@ -1856,6 +1626,70 @@ public class FullscreenActivity extends AppCompatActivity {
                 });
         AlertDialog alert11 = builder1.create();
         alert11.show();
+    }
+
+
+    /// Todo Review Code and test class
+
+    class downloadSpecificResourceToDisk extends AsyncTask<String, Void, Boolean> {
+        @Override
+        protected Boolean doInBackground(String... params) {
+            Fuel ful = new Fuel();
+            ful.get(sys_oldSyncServerURL+"/resources/" + OneByOneResID).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+                @Override
+                public void success(Request request, Response response, String s) {
+                    try {
+                        try {
+                            openFromDiskDirectly = true;
+                            jsonData = new JSONObject(s);
+                            String openWith = (String) jsonData.get("openWith");
+                            Log.e("MyCouch", "Open With -- " + openWith);
+                            if(!openWith.equalsIgnoreCase("HTML")) {
+                                JSONObject _attachments = (JSONObject) jsonData.get("_attachments");
+                                Iterator<String> keys = _attachments.keys();
+                                if (keys.hasNext()) {
+                                    String key = (String) keys.next();
+                                    Log.e("MyCouch", "-- " + key);
+                                    String encodedkey = URLEncoder.encode(key, "utf-8");
+                                    File file = new File(encodedkey);
+                                    String extension = encodedkey.substring(encodedkey.lastIndexOf("."));
+                                    String diskFileName = OneByOneResID + extension;
+                                    createResourceDoc(OneByOneResID,(String) jsonData.get("title"), (String) jsonData.get("openWith"));
+                                    downloadWithDownloadManager(sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey, diskFileName);
+                                }
+                            }else{
+                                Log.e("MyCouch", "-- HTML NOT PART OF DOWNLOADS " );
+                                htmlResourceList.add(OneByOneResID);
+                                if(allresDownload<libraryButtons.length) {
+                                    allresDownload++;
+                                    if(OneByOneResID!=null) {
+                                        new downloadAllResourceToDisk().execute();
+                                    }else{
+                                        if(allhtmlDownload<htmlResourceList.size()) {
+                                            new SyncAllHTMLResource().execute();
+                                        }else{
+                                            mDialog.dismiss();
+                                            alertDialogOkay("Download Completed");
+                                        }
+                                    }
+                                }
+                            }
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                @Override
+                public void failure(Request request, Response response, FuelError fuelError) {
+                    alertDialogOkay("Error downloading file");
+                    Log.e("MyCouch", " "+fuelError);
+                }
+            });
+            return null;
+        }
     }
 
     class downloadAllResourceToDisk extends AsyncTask<String, Void, Boolean> {
