@@ -97,4 +97,10 @@
     <string name="txtDownload">Download this</string>
     <string name="txtOpenOnline" >Open Online</string>
     <string name="txtDownladAll" >Download All</string>
+    <string name="multi_download">Multiple material download</string>
+    <string name="single_download">Single material download</string>
+    <string name="single_down_json">JSON Replication Enabled</string>
+    <string name="single_down_json_dis">JSON Replication Disabled</string>
+    <string name="single_down_file_streaming">FILE STREAMING DISABLED</string>
+    <string name="single_down_file_streaming_dis">FILE STRAMING ENABLED</string>
 </resources>

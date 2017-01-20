@@ -38,6 +38,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.couchbase.lite.Attachment;
 import com.couchbase.lite.CouchbaseLiteException;
@@ -87,7 +88,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public static final String PREFS_NAME = "MyPrefsFile";
     SharedPreferences settings;
-pwd
+
     String sys_oldSyncServerURL,sys_username,sys_lastSyncDate,
             sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
             sys_usergender, sys_uservisits= "";
@@ -275,6 +276,14 @@ pwd
             }
         });
 
+        Button btnSettings = (Button) findViewById(R.id.btnSetting);
+        btnSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openSettingDialogList();
+            }
+        });
+
         TextView lblMyLibrary = (TextView) findViewById(R.id.lblMyLibrary);
         lblMyLibrary.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -336,6 +345,63 @@ pwd
         }catch (Exception err){
             Log.e("adapter", " "+err);
         }
+    }
+
+    public void openSettingDialogList(){
+        AlertDialog.Builder dialogBSettings = new AlertDialog.Builder(this);
+        // custom dialog
+        dialogBSettings.setView(R.layout.dialog_my_settings);
+        dialogBSettings.setCancelable(true);
+        final Dialog dialogSetting = dialogBSettings.create();
+        dialogSetting.show();
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        DisplayMetrics metrics = new DisplayMetrics();
+        display.getMetrics(metrics);
+        Double width = metrics.widthPixels*.8;
+        Double height = metrics.heightPixels*.8;
+        Window win = dialogSetting.getWindow();
+        win.setLayout(width.intValue(), height.intValue());
+
+
+        dialogSetting.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        final ToggleButton toggleBtnSingle = (ToggleButton) dialogSetting.findViewById(R.id.toggleBtn_Single);
+        toggleBtnSingle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+               if(toggleBtnSingle.isChecked()) {
+               }else
+                {
+                }
+            }
+        });
+
+        /*listView = (ListView) dialogSetting.findViewById(R.id.list);
+        adapter = new CustomListAdapter(this, resourceList);
+        try {
+            adapter = new CustomListAdapter(this, resourceList);
+            listView.setAdapter(adapter);
+            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                public void onItemClick(AdapterView<?> adapter, View v, int position, long id) {
+                    if(libraryButtons[position].getCurrentTextColor()==getResources().getColor(R.color.ole_yellow)){
+                        MaterialClickDialog(false,resourceTitleList[position],resourceIdList[position],position);
+                        dialogSetting.dismiss();
+                    }else{
+                        mDialog = new ProgressDialog(context);
+                        mDialog.setMessage("Opening please "+resourceTitleList[position]+"wait...");
+                        mDialog.setCancelable(true);
+                        mDialog.show();
+                        openDoc(resourceIdList[position]);
+                        Log.e("MyCouch", "Clicked to open "+ resourceIdList[position]);
+
+                    }
+                }
+            });
+
+        }catch (Exception err){
+            Log.e("adapter", " "+err);
+        }*/
     }
 
 
