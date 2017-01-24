@@ -41,6 +41,7 @@
             android:layout_height="0dp"
             android:layout_weight="6"
             android:weightSum="10">
+
             <TextView
                 android:layout_width="fill_parent"
                 android:layout_height="0dp"
@@ -50,16 +51,18 @@
                 android:layout_centerVertical="true"
                 android:layout_centerHorizontal="true"
                 android:textAlignment="center"
-                android:layout_weight="4"
+                android:layout_weight="3"
                 android:textColor="@color/ole_black_blue" />
 
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="3.2"
+                android:layout_weight="2.5"
                 android:background="@drawable/rounded_corners_white"
-                android:weightSum="4">
+                android:weightSum="4"
+                android:elevation="0dp"
+                android:layout_marginTop="5dp">
 
                 <EditText
                     android:layout_width="0dp"
@@ -70,7 +73,8 @@
                     android:inputType="textUri"
                     android:hint="http:// [server address] : [port]"
                     android:textColorHighlight="@color/ole_black_blue"
-                    android:layout_weight="3.5" />
+                    android:layout_weight="3.5"
+                    android:textSize="18sp" />
 
                 <FrameLayout
                     android:layout_width="0dp"
@@ -91,6 +95,26 @@
             </LinearLayout>
 
             <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_weight="2">
+
+                <ToggleButton
+                    android:text="ToggleButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/toggleBtn_Single"
+                    android:textOff="@string/single_down_json_dis"
+                    android:textOn="@string/single_down_file_streaming" />
+
+            </LinearLayout>
+
+            <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
@@ -105,7 +129,6 @@
                     android:id="@+id/btnNewSaveSyncURL"
                     android:layout_gravity="center"
                     android:background="@drawable/rounded_corners_green_btn"
-                    android:layout_marginTop="5dp"
                     android:layout_weight="2"
                     android:textAlignment="center"
                     android:textAllCaps="false"
