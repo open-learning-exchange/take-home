@@ -96,7 +96,8 @@ public class FullscreenLogin extends AppCompatActivity {
 
     String sys_oldSyncServerURL,sys_username,sys_lastSyncDate,
             sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
-            sys_usergender,sys_uservisits= "";
+            sys_usergender,sys_uservisits;
+    Boolean sys_singlefilestreamdownload,sys_multiplefilestreamdownload;
     Object[] sys_membersWithResource;
     private Dialog dialog,promptDialog;
     private ProgressDialog mDialog;
@@ -386,6 +387,9 @@ public class FullscreenLogin extends AppCompatActivity {
             }
         });
 
+        ////
+       // sys_singlefilestreamdownload =settings.getBoolean("pf_singlefilestreamdownload",true);
+       /// sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload",true);
 
         dialogSyncButton = (Button) dialog.findViewById(R.id.btnNewSaveSyncURL);
         dialogSyncButton.setOnClickListener(new View.OnClickListener() {
@@ -451,6 +455,8 @@ public class FullscreenLogin extends AppCompatActivity {
         sys_userlastname = settings.getString("pf_userlastname","");
         sys_usergender = settings.getString("pf_usergender","");
         sys_uservisits = settings.getString("pf_uservisits","");
+        sys_singlefilestreamdownload =settings.getBoolean("pf_singlefilestreamdownload",true);
+        sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload",true);
 
         if(sys_username!=""){
             mUsername.setText(sys_username);

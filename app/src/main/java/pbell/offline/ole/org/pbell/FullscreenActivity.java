@@ -369,7 +369,6 @@ public class FullscreenActivity extends AppCompatActivity {
         toggleBtnSingle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                if(toggleBtnSingle.isChecked()) {
                }else
                 {
