@@ -211,7 +211,9 @@
                                 android:inputType="textPersonName"
                                 android:text="Name"
                                 android:ems="10"
-                                android:id="@+id/txtUsername" />
+                                android:id="@+id/txtUsername"
+                                android:textColorLink="?attr/colorPrimaryDark"
+                                android:textSize="14sp" />
                         </LinearLayout>
 
                         <TextView
@@ -235,7 +237,8 @@
                                 android:layout_height="match_parent"
                                 android:inputType="textPassword"
                                 android:ems="10"
-                                android:id="@+id/txtPassword" />
+                                android:id="@+id/txtPassword"
+                                android:textSize="14sp" />
                         </LinearLayout>
 
                     </LinearLayout>
