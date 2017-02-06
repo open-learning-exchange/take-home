@@ -106,6 +106,9 @@ public class FullscreenActivity extends AppCompatActivity {
     private ProgressDialog mDialog;
     String indexFilePath;
     boolean openFromDiskDirectly = false;
+    boolean singleFiledownload =false;
+    boolean clicked_rs_status;
+    String clicked_rs_title,clicked_rs_ID ;
 
 
     CouchViews chViews = new CouchViews();
@@ -165,45 +168,57 @@ public class FullscreenActivity extends AppCompatActivity {
                     if (c.moveToFirst()) {
                         int columnIndex = c.getColumnIndex(DownloadManager.COLUMN_STATUS);
                         if (DownloadManager.STATUS_SUCCESSFUL == c.getInt(columnIndex)) {
-                            libraryButtons[allresDownload].setTextColor(getResources().getColor(R.color.ole_white));
-                            if(allresDownload<libraryButtons.length) {
-                                allresDownload++;
-                                if(resourceTitleList[allresDownload]!=null) {
-                                    new downloadAllResourceToDisk().execute();
-                                    openFromDiskDirectly = true;
-                                }else{
-                                    if(allhtmlDownload<htmlResourceList.size()) {
+                            if(!singleFiledownload) {
+                                libraryButtons[allresDownload].setTextColor(getResources().getColor(R.color.ole_white));
+                                if (allresDownload < libraryButtons.length) {
+                                    allresDownload++;
+                                    if (resourceTitleList[allresDownload] != null) {
+                                        new downloadAllResourceToDisk().execute();
+                                        openFromDiskDirectly = true;
+                                    } else {
+                                        if (allhtmlDownload < htmlResourceList.size()) {
+                                            new SyncAllHTMLResource().execute();
+                                        } else {
+                                            mDialog.dismiss();
+                                            alertDialogOkay("Download Completed");
+                                        }
+                                    }
+                                } else {
+                                    if (allhtmlDownload < htmlResourceList.size()) {
                                         new SyncAllHTMLResource().execute();
-                                    }else{
+                                        openFromDiskDirectly = true;
+                                    } else {
                                         mDialog.dismiss();
                                         alertDialogOkay("Download Completed");
                                     }
-                                }
-                            }else {
-                                if(allhtmlDownload<htmlResourceList.size()) {
-                                    new SyncAllHTMLResource().execute();
-                                    openFromDiskDirectly = true;
-                                }else{
-                                    mDialog.dismiss();
-                                    alertDialogOkay("Download Completed");
-                                }
 
+                                }
+                            }else{
+
+                                libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_white));
+                                mDialog.dismiss();
+                                alertDialogOkay("Download Completed");
                             }
                         }else if(DownloadManager.STATUS_FAILED ==c.getInt(columnIndex)){
                             alertDialogOkay("Download Failed"+resourceTitleList[allresDownload]);
-                            if(allresDownload<libraryButtons.length) {
-                                allresDownload++;
-                                if(resourceTitleList[allresDownload]!=null) {
-                                    new downloadAllResourceToDisk().execute();
-                                    openFromDiskDirectly = true;
-                                }else{
-                                    if(allhtmlDownload<htmlResourceList.size()) {
-                                        new SyncAllHTMLResource().execute();
-                                    }else{
-                                        mDialog.dismiss();
-                                        alertDialogOkay("Download Completed");
+                            if(!singleFiledownload) {
+                                if (allresDownload < libraryButtons.length) {
+                                    allresDownload++;
+                                    if (resourceTitleList[allresDownload] != null) {
+                                        new downloadAllResourceToDisk().execute();
+                                        openFromDiskDirectly = true;
+                                    } else {
+                                        if (allhtmlDownload < htmlResourceList.size()) {
+                                            new SyncAllHTMLResource().execute();
+                                        } else {
+                                            mDialog.dismiss();
+                                            alertDialogOkay("Download Completed");
+                                        }
                                     }
                                 }
+                            }else{
+                                mDialog.dismiss();
+                                alertDialogOkay("Download Completed");
                             }
                         }
                     }
@@ -543,9 +558,9 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public void MaterialClickDialog(boolean online,String title,String resId,int buttonPressedId){
-        final boolean rs_status = online;
-        final String rs_title = title;
-        final String rs_ID = resId;
+        clicked_rs_status = online;
+        clicked_rs_title = title;
+        clicked_rs_ID = resId;
         resButtonId = buttonPressedId;
 
 
@@ -576,7 +591,7 @@ public class FullscreenActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 dialog2.dismiss();
-                OneByOneResID = rs_ID;
+                OneByOneResID = clicked_rs_ID;
                 try {
                     //testFilteredPuller();
 
@@ -584,8 +599,14 @@ public class FullscreenActivity extends AppCompatActivity {
                     mDialog.setMessage("Please wait...");
                     mDialog.setCancelable(false);
                     mDialog.show();
+
                     ///syncThreadHandler();
-                    final AsyncTask<String, Void, Boolean> execute = new SyncResource().execute();
+
+                    //// Todo Decide which option is best
+                    singleFiledownload=true;
+                   // alertDialogOkay(OneByOneResID+"");
+                    new downloadSpecificResourceToDisk().execute();
+                    //final AsyncTask<String, Void, Boolean> execute = new SyncResource().execute();
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -606,7 +627,7 @@ public class FullscreenActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 dialog2.dismiss();
-                OneByOneResID = rs_ID;
+                OneByOneResID = clicked_rs_ID;
                 try {
                     String root = Environment.getExternalStorageDirectory().toString();
                     File myDir = new File(root + "/ole_temp");
@@ -620,6 +641,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     allhtmlDownload=0;
 
                     //// Todo Decide which option is best
+                    singleFiledownload=false;
                     new downloadAllResourceToDisk().execute();
                     //new SyncAllResource().execute();
                 } catch (Exception e) {
@@ -1658,6 +1680,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 public void success(Request request, Response response, String s) {
                     try {
                         try {
+                           /// alertDialogOkay(OneByOneResID+"");
                             openFromDiskDirectly = true;
                             jsonData = new JSONObject(s);
                             String openWith = (String) jsonData.get("openWith");
@@ -1673,24 +1696,24 @@ public class FullscreenActivity extends AppCompatActivity {
                                     String extension = encodedkey.substring(encodedkey.lastIndexOf("."));
                                     String diskFileName = OneByOneResID + extension;
                                     createResourceDoc(OneByOneResID,(String) jsonData.get("title"), (String) jsonData.get("openWith"));
-                                    downloadWithDownloadManager(sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey, diskFileName);
+                                    downloadWithDownloadManagerSingleFile(sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey, diskFileName);
                                 }
                             }else{
                                 Log.e("MyCouch", "-- HTML NOT PART OF DOWNLOADS " );
                                 htmlResourceList.add(OneByOneResID);
-                                if(allresDownload<libraryButtons.length) {
-                                    allresDownload++;
-                                    if(OneByOneResID!=null) {
-                                        new downloadAllResourceToDisk().execute();
-                                    }else{
+                                //if(allresDownload<libraryButtons.length) {
+                                   // allresDownload++;
+                                    //if(OneByOneResID!=null) {
+                                     //   new downloadSpecificResourceToDisk().execute();
+                                    //}else{
                                         if(allhtmlDownload<htmlResourceList.size()) {
                                             new SyncAllHTMLResource().execute();
                                         }else{
                                             mDialog.dismiss();
                                             alertDialogOkay("Download Completed");
                                         }
-                                    }
-                                }
+                                   // }
+                                //}
                             }
 
                         } catch (JSONException e) {
@@ -1786,6 +1809,25 @@ public class FullscreenActivity extends AppCompatActivity {
 
 // get download service and enqueue file
         mDialog.setMessage("Downloading  \" "+resourceTitleList[allresDownload]+" \" . please wait...");
+        downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+        enqueue = downloadManager.enqueue(request);
+    }
+
+    public void downloadWithDownloadManagerSingleFile(String fileURL, String FileName){
+        String url = fileURL;
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+        request.setDescription(clicked_rs_ID +"-"+ clicked_rs_title);
+        request.setTitle(clicked_rs_title);
+// in order for this if to run, you must use the android 3.2 to compile your app
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            request.allowScanningByMediaScanner();
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+        }
+        Log.e("MyCouch", " Destination is "+FileName);
+        request.setDestinationInExternalPublicDir("ole_temp",FileName);
+
+// get download service and enqueue file
+        mDialog.setMessage("Downloading  \" "+clicked_rs_title+" \" . please wait...");
         downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
         enqueue = downloadManager.enqueue(request);
     }
