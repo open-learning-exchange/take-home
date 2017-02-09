@@ -91,7 +91,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     String sys_oldSyncServerURL,sys_username,sys_lastSyncDate,
             sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
-            sys_usergender, sys_uservisits= "";
+            sys_usergender, sys_uservisits,sys_servername,sys_serverversion = "";
     int sys_uservisits_Int=0;
     Object[] sys_membersWithResource;
     boolean userShelfSynced =true;
@@ -244,6 +244,8 @@ public class FullscreenActivity extends AppCompatActivity {
         sys_userlastname = settings.getString("pf_userlastname","");
         sys_usergender = settings.getString("pf_usergender","");
         sys_uservisits = settings.getString("pf_uservisits","");
+        sys_servername = settings.getString("pf_server_name"," ------------- ");
+        sys_serverversion = settings.getString("pf_server_version"," ------------");
 
         /////////////////////////
 
@@ -1651,6 +1653,8 @@ public class FullscreenActivity extends AppCompatActivity {
         }else{
             lblVisits.setText(""+sys_uservisits);
         }
+        TextView lblServerName = (TextView) findViewById(R.id.lbl_SeverName);
+        lblServerName.setText(""+sys_servername.toUpperCase());
 
     }
 

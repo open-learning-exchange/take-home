@@ -69,7 +69,7 @@ public class NewSync extends AppCompatActivity {
     Boolean wipeClearn =false;
     final Context context = this;
     String[] databaseList = {"members","membercourseprogress","meetups","usermeetups","assignments",
-            "calendar","groups","invitations","requests","shelf","languages"};
+            "calendar","groups","invitations","configurations","requests","shelf","languages"};
 
     Replication[] push = new Replication[databaseList.length];
     Replication[] pull= new Replication[databaseList.length];

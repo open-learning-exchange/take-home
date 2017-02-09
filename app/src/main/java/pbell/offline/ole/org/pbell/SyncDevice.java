@@ -87,7 +87,7 @@ public class SyncDevice extends AppCompatActivity {
     Boolean wipeClearn =false;
     final Context context = this;
     String[] databaseList = {"members","membercourseprogress","meetups","usermeetups","assignments","coursestep",
-            "calendar","groups","invitations","requests","shelf","languages"};
+            "calendar","groups","invitations","configurations","requests","shelf","languages"};
     Replication[] pull= new Replication[databaseList.length];
     Database[] db = new Database[databaseList.length];
     Manager[] manager = new Manager[databaseList.length];
