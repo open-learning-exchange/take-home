@@ -96,7 +96,7 @@ public class FullscreenLogin extends AppCompatActivity {
 
     String sys_oldSyncServerURL,sys_username,sys_lastSyncDate,
             sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
-            sys_usergender,sys_uservisits;
+            sys_usergender,sys_uservisits,sys_servername,sys_serverversion="";
     Boolean sys_singlefilestreamdownload,sys_multiplefilestreamdownload;
     Object[] sys_membersWithResource;
     private Dialog dialog,promptDialog;
@@ -107,7 +107,7 @@ public class FullscreenLogin extends AppCompatActivity {
 
     final Context context = this;
     String[] databaseList = {"members","membercourseprogress","meetups","usermeetups","assignments",
-            "calendar","groups","invitations","requests","shelf","languages"};
+            "calendar","groups","invitations","configurations","requests","shelf","languages"};
 
     Replication[] push = new Replication[databaseList.length];
     Replication[] pull= new Replication[databaseList.length];
@@ -217,6 +217,7 @@ public class FullscreenLogin extends AppCompatActivity {
     public boolean authenticateUser(){
         AndroidContext androidContext = new AndroidContext(this);
         Manager manager = null;
+        getSystemInfo();
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database db = manager.getExistingDatabase("members");
@@ -303,6 +304,40 @@ public class FullscreenLogin extends AppCompatActivity {
                         return false;
                     }
                 }
+
+            }
+            db.close();
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean getSystemInfo(){
+        AndroidContext androidContext = new AndroidContext(this);
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database db = manager.getExistingDatabase("configurations");
+            Query orderedQuery = chViews.LocalServerInfo(db).createQuery();
+            orderedQuery.setDescending(true);
+            QueryEnumerator results = orderedQuery.run();
+            for (Iterator<QueryRow> it = results; it.hasNext();) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document doc = db.getExistingDocument(docId);
+                Map<String, Object> properties = doc.getProperties();
+                String Server_name = (String) properties.get("name");
+                String Server_nationName = (String) properties.get("nationName");
+                String Server_version = (String) properties.get("version");
+
+                //////alertDialogOkay(Server_name+" Names");
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putString("pf_server_name", Server_name);
+                editor.putString("pf_server_nation", Server_nationName);
+                editor.putString("pf_server_version", Server_version);
+                editor.commit();
 
             }
             db.close();
@@ -457,6 +492,8 @@ public class FullscreenLogin extends AppCompatActivity {
         sys_uservisits = settings.getString("pf_uservisits","");
         sys_singlefilestreamdownload =settings.getBoolean("pf_singlefilestreamdownload",true);
         sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload",true);
+        sys_servername = settings.getString("pf_server_name"," ");
+        sys_serverversion = settings.getString("pf_server_version"," ");
 
         if(sys_username!=""){
             mUsername.setText(sys_username);

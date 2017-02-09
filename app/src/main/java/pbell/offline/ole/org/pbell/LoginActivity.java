@@ -98,7 +98,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     String sys_oldSyncServerURL,sys_username,sys_lastSyncDate,
             sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
-            sys_usergender,sys_uservisits= "";
+            sys_usergender,sys_uservisits,lbl_SeverName,sys_servername,sys_serverversion= "";
     Object[] sys_membersWithResource;
     ///int sys_uservisits=0;
 
@@ -153,6 +153,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         sys_userlastname = settings.getString("pf_userlastname","");
         sys_usergender = settings.getString("pf_usergender","");
         sys_uservisits = settings.getString("pf_uservisits","");
+        sys_servername = settings.getString("pf_server_name"," -- ");
+        sys_serverversion = settings.getString("pf_server_version"," ---");
+
+
 
         if(sys_username!=""){
             mUsername.setText(sys_username);
@@ -475,6 +479,38 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                         return false;
                     }
                 }
+
+            }
+            db.close();
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean getSystemInfo(){
+        AndroidContext androidContext = new AndroidContext(this);
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database db = manager.getExistingDatabase("configurations");
+            Query orderedQuery = chViews.CreateLoginByIdView(db).createQuery();
+            orderedQuery.setDescending(true);
+            QueryEnumerator results = orderedQuery.run();
+            for (Iterator<QueryRow> it = results; it.hasNext();) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document doc = db.getExistingDocument(docId);
+                Map<String, Object> properties = doc.getProperties();
+                String Server_name = (String) properties.get("name");
+                String Server_nationName = (String) properties.get("nationName");
+                String Server_version = (String) properties.get("version");
+
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putString("pf_server_name", Server_name);
+                editor.putString("pf_server_nation", Server_nationName);
+                editor.putString("pf_server_version", Server_version);
 
             }
             db.close();

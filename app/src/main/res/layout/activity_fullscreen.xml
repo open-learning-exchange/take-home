@@ -166,7 +166,7 @@
                             android:text="Vi Nation Bell"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:id="@+id/textView14"
+                            android:id="@+id/lbl_SeverName"
                             android:textColor="@color/light_grey"
                             android:textSize="18sp" />
                     </LinearLayout>
@@ -308,23 +308,18 @@
                     android:weightSum="5"
                     android:alpha="0.8">
 
-                    <ScrollView
+                    <HorizontalScrollView
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
-                        <HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+                        <LinearLayout
                             android:layout_width="wrap_content"
-                            android:layout_height="match_parent">
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="match_parent"
-                                android:orientation="horizontal"
-                                android:id="@+id/layholder_library">
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal"
+                            android:id="@+id/layholder_library">
 
-                            </LinearLayout>
-                        </HorizontalScrollView>
+                        </LinearLayout>
+                    </HorizontalScrollView>
 
-
-                    </ScrollView>
                 </LinearLayout>
 
                 <LinearLayout
