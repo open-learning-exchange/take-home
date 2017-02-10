@@ -20,6 +20,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.content.IntentCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -107,9 +108,10 @@ public class FullscreenActivity extends AppCompatActivity {
     String indexFilePath;
     boolean openFromDiskDirectly = false;
     boolean singleFiledownload =false;
+    boolean openFromOnlineServer =false;
     boolean clicked_rs_status;
     String clicked_rs_title,clicked_rs_ID ;
-
+    String onlinecouchresource;
 
     CouchViews chViews = new CouchViews();
     String resourceIdList[];
@@ -130,6 +132,7 @@ public class FullscreenActivity extends AppCompatActivity {
     Database database;
     Replication repl;
     DownloadManager downloadManager;
+    Boolean initialActivityLoad =false;
 
 
     private List<Resource> resourceList = new ArrayList<Resource>();
@@ -149,13 +152,7 @@ public class FullscreenActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         actionBar.hide();
         androidContext = new AndroidContext(this);
-       /* mContentView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                show();
-            }
-        });*/
-
+        initialActivityLoad=true;
         BroadcastReceiver receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -185,7 +182,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                     }
                                 } else {
                                     if (allhtmlDownload < htmlResourceList.size()) {
-                                        new SyncAllHTMLResource().execute();
+                                        new SyncSingleHTMLResource().execute();
                                         openFromDiskDirectly = true;
                                     } else {
                                         mDialog.dismiss();
@@ -244,6 +241,7 @@ public class FullscreenActivity extends AppCompatActivity {
         sys_userlastname = settings.getString("pf_userlastname","");
         sys_usergender = settings.getString("pf_usergender","");
         sys_uservisits = settings.getString("pf_uservisits","");
+        sys_uservisits_Int = settings.getInt("pf_uservisits_Int",0);
         sys_servername = settings.getString("pf_server_name"," ------------- ");
         sys_serverversion = settings.getString("pf_server_version"," ------------");
 
@@ -313,6 +311,17 @@ public class FullscreenActivity extends AppCompatActivity {
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         animateLayoutBars();
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        /*if(initialActivityLoad){
+            ComponentName componentName = getPackageManager().getLaunchIntentForPackage("org.mozilla.firefox").getComponent();
+            Intent intent = IntentCompat.makeRestartActivityTask(componentName);
+            startActivity(intent);
+        }
+        */
+
     }
 
     @Override
@@ -582,6 +591,61 @@ public class FullscreenActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //Todo Open resource in a browser
+                dialog2.dismiss();
+                OneByOneResID = clicked_rs_ID;
+                Fuel ful = new Fuel();
+                onlinecouchresource = sys_oldSyncServerURL+"/resources/" + OneByOneResID;
+                ful.get(sys_oldSyncServerURL+"/resources/" + OneByOneResID).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+                    @Override
+                    public void success(Request request, Response response, String s) {
+                        try {
+                            try {
+                                /// alertDialogOkay(OneByOneResID+"");
+                                openFromOnlineServer = true;
+                                jsonData = new JSONObject(s);
+                                String openWith = (String) jsonData.get("openWith");
+                                Log.e("MyCouch", "Open With -- " + openWith);
+                                JSONObject _attachments = (JSONObject) jsonData.get("_attachments");
+                                if(!openWith.equalsIgnoreCase("HTML")) {
+                                    Iterator<String> keys = _attachments.keys();
+                                    if (keys.hasNext()) {
+                                        String key = (String) keys.next();
+                                        String encodedkey = URLEncoder.encode(key, "utf-8");
+                                        onlinecouchresource = onlinecouchresource+"/"+encodedkey;
+                                        mDialog.dismiss();
+                                        openHTML(onlinecouchresource);
+                                    }
+                                }else{
+                                    if(_attachments.length() <= 1){
+                                        Iterator<String> keys = _attachments.keys();
+                                        if (keys.hasNext()) {
+                                            String key = (String) keys.next();
+                                            String encodedkey = URLEncoder.encode(key, "utf-8");
+                                            onlinecouchresource = onlinecouchresource+"/"+encodedkey;
+                                            mDialog.dismiss();
+                                            openHTML(onlinecouchresource);
+                                        }
+                                    }else {
+                                        onlinecouchresource = onlinecouchresource + "/index.html";
+                                        mDialog.dismiss();
+                                        openHTML(onlinecouchresource);
+                                    }
+
+                                }
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    @Override
+                    public void failure(Request request, Response response, FuelError fuelError) {
+                        alertDialogOkay("Error downloading file");
+                        Log.e("MyCouch", " "+fuelError);
+                    }
+                });
 
 
             }
@@ -787,7 +851,53 @@ public class FullscreenActivity extends AppCompatActivity {
                         }else {
                             Log.e("MyCouch", "Document Count Last " + database.getDocumentCount());
                             mDialog.dismiss();
-                            dbDiagnosticCheck();
+                           // dbDiagnosticCheck();
+                        }
+                    }
+                });
+                repl.start();
+            } catch (CouchbaseLiteException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+        protected void onPostExecute(final Boolean success) {
+            mDialog.dismiss();
+            alertDialogOkay("Download Completed");
+        }
+    }
+
+    class SyncSingleHTMLResource extends AsyncTask<String, Void, Boolean> {
+        @Override
+        protected Boolean doInBackground(String... params) {
+            try {
+                URL remote = getReplicationURL();
+                CountDownLatch replicationDoneSignal = new CountDownLatch(1);
+                final Database database;
+                database = manager.getDatabase("resources");
+                final Replication repl = (Replication) database.createPullReplication(remote);
+                repl.setContinuous(false);
+                repl.setDocIds(htmlResourceList);
+                repl.addChangeListener(new Replication.ChangeListener() {
+                    @Override
+                    public void changed(Replication.ChangeEvent event) {
+                        Log.e("MyCouch", "Current Status "+repl.getStatus());
+                        if(repl.isRunning()){
+                            if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_ACTIVE")) {
+                                Log.e("MyCouch", " " + event.getChangeCount());
+                                Log.e("MyCouch", " Document Count " + database.getDocumentCount());
+                                mDialog.setMessage("Downloading HTML resources now .. "+ database.getDocumentCount() +"/"+ htmlResourceList.size());
+                            }else if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")){
+                                mDialog.dismiss();
+                                alertDialogOkay("Download Completed");
+                            }
+                            else{
+                                mDialog.setMessage("Data transfer error. Check connection to server.");
+                            }
+                        }else {
+                            Log.e("MyCouch", "Document Count Last " + database.getDocumentCount());
+                            mDialog.dismiss();
+                           // dbDiagnosticCheck();
                         }
                     }
                 });
@@ -1127,13 +1237,12 @@ public class FullscreenActivity extends AppCompatActivity {
         try {
             try{
                 mDialog.dismiss();
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setPackage("org.mozilla.firefox");
-                intent.setDataAndType(Uri.parse(mainFile),"text/html");
-                intent.setComponent(new ComponentName("org.mozilla.firefox", "org.mozilla.firefox.App"));
-                this.startActivity(intent);
-                ///intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(intent);
+                ComponentName componentName = getPackageManager().getLaunchIntentForPackage("org.mozilla.firefox").getComponent();
+                Intent firefoxIntent = IntentCompat.makeRestartActivityTask(componentName);
+                firefoxIntent.setDataAndType(Uri.parse(mainFile),"text/html");
+                startActivity(firefoxIntent);
+
+                //startActivity(intent);
             }catch(Exception err){
                 mDialog.dismiss();
                 Log.e("Error", err.getMessage());
@@ -1148,7 +1257,7 @@ public class FullscreenActivity extends AppCompatActivity {
         } catch (Exception Er) {
             Er.printStackTrace();
             mDialog.dismiss();
-            alertDialogOkay("Couldnt open resource try again");
+            alertDialogOkay("Couldn't open resource try again");
 
         }
 
@@ -1649,9 +1758,10 @@ public class FullscreenActivity extends AppCompatActivity {
         lblName.setText(" "+sys_userfirstname +" "+sys_userlastname);
         TextView lblVisits = (TextView) findViewById(R.id.lblVisits);
         if(sys_uservisits==""){
-            lblVisits.setText(""+sys_uservisits_Int);
+            //// Todo change word 'Visits' to be read from languages
+            lblVisits.setText(""+sys_uservisits_Int + " Visits");
         }else{
-            lblVisits.setText(""+sys_uservisits);
+            lblVisits.setText(""+sys_uservisits + " Visits");
         }
         TextView lblServerName = (TextView) findViewById(R.id.lbl_SeverName);
         lblServerName.setText(""+sys_servername.toUpperCase());
@@ -1679,6 +1789,7 @@ public class FullscreenActivity extends AppCompatActivity {
         @Override
         protected Boolean doInBackground(String... params) {
             Fuel ful = new Fuel();
+            Log.e("Called", " class- downloadSpecificResourceToDisk " );
             ful.get(sys_oldSyncServerURL+"/resources/" + OneByOneResID).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
                 @Override
                 public void success(Request request, Response response, String s) {
@@ -1705,19 +1816,12 @@ public class FullscreenActivity extends AppCompatActivity {
                             }else{
                                 Log.e("MyCouch", "-- HTML NOT PART OF DOWNLOADS " );
                                 htmlResourceList.add(OneByOneResID);
-                                //if(allresDownload<libraryButtons.length) {
-                                   // allresDownload++;
-                                    //if(OneByOneResID!=null) {
-                                     //   new downloadSpecificResourceToDisk().execute();
-                                    //}else{
-                                        if(allhtmlDownload<htmlResourceList.size()) {
-                                            new SyncAllHTMLResource().execute();
-                                        }else{
-                                            mDialog.dismiss();
-                                            alertDialogOkay("Download Completed");
-                                        }
-                                   // }
-                                //}
+                                if(allhtmlDownload<htmlResourceList.size()) {
+                                    new SyncSingleHTMLResource().execute();
+                                }else{
+                                    mDialog.dismiss();
+                                    alertDialogOkay("Download Completed");
+                                }
                             }
 
                         } catch (JSONException e) {

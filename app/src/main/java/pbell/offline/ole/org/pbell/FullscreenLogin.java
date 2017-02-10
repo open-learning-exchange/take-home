@@ -99,6 +99,7 @@ public class FullscreenLogin extends AppCompatActivity {
             sys_usergender,sys_uservisits,sys_servername,sys_serverversion="";
     Boolean sys_singlefilestreamdownload,sys_multiplefilestreamdownload;
     Object[] sys_membersWithResource;
+    int sys_uservisits_Int;
     private Dialog dialog,promptDialog;
     private ProgressDialog mDialog;
     JSONObject jsonServerData;
@@ -233,7 +234,7 @@ public class FullscreenLogin extends AppCompatActivity {
                 String doc_password = (String) properties.get("password");
 
                 if(mUsername.getText().toString().equals(doc_loginId)) {
-                    Log.e("MYAPP", "Authentiicating User");
+                    Log.e("MYAPP", "Authenticating User");
 
                     if (mPasswordView.getText().toString().equals(doc_password) && !properties.containsKey("credentials") ) {
                         SharedPreferences.Editor editor = settings.edit();
@@ -243,10 +244,13 @@ public class FullscreenLogin extends AppCompatActivity {
                         editor.putString("pf_userfirstname", (String) properties.get("firstName"));
                         editor.putString("pf_userlastname", (String) properties.get("lastName"));
                         editor.putString("pf_usergender", (String) properties.get("Gender"));
-                        editor.putString("pf_lastVisitDate", doc_lastVisit);
                         try {
                             String noOfVisits = properties.get("visits").toString();
-                            editor.putInt("pf_uservisits_Int", (Integer.parseInt(noOfVisits) + totalVisits((String) properties.get("_id"))));
+                            int currentTotalVisits = Integer.parseInt(noOfVisits) + totalVisits((String) properties.get("_id"));
+                            editor.putInt("pf_uservisits_Int", currentTotalVisits);
+                            editor.putString("pf_uservisits", currentTotalVisits+"");
+                            editor.putString("pf_lastVisitDate", doc_lastVisit);
+
                         } catch (Exception err) {
                         }
                         Set<String> stgSet = settings.getStringSet("pf_userroles", new HashSet<String>());
@@ -273,12 +277,15 @@ public class FullscreenLogin extends AppCompatActivity {
                                 editor.putString("pf_userfirstname", (String) properties.get("firstName"));
                                 editor.putString("pf_userlastname", (String) properties.get("lastName"));
                                 editor.putString("pf_usergender", (String) properties.get("Gender"));
-                                editor.putString("pf_lastVisitDate", doc_lastVisit);
                                 try {
                                     String noOfVisits = properties.get("visits").toString();
-                                    editor.putInt("pf_uservisits_Int", (Integer.parseInt(noOfVisits) + totalVisits((String) properties.get("_id"))));
-                                } catch (Exception err) {
+                                    int currentTotalVisits = Integer.parseInt(noOfVisits) + totalVisits((String) properties.get("_id"));
+                                    editor.putInt("pf_uservisits_Int", currentTotalVisits);
+                                    editor.putString("pf_uservisits", currentTotalVisits+"");
+                                    editor.putString("pf_lastVisitDate", doc_lastVisit);
 
+                                } catch (Exception err) {
+                                    alertDialogOkay(err.getMessage());
                                 }
                                 Set<String> stgSet = settings.getStringSet("pf_userroles", new HashSet<String>());
                                 ArrayList roleList = (ArrayList<String>) properties.get("roles");
@@ -390,7 +397,7 @@ public class FullscreenLogin extends AppCompatActivity {
 
         }
 
-        return 0;
+        return -1;
 
     }
 
@@ -489,7 +496,8 @@ public class FullscreenLogin extends AppCompatActivity {
         sys_userfirstname = settings.getString("pf_userfirstname","");
         sys_userlastname = settings.getString("pf_userlastname","");
         sys_usergender = settings.getString("pf_usergender","");
-        sys_uservisits = settings.getString("pf_uservisits","");
+        sys_uservisits = settings.getString("pf_uservisits","");;
+        sys_uservisits_Int = settings.getInt("pf_uservisits_Int",0);
         sys_singlefilestreamdownload =settings.getBoolean("pf_singlefilestreamdownload",true);
         sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload",true);
         sys_servername = settings.getString("pf_server_name"," ");
