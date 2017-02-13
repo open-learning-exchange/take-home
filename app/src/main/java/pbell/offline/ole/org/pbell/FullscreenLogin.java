@@ -12,6 +12,7 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -57,6 +58,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -162,6 +165,9 @@ public class FullscreenLogin extends AppCompatActivity {
 
 
         restorePref();
+
+        copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
+        copyAPK(R.raw.firefox_49_0_multi_android, "firefox_49_0_multi_android.apk");
 
     }
 ////////
@@ -277,6 +283,7 @@ public class FullscreenLogin extends AppCompatActivity {
                                 editor.putString("pf_userfirstname", (String) properties.get("firstName"));
                                 editor.putString("pf_userlastname", (String) properties.get("lastName"));
                                 editor.putString("pf_usergender", (String) properties.get("Gender"));
+
                                 try {
                                     String noOfVisits = properties.get("visits").toString();
                                     int currentTotalVisits = Integer.parseInt(noOfVisits) + totalVisits((String) properties.get("_id"));
@@ -728,6 +735,20 @@ public class FullscreenLogin extends AppCompatActivity {
                 Database dbResources = manager.getDatabase(databaseList[cnt]);
                 dbResources.delete();
 
+                String root = Environment.getExternalStorageDirectory().toString();
+                File myDir = new File(root + "/ole_temp");
+                String[] flist = myDir.list();
+                for(int i=0;i<flist.length;i++) {
+                    System.out.println(" " + myDir.getAbsolutePath());
+                    File temp = new File(myDir.getAbsolutePath() + "/" + flist[i]);
+                    if (temp.isDirectory()) {
+                        Log.d("Delete "," Deleting "+temp.getName());
+                        temp.delete();
+                    } else {
+                        temp.delete();
+                    }
+                }
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -787,6 +808,32 @@ public class FullscreenLogin extends AppCompatActivity {
         AlertDialog alert11 = builder1.create();
         alert11.show();
     }
+
+    private void copyAPK(int resource, String apkUrl) {
+        InputStream in = getResources().openRawResource(resource);
+        String root = Environment.getExternalStorageDirectory().toString();
+        File myDir = new File(root + "/ole_temp2");
+        if (!myDir.exists()){
+            myDir.mkdirs();
+        }
+        File dst = new File(myDir,apkUrl);
+        try {
+            FileOutputStream out = new FileOutputStream(dst);
+            byte[] buff = new byte[1024];
+            int read = 0;
+            while ((read = in.read(buff)) > 0) {
+                out.write(buff, 0, read);
+            }
+            in.close();
+            out.close();
+            Log.e("tag", "Adobe Reader Copied "+ dst.toString());
+        }catch(Exception err){
+            err.printStackTrace();
+        } ///
+
+
+    }
+
 
 
 

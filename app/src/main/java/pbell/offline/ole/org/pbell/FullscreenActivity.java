@@ -165,13 +165,14 @@ public class FullscreenActivity extends AppCompatActivity {
                     if (c.moveToFirst()) {
                         int columnIndex = c.getColumnIndex(DownloadManager.COLUMN_STATUS);
                         if (DownloadManager.STATUS_SUCCESSFUL == c.getInt(columnIndex)) {
+                            openFromDiskDirectly = true;
                             if(!singleFiledownload) {
                                 libraryButtons[allresDownload].setTextColor(getResources().getColor(R.color.ole_white));
                                 if (allresDownload < libraryButtons.length) {
                                     allresDownload++;
                                     if (resourceTitleList[allresDownload] != null) {
                                         new downloadAllResourceToDisk().execute();
-                                        openFromDiskDirectly = true;
+
                                     } else {
                                         if (allhtmlDownload < htmlResourceList.size()) {
                                             new SyncAllHTMLResource().execute();
@@ -548,7 +549,7 @@ public class FullscreenActivity extends AppCompatActivity {
                             MaterialClickDialog(false,resourceTitleList[view.getId()],resourceIdList[view.getId()],view.getId());
                         }else{
                             mDialog = new ProgressDialog(context);
-                            mDialog.setMessage("Opening please "+resourceTitleList[view.getId()]+"wait...");
+                            mDialog.setMessage("Opening please "+resourceTitleList[view.getId()]+" wait...");
                             mDialog.setCancelable(true);
                             mDialog.show();
                             openDoc(resourceIdList[view.getId()]);
@@ -659,8 +660,6 @@ public class FullscreenActivity extends AppCompatActivity {
                 dialog2.dismiss();
                 OneByOneResID = clicked_rs_ID;
                 try {
-                    //testFilteredPuller();
-
                     mDialog = new ProgressDialog(context);
                     mDialog.setMessage("Please wait...");
                     mDialog.setCancelable(false);
@@ -695,13 +694,13 @@ public class FullscreenActivity extends AppCompatActivity {
                 dialog2.dismiss();
                 OneByOneResID = clicked_rs_ID;
                 try {
-                    String root = Environment.getExternalStorageDirectory().toString();
-                    File myDir = new File(root + "/ole_temp");
-                    deleteDirectory(myDir);
-                    myDir.mkdirs();
+                    //String root = Environment.getExternalStorageDirectory().toString();
+                    //File myDir = new File(root + "/ole_temp");
+                    //deleteDirectory(myDir);
+                    //myDir.mkdirs();
                     mDialog = new ProgressDialog(context);
                     mDialog.setMessage("Downloading resource, please wait..."+resourceTitleList[allresDownload]);
-                    mDialog.setCancelable(false);
+                    mDialog.setCancelable(true);
                     mDialog.show();
                     htmlResourceList.clear();
                     allhtmlDownload=0;
@@ -1026,22 +1025,27 @@ public class FullscreenActivity extends AppCompatActivity {
             Database res_Db = manager.getExistingDatabase("resources");
             Document res_doc = res_Db.getExistingDocument(docId);
             String oppenwith = (String) res_doc.getProperty("openWith");
+            openFromDiskDirectly = true;
             Log.e("MYAPP", " membersWithID  = " + docId +" and Open with "+ oppenwith);
             List<String> attmentNames = res_doc.getCurrentRevision().getAttachmentNames();
 /////HTML
-            if(oppenwith.equalsIgnoreCase("HTML")){
-                indexFilePath=null;
+            if(oppenwith.equalsIgnoreCase("HTML")) {
+                indexFilePath = null;
                 if (attmentNames.size() > 1) {
                     for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
                         downloadHTMLContent(docId, (String) attmentNames.get(cnt));
                     }
-                    if(indexFilePath!=null){
+                    if (indexFilePath != null) {
                         openHTML(indexFilePath);
                     }
-                }else{
+                } else {
                     openImage(docId, (String) attmentNames.get(0), getExtension(attmentNames.get(0)));
                 }
 ////PDF
+            }else if(oppenwith.equalsIgnoreCase("Just download")){
+                //// Todo work to get just download
+
+
             }else if(oppenwith.equalsIgnoreCase("PDF.js")){
                 if(openFromDiskDirectly) {
                     Log.e("MyCouch", " Command Video name -:  "+docId);
