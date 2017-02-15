@@ -35,10 +35,13 @@ import android.view.animation.LinearInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.couchbase.lite.Attachment;
@@ -81,6 +84,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+import static pbell.offline.ole.org.pbell.R.id.ratingBar;
 
 public class FullscreenActivity extends AppCompatActivity {
 
@@ -106,6 +110,8 @@ public class FullscreenActivity extends AppCompatActivity {
     boolean status_SyncOneByOneResource = false;
     private ProgressDialog mDialog;
     String indexFilePath;
+    String openedResourceId,openedResourceTitle="";
+    boolean openedResource =false;
     boolean openFromDiskDirectly = false;
     boolean singleFiledownload =false;
     boolean openFromOnlineServer =false;
@@ -316,13 +322,7 @@ public class FullscreenActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        /*if(initialActivityLoad){
-            ComponentName componentName = getPackageManager().getLaunchIntentForPackage("org.mozilla.firefox").getComponent();
-            Intent intent = IntentCompat.makeRestartActivityTask(componentName);
-            startActivity(intent);
-        }
-        */
-
+        checkResourceOpened();
     }
 
     @Override
@@ -363,9 +363,11 @@ public class FullscreenActivity extends AppCompatActivity {
                         mDialog.setMessage("Opening please "+resourceTitleList[position]+"wait...");
                         mDialog.setCancelable(true);
                         mDialog.show();
+                        openedResourceId=resourceIdList[position];
+                        openedResourceTitle=resourceTitleList[position];
+                        openedResource =true;
                         openDoc(resourceIdList[position]);
-                        Log.e("MyCouch", "Clicked to open "+ resourceIdList[position]);
-
+                        Log.e("MyCouch", "Clicked to open resource Id "+ resourceIdList[position]);
                     }
                 }
             });
@@ -397,39 +399,12 @@ public class FullscreenActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                if(toggleBtnSingle.isChecked()) {
-               }else
-                {
-                }
+               }else {
+
+               }
             }
         });
-
-        /*listView = (ListView) dialogSetting.findViewById(R.id.list);
-        adapter = new CustomListAdapter(this, resourceList);
-        try {
-            adapter = new CustomListAdapter(this, resourceList);
-            listView.setAdapter(adapter);
-            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                public void onItemClick(AdapterView<?> adapter, View v, int position, long id) {
-                    if(libraryButtons[position].getCurrentTextColor()==getResources().getColor(R.color.ole_yellow)){
-                        MaterialClickDialog(false,resourceTitleList[position],resourceIdList[position],position);
-                        dialogSetting.dismiss();
-                    }else{
-                        mDialog = new ProgressDialog(context);
-                        mDialog.setMessage("Opening please "+resourceTitleList[position]+"wait...");
-                        mDialog.setCancelable(true);
-                        mDialog.show();
-                        openDoc(resourceIdList[position]);
-                        Log.e("MyCouch", "Clicked to open "+ resourceIdList[position]);
-
-                    }
-                }
-            });
-
-        }catch (Exception err){
-            Log.e("adapter", " "+err);
-        }*/
     }
-
 
     public String curdate(){
         Calendar cal= Calendar.getInstance();
@@ -552,6 +527,9 @@ public class FullscreenActivity extends AppCompatActivity {
                             mDialog.setMessage("Opening please "+resourceTitleList[view.getId()]+" wait...");
                             mDialog.setCancelable(true);
                             mDialog.show();
+                            openedResourceId=resourceIdList[view.getId()];
+                            openedResourceTitle = resourceTitleList[view.getId()];
+                            openedResource =true;
                             openDoc(resourceIdList[view.getId()]);
                             Log.e("MyCouch", "Clicked to open "+ resourceIdList[view.getId()]);
 
@@ -574,18 +552,14 @@ public class FullscreenActivity extends AppCompatActivity {
         clicked_rs_title = title;
         clicked_rs_ID = resId;
         resButtonId = buttonPressedId;
-
-
         AlertDialog.Builder dialogB2 = new AlertDialog.Builder(this);
         // custom dialog
         dialogB2.setView(R.layout.dialog_prompt_resource_location);
         dialogB2.setCancelable(true);
         dialog2 = dialogB2.create();
         dialog2.show();
-
         TextView txtResourceId = (TextView) dialog2.findViewById(R.id.txtResourceID);
         txtResourceId.setText(title);
-
         //// Open material online
         dialogBtnOpenFileOnline = (Button) dialog2.findViewById(R.id.btnOpenOnline);
         dialogBtnOpenFileOnline.setOnClickListener(new View.OnClickListener() {
@@ -647,8 +621,6 @@ public class FullscreenActivity extends AppCompatActivity {
                         Log.e("MyCouch", " "+fuelError);
                     }
                 });
-
-
             }
         });
 
@@ -672,7 +644,6 @@ public class FullscreenActivity extends AppCompatActivity {
                    // alertDialogOkay(OneByOneResID+"");
                     new downloadSpecificResourceToDisk().execute();
                     //final AsyncTask<String, Void, Boolean> execute = new SyncResource().execute();
-
                 } catch (Exception e) {
                     e.printStackTrace();
                     mDialog = new ProgressDialog(context);
@@ -704,7 +675,6 @@ public class FullscreenActivity extends AppCompatActivity {
                     mDialog.show();
                     htmlResourceList.clear();
                     allhtmlDownload=0;
-
                     //// Todo Decide which option is best
                     singleFiledownload=false;
                     new downloadAllResourceToDisk().execute();
@@ -1024,12 +994,12 @@ public class FullscreenActivity extends AppCompatActivity {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database res_Db = manager.getExistingDatabase("resources");
             Document res_doc = res_Db.getExistingDocument(docId);
-            String oppenwith = (String) res_doc.getProperty("openWith");
+            String openwith = (String) res_doc.getProperty("openWith");
             openFromDiskDirectly = true;
-            Log.e("MYAPP", " membersWithID  = " + docId +" and Open with "+ oppenwith);
+            Log.e("MYAPP", " membersWithID  = " + docId +" and Open with "+ openwith);
             List<String> attmentNames = res_doc.getCurrentRevision().getAttachmentNames();
 /////HTML
-            if(oppenwith.equalsIgnoreCase("HTML")) {
+            if(openwith.equalsIgnoreCase("HTML")) {
                 indexFilePath = null;
                 if (attmentNames.size() > 1) {
                     for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
@@ -1042,11 +1012,11 @@ public class FullscreenActivity extends AppCompatActivity {
                     openImage(docId, (String) attmentNames.get(0), getExtension(attmentNames.get(0)));
                 }
 ////PDF
-            }else if(oppenwith.equalsIgnoreCase("Just download")){
+            }else if(openwith.equalsIgnoreCase("Just download")){
                 //// Todo work to get just download
 
 
-            }else if(oppenwith.equalsIgnoreCase("PDF.js")){
+            }else if(openwith.equalsIgnoreCase("PDF.js")){
                 if(openFromDiskDirectly) {
                     Log.e("MyCouch", " Command Video name -:  "+docId);
                     String filenameOnly="";
@@ -1086,7 +1056,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     }
                 }
 ////MP3
-            }else if(oppenwith.equalsIgnoreCase("MP3")){
+            }else if(openwith.equalsIgnoreCase("MP3")){
                 if(openFromDiskDirectly) {
                     Log.e("MyCouch", " Command Video name -:  "+docId);
                     String filenameOnly="";
@@ -1118,7 +1088,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     }
                 }
 /// BELL READER
-            }else if(oppenwith.equalsIgnoreCase("Bell-Reader")){
+            }else if(openwith.equalsIgnoreCase("Bell-Reader")){
                 if(openFromDiskDirectly) {
                     Log.e("MyCouch", " Command Video name -:  "+docId);
                     String filenameOnly="";
@@ -1158,7 +1128,7 @@ public class FullscreenActivity extends AppCompatActivity {
                         }
                 }
   /////VIDEO
-            }else if(oppenwith.equalsIgnoreCase("Flow Video Player")){
+            }else if(openwith.equalsIgnoreCase("Flow Video Player")){
 
                 if(openFromDiskDirectly) {
                     Log.e("MyCouch", " Command Video name -:  "+docId);
@@ -1191,14 +1161,14 @@ public class FullscreenActivity extends AppCompatActivity {
                     }
                 }
 
-            }else if(oppenwith.equalsIgnoreCase("BeLL Video Book Player")){
+            }else if(openwith.equalsIgnoreCase("BeLL Video Book Player")){
                 if (attmentNames.size() > 0) {
                     for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
 
                     }
                 }
 /// Native Video
-            }else if(oppenwith.equalsIgnoreCase("Native Video")){
+            }else if(openwith.equalsIgnoreCase("Native Video")){
                 if(openFromDiskDirectly) {
                     Log.e("MyCouch", " Command Video name -:  "+docId);
                     String filenameOnly="";
@@ -1757,7 +1727,6 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public void updateUI(){
-
         TextView lblName = (TextView) findViewById(R.id.lblName);
         lblName.setText(" "+sys_userfirstname +" "+sys_userlastname);
         TextView lblVisits = (TextView) findViewById(R.id.lblVisits);
@@ -1962,6 +1931,83 @@ public class FullscreenActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+    }
+
+    public void rateResourceDialog(String resourceId, String title){
+        // custom dialog
+        final String resourceID = resourceId;
+        final Dialog dialog = new Dialog(context);
+        dialog.setContentView(R.layout.rate_resource_dialog);
+        dialog.setTitle("Add Feedback For \n" );
+
+        final TextView txtResTitle = (TextView) dialog.findViewById(R.id.txtResTitle);
+        txtResTitle.setText(title);
+        final EditText txtComment = (EditText) dialog.findViewById(R.id.editTextComment);
+        final RatingBar ratingBar = (RatingBar) dialog.findViewById(R.id.ratingBar);
+        ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+            public void onRatingChanged(RatingBar ratingBar, float rating,boolean fromUser) {
+
+            }
+        });
+        Button dialogButton = (Button) dialog.findViewById(R.id.btnRateResource);
+        dialogButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveRating(ratingBar.getRating(),String.valueOf(txtComment.getText()),resourceID);
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+
+    public void saveRating(float rate,String comment,String resourceId){
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        Database resourceRating;
+        int doc_rating,doc_timesRated;
+        ArrayList<String> commentList = new ArrayList<String>();
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            resourceRating = manager.getDatabase("resourcerating");
+            Document retrievedDocument = resourceRating.getExistingDocument(resourceId);
+            if(retrievedDocument != null) {
+                Map<String, Object> properties = retrievedDocument.getProperties();
+                if(properties.containsKey("sum")){
+                    doc_rating = (int) properties.get("sum") ;
+                    doc_timesRated  = (int) properties.get("timesRated") ;
+                    ///doc_comments = (String) properties.get("comments");
+                    commentList = (ArrayList<String>) properties.get("comments");
+                    commentList.add(comment);
+                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    newProperties.putAll(retrievedDocument.getProperties());
+                    newProperties.put("sum", (doc_rating + rate));
+                    newProperties.put("timesRated", doc_timesRated + 1);
+                    newProperties.put("comments", commentList);
+                    retrievedDocument.putProperties(newProperties);
+                    Toast.makeText(context,String.valueOf(rate),Toast.LENGTH_SHORT).show();
+                }
+
+            }
+            else{
+                Document newdocument = resourceRating.getDocument(resourceId);
+                Map<String, Object> newProperties = new HashMap<String, Object>();
+                newProperties.put("sum", 1);
+                newProperties.put("timesRated", 1);
+                commentList.add(comment);
+                newProperties.put("comments", commentList);
+                newdocument.putProperties(newProperties);
+                Toast.makeText(context,String.valueOf(rate),Toast.LENGTH_SHORT).show();
+            }
+        }catch(Exception err){
+            Log.e("VISITS", "ERR : " +err.getMessage());
+        }
+    }
+
+    public void checkResourceOpened(){
+        if(openedResource) {
+            rateResourceDialog(openedResourceId,openedResourceTitle);
+            openedResource=false;
+        }
     }
 
 
