@@ -1964,7 +1964,8 @@ public class FullscreenActivity extends AppCompatActivity {
         AndroidContext androidContext = new AndroidContext(context);
         Manager manager = null;
         Database resourceRating;
-        int doc_rating,doc_timesRated;
+        double doc_rating;
+        int doc_timesRated;
         ArrayList<String> commentList = new ArrayList<String>();
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
@@ -1973,9 +1974,8 @@ public class FullscreenActivity extends AppCompatActivity {
             if(retrievedDocument != null) {
                 Map<String, Object> properties = retrievedDocument.getProperties();
                 if(properties.containsKey("sum")){
-                    doc_rating = (int) properties.get("sum") ;
+                    doc_rating = (double) properties.get("sum") ;
                     doc_timesRated  = (int) properties.get("timesRated") ;
-                    ///doc_comments = (String) properties.get("comments");
                     commentList = (ArrayList<String>) properties.get("comments");
                     commentList.add(comment);
                     Map<String, Object> newProperties = new HashMap<String, Object>();
@@ -1986,12 +1986,11 @@ public class FullscreenActivity extends AppCompatActivity {
                     retrievedDocument.putProperties(newProperties);
                     Toast.makeText(context,String.valueOf(rate),Toast.LENGTH_SHORT).show();
                 }
-
             }
             else{
                 Document newdocument = resourceRating.getDocument(resourceId);
                 Map<String, Object> newProperties = new HashMap<String, Object>();
-                newProperties.put("sum", 1);
+                newProperties.put("sum", rate);
                 newProperties.put("timesRated", 1);
                 commentList.add(comment);
                 newProperties.put("comments", commentList);
@@ -1999,7 +1998,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 Toast.makeText(context,String.valueOf(rate),Toast.LENGTH_SHORT).show();
             }
         }catch(Exception err){
-            Log.e("VISITS", "ERR : " +err.getMessage());
+            Log.e("MyCouch", "ERR : " +err.getMessage());
         }
     }
 

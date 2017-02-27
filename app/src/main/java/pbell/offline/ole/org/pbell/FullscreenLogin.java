@@ -71,6 +71,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -136,7 +137,7 @@ public class FullscreenLogin extends AppCompatActivity {
         actionBar.hide();
 
         androidContext = new AndroidContext(this);
-
+        // Todo - : Decide on either to clear resource database and file storage anytime user syncs or rather keep old resources only if user doesn't change server url
         /////////////////////////////////////
         // Set up the login form.
         mUsername = (EditText) mContentView.findViewById(R.id.txtUsername);
@@ -163,17 +164,39 @@ public class FullscreenLogin extends AppCompatActivity {
             }
         });
 
+        Button btnFeedback = (Button) findViewById(R.id.btnFeedback);
+        btnFeedback.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Database resourceRating;
+                try {
+                    Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                    resourceRating = manager.getDatabase("resourcerating");
+                    Query orderedQuery = chViews.ReadResourceRatingByIdView(resourceRating).createQuery();
+                    orderedQuery.setDescending(true);
+                    QueryEnumerator results = orderedQuery.run();
+                    for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                        QueryRow row = it.next();
+                        String docId = (String) row.getValue();
+                        Document doc = resourceRating.getExistingDocument(docId);
+                        Map<String, Object> properties = doc.getProperties();
+                        Double sum = ((Double) properties.get("sum"));
+                        int timesRated = ((Integer) properties.get("timesRated"));
+                        updateRemoteResourceRating(docId,sum,timesRated);
+                    }
+                }catch (Exception err){
+                    Log.e("MyCouch", "reading resource rating error "+err.getMessage());
+                }
 
+            }
+        });
         restorePref();
-
         copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
         copyAPK(R.raw.firefox_49_0_multi_android, "firefox_49_0_multi_android.apk");
 
     }
 ////////
     private void TestConnectionToServer(String textURL) {
-       // textURL = sys_oldSyncServerURL;
-
         mDialog = new ProgressDialog(context);
         mDialog.setMessage("Please wait. Connecting to server...");
         mDialog.setCancelable(false);
@@ -367,8 +390,6 @@ public class FullscreenLogin extends AppCompatActivity {
         Manager manager = null;
         Database visitHolder;
         int doc_noOfVisits;
-
-
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             visitHolder = manager.getDatabase("visits");
@@ -397,10 +418,8 @@ public class FullscreenLogin extends AppCompatActivity {
                 newdocument.putProperties(newProperties);
                 return 1;
             }
-
-
         }catch(Exception err){
-            Log.e("VISITS", "ERR : " +err.getMessage());
+            Log.e("MyCouch", "ERR : " +err.getMessage());
 
         }
 
@@ -702,7 +721,6 @@ public class FullscreenLogin extends AppCompatActivity {
                                     openMemberList = true;
                                 }
                             }
-
                         }
                     }
                 });
@@ -754,7 +772,6 @@ public class FullscreenLogin extends AppCompatActivity {
             }
 
         }
-
         try {
             Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database dbResources = manager.getDatabase("resources");
@@ -762,10 +779,6 @@ public class FullscreenLogin extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
-
-
     }
 
     public void connectWiFi() {
@@ -829,9 +842,37 @@ public class FullscreenLogin extends AppCompatActivity {
             Log.e("tag", "Adobe Reader Copied "+ dst.toString());
         }catch(Exception err){
             err.printStackTrace();
-        } ///
+        }
+    }
 
+    public void updateRemoteResourceRating(final String resouceId,final Double sum,final int timesRated){
+            final Fuel ful = new Fuel();
+            ful.get(sys_oldSyncServerURL+"/resources/"+resouceId).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+                @Override
+                public void success(Request request, Response response, String s) {
+                    try {
+                        jsonServerData = new JSONObject(s);
+                        Log.e("MyCouch", "resource current info "+jsonServerData);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        double remote_sum =  Double.parseDouble(jsonServerData.get("sum").toString());
+                        int remote_timesRated = (int) jsonServerData.get("timesRated");
+                        if(remote_timesRated > timesRated){
+                            //// TODO: 27/02/2017 Update remote resource document with new data
+                        }
 
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                @Override
+                public void failure(Request request, Response response, FuelError fuelError) {
+                    Log.e("MyCouch", "Reading reources error "+fuelError);
+
+                }
+            });
     }
 
 
