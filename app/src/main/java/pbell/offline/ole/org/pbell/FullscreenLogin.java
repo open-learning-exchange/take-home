@@ -850,7 +850,6 @@ public class FullscreenLogin extends AppCompatActivity {
             err.printStackTrace();
         }
     }
-
     public void updateRemoteResourceRating(final String resouceId,final Double sum,final int timesRated,final String revision){
             final Fuel ful = new Fuel();
             ful.get(sys_oldSyncServerURL+"/resources/"+resouceId).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
@@ -908,11 +907,4 @@ public class FullscreenLogin extends AppCompatActivity {
                 }
             }
         });
-    }
-
-
-
-
-
-
 }
