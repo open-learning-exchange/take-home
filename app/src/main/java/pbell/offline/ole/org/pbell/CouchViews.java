@@ -27,7 +27,6 @@ public class CouchViews {
             );
         return LoginByIdView;
     }
-
     public View CreateListByNameView(Database db) {
         View ListByNameView = db.getView("MembersByNameView");
         ListByNameView.setMap(
@@ -42,7 +41,6 @@ public class CouchViews {
         );
         return ListByNameView;
     }
-
     public View ReadShelfByIdView(Database db) {
         View shelfListByIdView = db.getView("ShelfByID");
         shelfListByIdView.setMap(
@@ -55,7 +53,6 @@ public class CouchViews {
         );
         return shelfListByIdView;
     }
-
     public View ReadCourseList(Database db) {
         View CourseListByMemberIdView = db.getView("CourseByMemberID");
         CourseListByMemberIdView.setMap(
@@ -80,7 +77,6 @@ public class CouchViews {
         );
         return VisitsByMemberIdView;
     }
-
     public View LocalServerInfo(Database db) {
         View ServerInfoView = db.getView("name");
         ServerInfoView.setMap(
@@ -92,5 +88,17 @@ public class CouchViews {
                 }, "2"
         );
         return ServerInfoView;
+    }
+    public View ReadResourceRatingByIdView(Database db) {
+        View ResourceRatingByIdView = db.getView("ResourceRatingById");
+        ResourceRatingByIdView.setMap(
+                new Mapper(){
+                    @Override
+                    public void map(Map<String, Object> document,Emitter emitter) {
+                        emitter.emit((String) document.get("_id"), (String) document.get("_id"));
+                    }
+                }, "11"
+        );
+        return ResourceRatingByIdView;
     }
 }
