@@ -43,17 +43,21 @@ import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.replicator.Replication;
 import com.github.kittinunf.fuel.Fuel;
 import com.github.kittinunf.fuel.core.FuelError;
+import com.github.kittinunf.fuel.core.Handler;
 import com.github.kittinunf.fuel.core.Request;
 import com.github.kittinunf.fuel.core.Response;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.HttpParams;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -78,6 +82,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import kotlin.Pair;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -182,7 +188,7 @@ public class FullscreenLogin extends AppCompatActivity {
                         Map<String, Object> properties = doc.getProperties();
                         Double sum = ((Double) properties.get("sum"));
                         int timesRated = ((Integer) properties.get("timesRated"));
-                        updateRemoteResourceRating(docId,sum,timesRated);
+                        updateRemoteResourceRating(docId,sum,timesRated,((String) properties.get("_rev")));
                     }
                 }catch (Exception err){
                     Log.e("MyCouch", "reading resource rating error "+err.getMessage());
@@ -845,7 +851,7 @@ public class FullscreenLogin extends AppCompatActivity {
         }
     }
 
-    public void updateRemoteResourceRating(final String resouceId,final Double sum,final int timesRated){
+    public void updateRemoteResourceRating(final String resouceId,final Double sum,final int timesRated,final String revision){
             final Fuel ful = new Fuel();
             ful.get(sys_oldSyncServerURL+"/resources/"+resouceId).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
                 @Override
@@ -857,12 +863,26 @@ public class FullscreenLogin extends AppCompatActivity {
                         e.printStackTrace();
                     }
                     try {
-                        double remote_sum =  Double.parseDouble(jsonServerData.get("sum").toString());
-                        int remote_timesRated = (int) jsonServerData.get("timesRated");
+                        final double remote_sum =  Double.parseDouble(jsonServerData.get("sum").toString());
+                        final int remote_timesRated = (int) jsonServerData.get("timesRated");
                         if(remote_timesRated > timesRated){
-                            //// TODO: 27/02/2017 Update remote resource document with new data
-                        }
+                            Fuel nwfuel = new Fuel();
+                            final List<Pair<String, Integer>> params = new ArrayList<Pair<String, Integer>>() {{
+                                add(new Pair<String, Integer>("timesRated", (remote_timesRated+timesRated)));
+                                add(new Pair<String, Integer>("sum", (int) (sum + remote_sum)));
+                            }};
+                            nwfuel.put(sys_oldSyncServerURL+"/resources/"+resouceId+"?new_edits=false&rev="+revision,params).responseString(new Handler<String>()  {
+                                @Override
+                                public void failure(@NotNull Request request, @NotNull Response response, @NotNull FuelError error) {
+                                    updateUI(error, null);
+                                }
 
+                                @Override
+                                public void success(@NotNull Request request, @NotNull Response response, String data) {
+                                    updateUI(null, data);
+                                }
+                            });
+                        }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -873,6 +893,21 @@ public class FullscreenLogin extends AppCompatActivity {
 
                 }
             });
+    }
+
+    private void updateUI(final FuelError error, final String result) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (error == null) {
+                   /// resultText.setText(resultText.getText() + result);
+                    Log.e("MyCouch", "error: " + result);
+                } else {
+                    Log.e("MyCouch", "error: " + error.getException().getMessage());
+                    ///resultText.setText(resultText.getText() + error.getException().getMessage());
+                }
+            }
+        });
     }
 
 
