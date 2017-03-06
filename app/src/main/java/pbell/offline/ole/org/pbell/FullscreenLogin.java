@@ -909,10 +909,4 @@ public class FullscreenLogin extends AppCompatActivity {
             }
         });
     }
-
-
-
-
-
-
 }
