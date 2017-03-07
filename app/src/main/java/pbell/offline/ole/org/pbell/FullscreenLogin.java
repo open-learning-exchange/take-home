@@ -1,65 +1,48 @@
 package pbell.offline.ole.org.pbell;
 
-import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-
-import android.os.Bundle;
-import android.text.TextUtils;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
-import android.view.Window;
-import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
-import com.couchbase.lite.DocumentChange;
 import com.couchbase.lite.Manager;
 import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.replicator.Replication;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.github.kittinunf.fuel.Fuel;
 import com.github.kittinunf.fuel.core.FuelError;
 import com.github.kittinunf.fuel.core.Handler;
 import com.github.kittinunf.fuel.core.Request;
 import com.github.kittinunf.fuel.core.Response;
+import com.google.gson.JsonObject;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.params.HttpParams;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.lightcouch.CouchDbClient;
+import org.lightcouch.CouchDbClientAndroid;
+import org.lightcouch.CouchDbException;
+import org.lightcouch.CouchDbProperties;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -67,21 +50,21 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Method;
-import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.xml.parsers.SAXParserFactory;
 
 import kotlin.Pair;
 
@@ -188,10 +171,16 @@ public class FullscreenLogin extends AppCompatActivity {
                         Map<String, Object> properties = doc.getProperties();
                         Double sum = ((Double) properties.get("sum"));
                         int timesRated = ((Integer) properties.get("timesRated"));
-                        updateRemoteResourceRating(docId,sum,timesRated,((String) properties.get("_rev")));
+                        //updateRemoteResourceRating(docId,sum,timesRated,((String) properties.get("_rev")));
+                        //updateServerResourceRating(docId,sum,timesRated,((String) properties.get("_rev")));
+                        UpdateResourceDocument nwUpdateResDoc = new UpdateResourceDocument();
+                        nwUpdateResDoc.setResourceId(docId);
+                        nwUpdateResDoc.setSum(sum);
+                        nwUpdateResDoc.setTimesRated(timesRated);
+                        nwUpdateResDoc.execute("");
                     }
                 }catch (Exception err){
-                    Log.e("MyCouch", "reading resource rating error "+err.getMessage());
+                    Log.e("MyCouch", "reading resource rating error "+err);
                 }
 
             }
@@ -572,7 +561,7 @@ public class FullscreenLogin extends AppCompatActivity {
 
 
     //////// Start creating filtered replication file in couchdb //
-
+/*
     public static String createDocument(String hostUrl, String databaseName, JSONObject jsonDoc,String DocId) {
         try {
             HttpPut httpPutRequest = new HttpPut(hostUrl +"/"+ databaseName+"/"+DocId);
@@ -622,6 +611,7 @@ public class FullscreenLogin extends AppCompatActivity {
         }
         return null;
     }
+    */
 
     public static String convertStreamToString(InputStream is) {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is), 8192);
@@ -650,7 +640,8 @@ public class FullscreenLogin extends AppCompatActivity {
 
         protected Boolean doInBackground(String... urls) {
             try {
-                createDocument(sys_oldSyncServerURL, "resources", designViewDoc,"_design/apps");
+                ///// TODO: 07/03/2017 change to use lightcouch
+               // createDocument(sys_oldSyncServerURL, "resources", designViewDoc,"_design/apps");
                 return true;
             } catch (Exception e) {
                 this.exception = e;
@@ -850,6 +841,7 @@ public class FullscreenLogin extends AppCompatActivity {
             err.printStackTrace();
         }
     }
+
     public void updateRemoteResourceRating(final String resouceId,final Double sum,final int timesRated,final String revision){
             final Fuel ful = new Fuel();
             ful.get(sys_oldSyncServerURL+"/resources/"+resouceId).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
@@ -857,43 +849,74 @@ public class FullscreenLogin extends AppCompatActivity {
                 public void success(Request request, Response response, String s) {
                     try {
                         jsonServerData = new JSONObject(s);
-                        Log.e("MyCouch", "resource current info "+jsonServerData);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        final double remote_sum =  Double.parseDouble(jsonServerData.get("sum").toString());
-                        final int remote_timesRated = (int) jsonServerData.get("timesRated");
-                        if(remote_timesRated > timesRated){
-                            Fuel nwfuel = new Fuel();
-                            final List<Pair<String, Integer>> params = new ArrayList<Pair<String, Integer>>() {{
-                                add(new Pair<String, Integer>("timesRated", (remote_timesRated+timesRated)));
-                                add(new Pair<String, Integer>("sum", (int) (sum + remote_sum)));
-                            }};
-                            nwfuel.put(sys_oldSyncServerURL+"/resources/"+resouceId+"?new_edits=false&rev="+revision,params).responseString(new Handler<String>()  {
-                                @Override
-                                public void failure(@NotNull Request request, @NotNull Response response, @NotNull FuelError error) {
-                                    updateUI(error, null);
-                                }
+                        try {
+                            final double server_sum =  Double.parseDouble(jsonServerData.get("sum").toString());
+                            final int server_timesRated = (int) jsonServerData.get("timesRated");
+                            final String server_revision = (String) jsonServerData.get("_rev");
+                            Log.e("MyCouch", "resource current info "+jsonServerData);
+                            /// Todo : remove if statement and clear resourcerating database after action
+                            if(server_timesRated < timesRated){
+                                Log.e("MyCouch", "server = "+server_timesRated +"   local = "+timesRated);
+                                Fuel newfuel = new Fuel();
+                                final List<Pair<String, Integer>> params = new ArrayList<Pair<String, Integer>>() {{
+                                    add(new Pair<String, Integer>("timesRated", (server_timesRated+timesRated)));
+                                    add(new Pair<String, Integer>("sum", (int) (server_sum + sum)));
+                                }};
+                                newfuel.put(sys_oldSyncServerURL+"/resources/"+resouceId+"?new_edits=false&rev="+server_revision,params).responseString(new Handler<String>()  {
+                                    @Override
+                                    public void failure(@NotNull Request request, @NotNull Response response, @NotNull FuelError error) {
+                                        updateUI(error, null);
+                                    }
 
-                                @Override
-                                public void success(@NotNull Request request, @NotNull Response response, String data) {
-                                    updateUI(null, data);
-                                }
-                            });
+                                    @Override
+                                    public void success(@NotNull Request request, @NotNull Response response, String data) {
+                                        updateUI(null, data);
+                                    }
+                                });
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
-                    } catch (JSONException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
                 @Override
                 public void failure(Request request, Response response, FuelError fuelError) {
-                    Log.e("MyCouch", "Reading reources error "+fuelError);
+                    Log.e("MyCouch", "Reading resources error "+fuelError);
 
                 }
             });
     }
 
+    public void updateServerResourceRating(final String resouceId,final Double sum,final int timesRated,final String revision){
+        try {
+            URI uri = URI.create(sys_oldSyncServerURL);
+            String url_Scheme = uri.getScheme();
+            String url_Host = uri.getHost();
+            int url_Port = uri.getPort();
+            String url_user = "", url_pwd = "";
+            if (uri.getUserInfo() != null) {
+                String[] userinfo = uri.getUserInfo().split(":");
+                url_user = userinfo[0];
+                url_pwd = userinfo[1];
+            }
+            Log.e("MyCouch", "here "+ resouceId);
+
+            CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+            if(dbClient.contains(resouceId)){
+                Log.e("MyCouch", "Found resource with Id"+ resouceId);
+            }
+            //boolean found = dbClient.contains("doc-id");
+            ////Obj_Holder newObjHandler = dbClient.find(Obj_Holder.class, "doc-id", "doc-rev");
+            //JsonObject json = dbClient.find(JsonObject.class, resouceId);
+        }catch(CouchDbException err){
+            Log.e("MyCouch", "error: "+ err);
+        }
+
+
+
+    }
     private void updateUI(final FuelError error, final String result) {
         runOnUiThread(new Runnable() {
             @Override
@@ -907,5 +930,73 @@ public class FullscreenLogin extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    class UpdateResourceDocument extends AsyncTask<String, Void, String> {
+        private Exception exception;
+        private String cls_resouceId;
+        private Double cls_sum;
+        private int cls_timesRated;
+        private String cls_revision;
+
+        public String getResourceId(){
+            return cls_resouceId;
+        }
+        public void setResourceId(String resouceId){
+            cls_resouceId = resouceId;
+        }
+        public String setRevision(){
+            return cls_revision;
+        }
+        public Double getSum(){
+            return cls_sum;
+        }
+        public void setSum(Double sum){
+            cls_sum = sum;
+        }
+        public int getTimesRated(){
+            return cls_timesRated;
+        }
+        public void setTimesRated(int timesRated) {
+            cls_timesRated = timesRated;
+        }
+        public void setRevision(String revision){
+            cls_revision = revision;
+        }
+        protected String doInBackground(String... urls) {
+            try {
+                URI uri = URI.create(sys_oldSyncServerURL);
+                String url_Scheme = uri.getScheme();
+                String url_Host = uri.getHost();
+                int url_Port = uri.getPort();
+                String url_user = "", url_pwd = "";
+                if (uri.getUserInfo() != null) {
+                    String[] userinfo = uri.getUserInfo().split(":");
+                    url_user = userinfo[0];
+                    url_pwd = userinfo[1];
+                }
+                CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+                if(dbClient.contains(cls_resouceId)){
+                    /// Handle with Json
+                    JsonObject json = dbClient.find(JsonObject.class, getResourceId());
+                    Double total_sum = (Double) (getSum() + Double.parseDouble(json.get("sum").getAsString()));
+                     int total_timesRated = getTimesRated() + Integer.parseInt(json.get("timesRated").toString());
+                     json.addProperty("sum",total_sum);
+                     json.addProperty("timesRated",total_timesRated);
+                     dbClient.update(json);
+                    ///// TODO: 07/03/2017 Delete from device local couchdb since it has successfully updated server 
+                }
+                return "";
+            } catch (Exception e) {
+                this.exception = e;
+                Log.e("MyCouch", e.getMessage());
+                return null;
+            }
+        }
+
+        protected void onPostExecute(String message) {
+            // TODO: check this.exception
+            // TODO: do something with the message
+        }
     }
 }
