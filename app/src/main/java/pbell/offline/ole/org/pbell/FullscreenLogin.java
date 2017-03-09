@@ -27,22 +27,16 @@ import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.replicator.Replication;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
 import com.github.kittinunf.fuel.Fuel;
 import com.github.kittinunf.fuel.core.FuelError;
-import com.github.kittinunf.fuel.core.Handler;
 import com.github.kittinunf.fuel.core.Request;
 import com.github.kittinunf.fuel.core.Response;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.lightcouch.CouchDbClient;
 import org.lightcouch.CouchDbClientAndroid;
-import org.lightcouch.CouchDbException;
-import org.lightcouch.CouchDbProperties;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -52,6 +46,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -63,10 +58,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import javax.xml.parsers.SAXParserFactory;
-
-import kotlin.Pair;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -112,7 +103,6 @@ public class FullscreenLogin extends AppCompatActivity {
     boolean syncmembers,openMemberList= false;
     int syncCnt =0;
     AndroidContext androidContext;
-    JSONObject designViewDoc;
     Database database;
     Replication pullReplication;
     Button dialogSyncButton;
@@ -323,11 +313,7 @@ public class FullscreenLogin extends AppCompatActivity {
                                 Intent intent = new Intent(this, FullscreenActivity.class);
                                 startActivity(intent);
                                 return true;
-
                             }
-
-                            ////doc_credentials.get("salt").toString());
-                            ///doc_credentials.get("value").toString()
                         } catch (Exception err) {
                             Log.e("MYAPP", " Encryption Err  " + err.getMessage());
                         }
@@ -345,7 +331,6 @@ public class FullscreenLogin extends AppCompatActivity {
             return false;
         }
     }
-
     public boolean getSystemInfo(){
         AndroidContext androidContext = new AndroidContext(this);
         Manager manager = null;
@@ -379,7 +364,6 @@ public class FullscreenLogin extends AppCompatActivity {
             return false;
         }
     }
-
     public int totalVisits(String memberId){
         AndroidContext androidContext = new AndroidContext(this);
         Manager manager = null;
@@ -417,11 +401,8 @@ public class FullscreenLogin extends AppCompatActivity {
             Log.e("MyCouch", "ERR : " +err.getMessage());
 
         }
-
         return -1;
-
     }
-
     public String todaysDate(){
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Calendar cal = Calendar.getInstance();
@@ -429,9 +410,7 @@ public class FullscreenLogin extends AppCompatActivity {
         return dateFormat.format(cal.getTime());
 
     }
-
     public void getSyncURLDialog(){
-
         final WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
         AlertDialog.Builder dialogB = new AlertDialog.Builder(this);
         dialogB.setView(R.layout.dialog_setup);
@@ -440,12 +419,10 @@ public class FullscreenLogin extends AppCompatActivity {
         dialog.show();
         final EditText txtSuncURL = (EditText) dialog.findViewById(R.id.txtNewSyncURL);
         txtSuncURL.setText(sys_oldSyncServerURL);
-
         Button TestConnButton = (Button) dialog.findViewById(R.id.btnTestCnnection);
         TestConnButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 TestConnectionToServer(txtSuncURL.getText().toString());
             }
         });
@@ -474,9 +451,7 @@ public class FullscreenLogin extends AppCompatActivity {
                 }
             }
         });
-
         dialogSyncButton.setVisibility(View.INVISIBLE);
-
         if(wifiManager.isWifiEnabled()) {
             dialog.show();
             ////
@@ -503,9 +478,7 @@ public class FullscreenLogin extends AppCompatActivity {
             builder.setMessage("Wifi is off. Are you sure you want to turn it on?").setPositiveButton("Yes", dialogClickListener)
                     .setNegativeButton("No", dialogClickListener).show();
         }
-
     }
-
     public void restorePref(){
         // Restore preferences
         settings = getSharedPreferences(PREFS_NAME, 0);
@@ -538,114 +511,80 @@ public class FullscreenLogin extends AppCompatActivity {
             Log.e("MYAPP", " Error creating  sys_membersWithResource");
         }
     }
-
     public void syncNotifier(){
         emptyAllDbs();
         //// Start creating filtered replication design Document
         try{
-            designViewDoc = new JSONObject();
-            JSONObject filter = new JSONObject();
-            try {
-                filter.put("by_resource","function(doc, req){return doc._id === req.query._id;}");
-                designViewDoc.put("filters",filter);
-            } catch (JSONException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            new RunCreateDocTask().execute("");
+            JsonObject viewContent = new JsonObject();
+            viewContent.addProperty("by_resource","function(doc, req){return doc._id === req.query._id;}");
+            RunCreateDocTask newRunCreateDocTask = new RunCreateDocTask();
+            newRunCreateDocTask.setDbName("resources");
+            newRunCreateDocTask.setDocNameId("_design/apps");
+            newRunCreateDocTask.setSyncServerURL(sys_oldSyncServerURL);
+            newRunCreateDocTask.setViewContent(viewContent);
+            newRunCreateDocTask.execute("");
         }catch(Exception err){
             err.printStackTrace();
         }
         ///// End creating design Document
     }
-
-
-    //////// Start creating filtered replication file in couchdb //
-/*
-    public static String createDocument(String hostUrl, String databaseName, JSONObject jsonDoc,String DocId) {
-        try {
-            HttpPut httpPutRequest = new HttpPut(hostUrl +"/"+ databaseName+"/"+DocId);
-            StringEntity body = new StringEntity(jsonDoc.toString(), "utf8");
-            httpPutRequest.setEntity(body);
-            httpPutRequest.setHeader("Accept", "application/json");
-            httpPutRequest.setHeader("Content-type", "application/json");
-            // timeout params
-            HttpParams params = httpPutRequest.getParams();
-            params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, Integer.valueOf(1000));
-            params.setParameter(CoreConnectionPNames.SO_TIMEOUT, Integer.valueOf(1000));
-            httpPutRequest.setParams(params);
-
-            JSONObject jsonResult = sendCouchRequest(httpPutRequest);
-
-            Log.e("MyCouch",  ""+hostUrl);
-            Log.e("MyCouch",  ""+jsonResult);
-
-            if (!jsonResult.getBoolean("ok")) {
-                return null;
-            }else if(jsonResult.getString("error")=="conflict"){
-                Log.e("MyCouch", jsonResult.getString("reason"));
-            }
-            return jsonResult.getString("rev");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    private static JSONObject sendCouchRequest(HttpUriRequest request) {
-        try {
-            HttpResponse httpResponse = (HttpResponse) new DefaultHttpClient().execute(request);
-            HttpEntity entity = httpResponse.getEntity();
-            if (entity != null) {
-                // Read the content stream
-                InputStream instream = entity.getContent();
-                // Convert content stream to a String
-                String resultString = convertStreamToString(instream);
-                instream.close();
-                // Transform the String into a JSONObject
-                JSONObject jsonResult = new JSONObject(resultString);
-                return jsonResult;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-    */
-
-    public static String convertStreamToString(InputStream is) {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is), 8192);
-        StringBuilder sb = new StringBuilder();
-
-        String line = null;
-        try {
-            while ((line = reader.readLine()) != null) {
-                sb.append(line + "\n");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                is.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return sb.toString();
-    }
-
     class RunCreateDocTask extends AsyncTask<String, Void, Boolean> {
-
+        //createDocument(sys_oldSyncServerURL, "resources", designViewDoc,"_design/apps");
         private Exception exception;
-
+        private String cls_SyncServerURL;
+        private String cls_DbName;
+        private String cls_DocNameId;
+        private JsonObject cls_ViewContent;
+        public String getSyncServerURL(){
+            return cls_SyncServerURL;
+        }
+        public void setSyncServerURL(String oldSyncServerURL){
+            cls_SyncServerURL = oldSyncServerURL;
+        }
+        public String getDbName(){
+            return cls_DbName;
+        }
+        public void setDbName(String dbName){
+            cls_DbName = dbName;
+        }
+        public String getDocNameId(){
+            return cls_DocNameId;
+        }
+        public void setDocNameId(String docNameId){
+            cls_DocNameId = docNameId;
+        }
+        public JsonObject getViewContent(){
+            return cls_ViewContent;
+        }
+        public void setViewContent(JsonObject viewContent) {
+            cls_ViewContent = viewContent;
+        }
         protected Boolean doInBackground(String... urls) {
             try {
-                ///// TODO: 07/03/2017 change to use lightcouch
-               // createDocument(sys_oldSyncServerURL, "resources", designViewDoc,"_design/apps");
+                Log.e("MyCouch", "URL = "+getSyncServerURL());
+                URI uri = URI.create(getSyncServerURL());
+                String url_Scheme = uri.getScheme();
+                String url_Host = uri.getHost();
+                int url_Port = uri.getPort();
+                String url_user = "", url_pwd = "";
+                if (uri.getUserInfo() != null) {
+                    String[] userinfo = uri.getUserInfo().split(":");
+                    url_user = userinfo[0];
+                    url_pwd = userinfo[1];
+                }
+                CouchDbClientAndroid dbClient = new CouchDbClientAndroid(getDbName(), true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+                Log.e("MyCouch", "Creating design document "+getDocNameId()+" --- "+getDbName()+" --- "+url_Scheme+" --- " +url_Host+" --- " +url_Port+" --- " + url_user+" --- " + url_pwd);
+                if(!dbClient.contains(URLEncoder.encode(getDocNameId(), "UTF-8"))){
+                    JsonObject json = new JsonObject();
+                    json.addProperty("_id", getDocNameId());
+                    json.add("filters", getViewContent());
+                    dbClient.save(json);
+                }
                 return true;
             } catch (Exception e) {
                 this.exception = e;
-                return null;
+                Log.e("MyCouch", e.toString());
+                return false;
             }
         }
         protected void onPostExecute(Boolean docResult) {
@@ -666,7 +605,6 @@ public class FullscreenLogin extends AppCompatActivity {
                                     syncmembers=false;
                                     return;
                                 }
-
                                 Log.d("runOnUiThread", "running pull members");
                                 mDialog.setMessage("Downloading, please wait ... " + databaseList[syncCnt] +" ["+ (syncCnt+1) +" / "+ databaseList.length+"]");
                             }
@@ -682,14 +620,10 @@ public class FullscreenLogin extends AppCompatActivity {
             th.start();
         }
     }
-
-    //////// End creating filtered replication file
-
     class TestAsyncPull extends AsyncTask<Void, Integer, String> {
         protected void onPreExecute (){
             Log.d("PreExceute","On pre Exceute......");
         }
-
         protected String doInBackground(Void...arg0) {
             Log.d("DoINBackGround","On doInBackground...");
             syncmembers =true;
@@ -722,11 +656,8 @@ public class FullscreenLogin extends AppCompatActivity {
                     }
                 });
                 pull[syncCnt].start();
-
             } catch (Exception e) {
                 Log.e("MyCouch", databaseList[syncCnt]+" "+" Cannot create database", e);
-
-
             }
             publishProgress(syncCnt);
             return "You are at PostExecute";
@@ -737,12 +668,10 @@ public class FullscreenLogin extends AppCompatActivity {
             }else{
             }
         }
-
         protected void onPostExecute(String result) {
             Log.d("OnPostExec",""+result);
         }
     }
-
     public void emptyAllDbs(){
         for (int cnt = 0; cnt < databaseList.length; cnt++) {
             try {
@@ -777,7 +706,6 @@ public class FullscreenLogin extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
     public void connectWiFi() {
         WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
         wifiManager.setWifiEnabled(false);
@@ -804,7 +732,6 @@ public class FullscreenLogin extends AppCompatActivity {
         wifiManager.enableNetwork(netId, true);
         wifiManager.setWifiEnabled(true);
     }
-
     public void alertDialogOkay(String Message){
         AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
         builder1.setMessage(Message);
@@ -818,7 +745,6 @@ public class FullscreenLogin extends AppCompatActivity {
         AlertDialog alert11 = builder1.create();
         alert11.show();
     }
-
     private void copyAPK(int resource, String apkUrl) {
         InputStream in = getResources().openRawResource(resource);
         String root = Environment.getExternalStorageDirectory().toString();
@@ -842,108 +768,20 @@ public class FullscreenLogin extends AppCompatActivity {
         }
     }
 
-    public void updateRemoteResourceRating(final String resouceId,final Double sum,final int timesRated,final String revision){
-            final Fuel ful = new Fuel();
-            ful.get(sys_oldSyncServerURL+"/resources/"+resouceId).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
-                @Override
-                public void success(Request request, Response response, String s) {
-                    try {
-                        jsonServerData = new JSONObject(s);
-                        try {
-                            final double server_sum =  Double.parseDouble(jsonServerData.get("sum").toString());
-                            final int server_timesRated = (int) jsonServerData.get("timesRated");
-                            final String server_revision = (String) jsonServerData.get("_rev");
-                            Log.e("MyCouch", "resource current info "+jsonServerData);
-                            /// Todo : remove if statement and clear resourcerating database after action
-                            if(server_timesRated < timesRated){
-                                Log.e("MyCouch", "server = "+server_timesRated +"   local = "+timesRated);
-                                Fuel newfuel = new Fuel();
-                                final List<Pair<String, Integer>> params = new ArrayList<Pair<String, Integer>>() {{
-                                    add(new Pair<String, Integer>("timesRated", (server_timesRated+timesRated)));
-                                    add(new Pair<String, Integer>("sum", (int) (server_sum + sum)));
-                                }};
-                                newfuel.put(sys_oldSyncServerURL+"/resources/"+resouceId+"?new_edits=false&rev="+server_revision,params).responseString(new Handler<String>()  {
-                                    @Override
-                                    public void failure(@NotNull Request request, @NotNull Response response, @NotNull FuelError error) {
-                                        updateUI(error, null);
-                                    }
-
-                                    @Override
-                                    public void success(@NotNull Request request, @NotNull Response response, String data) {
-                                        updateUI(null, data);
-                                    }
-                                });
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-                @Override
-                public void failure(Request request, Response response, FuelError fuelError) {
-                    Log.e("MyCouch", "Reading resources error "+fuelError);
-
-                }
-            });
-    }
-
-    public void updateServerResourceRating(final String resouceId,final Double sum,final int timesRated,final String revision){
-        try {
-            URI uri = URI.create(sys_oldSyncServerURL);
-            String url_Scheme = uri.getScheme();
-            String url_Host = uri.getHost();
-            int url_Port = uri.getPort();
-            String url_user = "", url_pwd = "";
-            if (uri.getUserInfo() != null) {
-                String[] userinfo = uri.getUserInfo().split(":");
-                url_user = userinfo[0];
-                url_pwd = userinfo[1];
-            }
-            Log.e("MyCouch", "here "+ resouceId);
-
-            CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
-            if(dbClient.contains(resouceId)){
-                Log.e("MyCouch", "Found resource with Id"+ resouceId);
-            }
-            //boolean found = dbClient.contains("doc-id");
-            ////Obj_Holder newObjHandler = dbClient.find(Obj_Holder.class, "doc-id", "doc-rev");
-            //JsonObject json = dbClient.find(JsonObject.class, resouceId);
-        }catch(CouchDbException err){
-            Log.e("MyCouch", "error: "+ err);
-        }
-
-
-
-    }
-    private void updateUI(final FuelError error, final String result) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (error == null) {
-                   /// resultText.setText(resultText.getText() + result);
-                    Log.e("MyCouch", "error: " + result);
-                } else {
-                    Log.e("MyCouch", "error: " + error.getException().getMessage());
-                    ///resultText.setText(resultText.getText() + error.getException().getMessage());
-                }
-            }
-        });
-    }
-
     class UpdateResourceDocument extends AsyncTask<String, Void, String> {
         private Exception exception;
         private String cls_resouceId;
         private Double cls_sum;
         private int cls_timesRated;
         private String cls_revision;
-
         public String getResourceId(){
             return cls_resouceId;
         }
         public void setResourceId(String resouceId){
             cls_resouceId = resouceId;
+        }
+        public void getRevision(String revision){
+            cls_revision = revision;
         }
         public String setRevision(){
             return cls_revision;
@@ -959,9 +797,6 @@ public class FullscreenLogin extends AppCompatActivity {
         }
         public void setTimesRated(int timesRated) {
             cls_timesRated = timesRated;
-        }
-        public void setRevision(String revision){
-            cls_revision = revision;
         }
         protected String doInBackground(String... urls) {
             try {
@@ -984,7 +819,7 @@ public class FullscreenLogin extends AppCompatActivity {
                      json.addProperty("sum",total_sum);
                      json.addProperty("timesRated",total_timesRated);
                      dbClient.update(json);
-                    ///// TODO: 07/03/2017 Delete from device local couchdb since it has successfully updated server 
+                    ///// TODO: 07/03/2017 Delete from device local couchdb since it has successfully updated server
                 }
                 return "";
             } catch (Exception e) {
