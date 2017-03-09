@@ -1,6 +1,5 @@
 package pbell.offline.ole.org.pbell;
 
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -13,14 +12,11 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.Layout;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -31,23 +27,12 @@ import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
-import com.couchbase.lite.auth.Authenticator;
-import com.couchbase.lite.auth.BasicAuthenticator;
 import com.couchbase.lite.replicator.Replication;
-import com.couchbase.lite.replicator.ReplicationState;
 import com.github.kittinunf.fuel.Fuel;
 import com.github.kittinunf.fuel.core.FuelError;
 import com.github.kittinunf.fuel.core.Request;
 import com.github.kittinunf.fuel.core.Response;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.params.HttpParams;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -55,21 +40,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Member;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 
 public class SyncDevice extends AppCompatActivity {
     public static final String PREFS_NAME = "MyPrefsFile";
@@ -226,7 +204,8 @@ public class SyncDevice extends AppCompatActivity {
 
 
     ////// Create Filtered Replication View File
-
+    // Todo Change below to use lightcouch
+    /*
     public static String createDocument(String hostUrl, String databaseName, JSONObject jsonDoc,String DocId) {
         try {
             HttpPut httpPutRequest = new HttpPut(hostUrl +"/"+ databaseName+"/"+DocId);
@@ -276,6 +255,7 @@ public class SyncDevice extends AppCompatActivity {
         }
         return null;
     }
+    */
 
     public static String convertStreamToString(InputStream is) {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is), 8192);
@@ -304,7 +284,8 @@ public class SyncDevice extends AppCompatActivity {
 
         protected Boolean doInBackground(String... urls) {
             try {
-                createDocument(sys_oldSyncServerURL, "resources", designViewDoc,"_design/apps");
+                ///// Todo Call light couch function
+               // createDocument(sys_oldSyncServerURL, "resources", designViewDoc,"_design/apps");
                 return true;
             } catch (Exception e) {
                 this.exception = e;
