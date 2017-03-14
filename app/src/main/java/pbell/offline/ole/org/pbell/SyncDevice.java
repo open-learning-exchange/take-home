@@ -45,7 +45,10 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+<<<<<<< HEAD
 import java.net.URLEncoder;
+=======
+>>>>>>> master
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -205,6 +208,7 @@ public class SyncDevice extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
     }
+<<<<<<< HEAD
     class RunCreateDocTask extends AsyncTask<String, Void, Boolean> {
         private Exception exception;
         private String cls_SyncServerURL;
@@ -213,10 +217,44 @@ public class SyncDevice extends AppCompatActivity {
         private JsonObject cls_ViewContent;
         public String getSyncServerURL(){
             return cls_SyncServerURL;
+=======
+
+
+    ////// Create Filtered Replication View File
+    // Todo Change below to use lightcouch
+    /*
+    public static String createDocument(String hostUrl, String databaseName, JSONObject jsonDoc,String DocId) {
+        try {
+            HttpPut httpPutRequest = new HttpPut(hostUrl +"/"+ databaseName+"/"+DocId);
+            StringEntity body = new StringEntity(jsonDoc.toString(), "utf8");
+            httpPutRequest.setEntity(body);
+            httpPutRequest.setHeader("Accept", "application/json");
+            httpPutRequest.setHeader("Content-type", "application/json");
+            // timeout params
+            HttpParams params = httpPutRequest.getParams();
+            params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, Integer.valueOf(1000));
+            params.setParameter(CoreConnectionPNames.SO_TIMEOUT, Integer.valueOf(1000));
+            httpPutRequest.setParams(params);
+
+            JSONObject jsonResult = sendCouchRequest(httpPutRequest);
+
+            Log.v("Request =", ""+hostUrl);
+            Log.v("Returned from couch=", ""+jsonResult);
+
+            if (!jsonResult.getBoolean("ok")) {
+                return null;
+            }else if(jsonResult.getString("error")=="conflict"){
+                Log.v("Responce : ", jsonResult.getString("reason"));
+            }
+            return jsonResult.getString("rev");
+        } catch (Exception e) {
+            e.printStackTrace();
+>>>>>>> master
         }
         public void setSyncServerURL(String oldSyncServerURL){
             cls_SyncServerURL = oldSyncServerURL;
         }
+<<<<<<< HEAD
         public String getDbName(){
             return cls_DbName;
         }
@@ -234,9 +272,33 @@ public class SyncDevice extends AppCompatActivity {
         }
         public void setViewContent(JsonObject viewContent) {
             cls_ViewContent = viewContent;
+=======
+        return null;
+    }
+    */
+
+    public static String convertStreamToString(InputStream is) {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is), 8192);
+        StringBuilder sb = new StringBuilder();
+
+        String line = null;
+        try {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line + "\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+>>>>>>> master
         }
         protected Boolean doInBackground(String... urls) {
             try {
+<<<<<<< HEAD
                 Log.e("MyCouch", "URL = "+getSyncServerURL());
                 URI uri = URI.create(getSyncServerURL());
                 String url_Scheme = uri.getScheme();
@@ -256,6 +318,10 @@ public class SyncDevice extends AppCompatActivity {
                     json.add("filters", getViewContent());
                     dbClient.save(json);
                 }
+=======
+                ///// Todo Call light couch function
+               // createDocument(sys_oldSyncServerURL, "resources", designViewDoc,"_design/apps");
+>>>>>>> master
                 return true;
             } catch (Exception e) {
                 this.exception = e;

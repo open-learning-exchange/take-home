@@ -1,6 +1,9 @@
 package pbell.offline.ole.org.pbell;
 
+<<<<<<< HEAD
 import android.app.AlarmManager;
+=======
+>>>>>>> master
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -29,16 +32,30 @@ import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.replicator.Replication;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.github.kittinunf.fuel.Fuel;
 import com.github.kittinunf.fuel.core.FuelError;
 import com.github.kittinunf.fuel.core.Request;
 import com.github.kittinunf.fuel.core.Response;
+<<<<<<< HEAD
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lightcouch.CouchDbClientAndroid;
+=======
+import com.google.gson.JsonObject;
+
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.lightcouch.CouchDbClient;
+import org.lightcouch.CouchDbClientAndroid;
+import org.lightcouch.CouchDbException;
+import org.lightcouch.CouchDbProperties;
+>>>>>>> master
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -56,7 +73,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -64,6 +80,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+<<<<<<< HEAD
+=======
+import javax.xml.parsers.SAXParserFactory;
+
+import kotlin.Pair;
+
+>>>>>>> master
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
@@ -589,8 +612,35 @@ public class FullscreenLogin extends AppCompatActivity {
                     }
                 }
 
+<<<<<<< HEAD
             } catch (Exception e) {
                 e.printStackTrace();
+=======
+    //////// Start creating filtered replication file in couchdb //
+/*
+    public static String createDocument(String hostUrl, String databaseName, JSONObject jsonDoc,String DocId) {
+        try {
+            HttpPut httpPutRequest = new HttpPut(hostUrl +"/"+ databaseName+"/"+DocId);
+            StringEntity body = new StringEntity(jsonDoc.toString(), "utf8");
+            httpPutRequest.setEntity(body);
+            httpPutRequest.setHeader("Accept", "application/json");
+            httpPutRequest.setHeader("Content-type", "application/json");
+            // timeout params
+            HttpParams params = httpPutRequest.getParams();
+            params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, Integer.valueOf(1000));
+            params.setParameter(CoreConnectionPNames.SO_TIMEOUT, Integer.valueOf(1000));
+            httpPutRequest.setParams(params);
+
+            JSONObject jsonResult = sendCouchRequest(httpPutRequest);
+
+            Log.e("MyCouch",  ""+hostUrl);
+            Log.e("MyCouch",  ""+jsonResult);
+
+            if (!jsonResult.getBoolean("ok")) {
+                return null;
+            }else if(jsonResult.getString("error")=="conflict"){
+                Log.e("MyCouch", jsonResult.getString("reason"));
+>>>>>>> master
             }
 
         }
@@ -602,11 +652,15 @@ public class FullscreenLogin extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+<<<<<<< HEAD
     public void connectWiFi() {
         WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
         wifiManager.setWifiEnabled(false);
         String networkSSID = "\"Leonard's iPhone\"";
         String password="\"0l3gh@n@\"";
+=======
+    */
+>>>>>>> master
 
         WifiConfiguration conf = new WifiConfiguration();
         conf.SSID = "\"" + networkSSID + "\"";
@@ -696,6 +750,7 @@ public class FullscreenLogin extends AppCompatActivity {
         }
         protected Boolean doInBackground(String... urls) {
             try {
+<<<<<<< HEAD
                 Log.e("MyCouch", "URL = "+getSyncServerURL());
                 URI uri = URI.create(getSyncServerURL());
                 String url_Scheme = uri.getScheme();
@@ -715,6 +770,10 @@ public class FullscreenLogin extends AppCompatActivity {
                     json.add("filters", getViewContent());
                     dbClient.save(json);
                 }
+=======
+                ///// TODO: 07/03/2017 change to use lightcouch
+               // createDocument(sys_oldSyncServerURL, "resources", designViewDoc,"_design/apps");
+>>>>>>> master
                 return true;
             } catch (Exception e) {
                 this.exception = e;
@@ -875,5 +934,181 @@ public class FullscreenLogin extends AppCompatActivity {
             // TODO: check this.exception
             // TODO: do something with the message
         }
+<<<<<<< HEAD
     }
+=======
+        File dst = new File(myDir,apkUrl);
+        try {
+            FileOutputStream out = new FileOutputStream(dst);
+            byte[] buff = new byte[1024];
+            int read = 0;
+            while ((read = in.read(buff)) > 0) {
+                out.write(buff, 0, read);
+            }
+            in.close();
+            out.close();
+            Log.e("tag", "Adobe Reader Copied "+ dst.toString());
+        }catch(Exception err){
+            err.printStackTrace();
+        }
+    }
+
+    public void updateRemoteResourceRating(final String resouceId,final Double sum,final int timesRated,final String revision){
+            final Fuel ful = new Fuel();
+            ful.get(sys_oldSyncServerURL+"/resources/"+resouceId).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+                @Override
+                public void success(Request request, Response response, String s) {
+                    try {
+                        jsonServerData = new JSONObject(s);
+                        try {
+                            final double server_sum =  Double.parseDouble(jsonServerData.get("sum").toString());
+                            final int server_timesRated = (int) jsonServerData.get("timesRated");
+                            final String server_revision = (String) jsonServerData.get("_rev");
+                            Log.e("MyCouch", "resource current info "+jsonServerData);
+                            /// Todo : remove if statement and clear resourcerating database after action
+                            if(server_timesRated < timesRated){
+                                Log.e("MyCouch", "server = "+server_timesRated +"   local = "+timesRated);
+                                Fuel newfuel = new Fuel();
+                                final List<Pair<String, Integer>> params = new ArrayList<Pair<String, Integer>>() {{
+                                    add(new Pair<String, Integer>("timesRated", (server_timesRated+timesRated)));
+                                    add(new Pair<String, Integer>("sum", (int) (server_sum + sum)));
+                                }};
+                                newfuel.put(sys_oldSyncServerURL+"/resources/"+resouceId+"?new_edits=false&rev="+server_revision,params).responseString(new Handler<String>()  {
+                                    @Override
+                                    public void failure(@NotNull Request request, @NotNull Response response, @NotNull FuelError error) {
+                                        updateUI(error, null);
+                                    }
+
+                                    @Override
+                                    public void success(@NotNull Request request, @NotNull Response response, String data) {
+                                        updateUI(null, data);
+                                    }
+                                });
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                @Override
+                public void failure(Request request, Response response, FuelError fuelError) {
+                    Log.e("MyCouch", "Reading resources error "+fuelError);
+
+                }
+            });
+    }
+
+    public void updateServerResourceRating(final String resouceId,final Double sum,final int timesRated,final String revision){
+        try {
+            URI uri = URI.create(sys_oldSyncServerURL);
+            String url_Scheme = uri.getScheme();
+            String url_Host = uri.getHost();
+            int url_Port = uri.getPort();
+            String url_user = "", url_pwd = "";
+            if (uri.getUserInfo() != null) {
+                String[] userinfo = uri.getUserInfo().split(":");
+                url_user = userinfo[0];
+                url_pwd = userinfo[1];
+            }
+            Log.e("MyCouch", "here "+ resouceId);
+
+            CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+            if(dbClient.contains(resouceId)){
+                Log.e("MyCouch", "Found resource with Id"+ resouceId);
+            }
+            //boolean found = dbClient.contains("doc-id");
+            ////Obj_Holder newObjHandler = dbClient.find(Obj_Holder.class, "doc-id", "doc-rev");
+            //JsonObject json = dbClient.find(JsonObject.class, resouceId);
+        }catch(CouchDbException err){
+            Log.e("MyCouch", "error: "+ err);
+        }
+
+
+
+    }
+    private void updateUI(final FuelError error, final String result) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (error == null) {
+                   /// resultText.setText(resultText.getText() + result);
+                    Log.e("MyCouch", "error: " + result);
+                } else {
+                    Log.e("MyCouch", "error: " + error.getException().getMessage());
+                    ///resultText.setText(resultText.getText() + error.getException().getMessage());
+                }
+            }
+        });
+    }
+
+    class UpdateResourceDocument extends AsyncTask<String, Void, String> {
+        private Exception exception;
+        private String cls_resouceId;
+        private Double cls_sum;
+        private int cls_timesRated;
+        private String cls_revision;
+
+        public String getResourceId(){
+            return cls_resouceId;
+        }
+        public void setResourceId(String resouceId){
+            cls_resouceId = resouceId;
+        }
+        public String setRevision(){
+            return cls_revision;
+        }
+        public Double getSum(){
+            return cls_sum;
+        }
+        public void setSum(Double sum){
+            cls_sum = sum;
+        }
+        public int getTimesRated(){
+            return cls_timesRated;
+        }
+        public void setTimesRated(int timesRated) {
+            cls_timesRated = timesRated;
+        }
+        public void setRevision(String revision){
+            cls_revision = revision;
+        }
+        protected String doInBackground(String... urls) {
+            try {
+                URI uri = URI.create(sys_oldSyncServerURL);
+                String url_Scheme = uri.getScheme();
+                String url_Host = uri.getHost();
+                int url_Port = uri.getPort();
+                String url_user = "", url_pwd = "";
+                if (uri.getUserInfo() != null) {
+                    String[] userinfo = uri.getUserInfo().split(":");
+                    url_user = userinfo[0];
+                    url_pwd = userinfo[1];
+                }
+                CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+                if(dbClient.contains(cls_resouceId)){
+                    /// Handle with Json
+                    JsonObject json = dbClient.find(JsonObject.class, getResourceId());
+                    Double total_sum = (Double) (getSum() + Double.parseDouble(json.get("sum").getAsString()));
+                     int total_timesRated = getTimesRated() + Integer.parseInt(json.get("timesRated").toString());
+                     json.addProperty("sum",total_sum);
+                     json.addProperty("timesRated",total_timesRated);
+                     dbClient.update(json);
+                    ///// TODO: 07/03/2017 Delete from device local couchdb since it has successfully updated server 
+                }
+                return "";
+            } catch (Exception e) {
+                this.exception = e;
+                Log.e("MyCouch", e.getMessage());
+                return null;
+            }
+        }
+
+        protected void onPostExecute(String message) {
+            // TODO: check this.exception
+            // TODO: do something with the message
+        }
+    }
+>>>>>>> master
 }
