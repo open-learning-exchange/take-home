@@ -32,16 +32,23 @@ import com.github.kittinunf.fuel.Fuel;
 import com.github.kittinunf.fuel.core.FuelError;
 import com.github.kittinunf.fuel.core.Request;
 import com.github.kittinunf.fuel.core.Response;
+import com.google.gson.JsonObject;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.lightcouch.CouchDbClientAndroid;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
+<<<<<<< HEAD
+import java.net.URLEncoder;
+=======
+>>>>>>> master
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -201,6 +208,16 @@ public class SyncDevice extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
     }
+<<<<<<< HEAD
+    class RunCreateDocTask extends AsyncTask<String, Void, Boolean> {
+        private Exception exception;
+        private String cls_SyncServerURL;
+        private String cls_DbName;
+        private String cls_DocNameId;
+        private JsonObject cls_ViewContent;
+        public String getSyncServerURL(){
+            return cls_SyncServerURL;
+=======
 
 
     ////// Create Filtered Replication View File
@@ -232,27 +249,30 @@ public class SyncDevice extends AppCompatActivity {
             return jsonResult.getString("rev");
         } catch (Exception e) {
             e.printStackTrace();
+>>>>>>> master
         }
-        return null;
-    }
-
-    private static JSONObject sendCouchRequest(HttpUriRequest request) {
-        try {
-            HttpResponse httpResponse = (HttpResponse) new DefaultHttpClient().execute(request);
-            HttpEntity entity = httpResponse.getEntity();
-            if (entity != null) {
-                // Read the content stream
-                InputStream instream = entity.getContent();
-                // Convert content stream to a String
-                String resultString = convertStreamToString(instream);
-                instream.close();
-                // Transform the String into a JSONObject
-                JSONObject jsonResult = new JSONObject(resultString);
-                return jsonResult;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        public void setSyncServerURL(String oldSyncServerURL){
+            cls_SyncServerURL = oldSyncServerURL;
         }
+<<<<<<< HEAD
+        public String getDbName(){
+            return cls_DbName;
+        }
+        public void setDbName(String dbName){
+            cls_DbName = dbName;
+        }
+        public String getDocNameId(){
+            return cls_DocNameId;
+        }
+        public void setDocNameId(String docNameId){
+            cls_DocNameId = docNameId;
+        }
+        public JsonObject getViewContent(){
+            return cls_ViewContent;
+        }
+        public void setViewContent(JsonObject viewContent) {
+            cls_ViewContent = viewContent;
+=======
         return null;
     }
     */
@@ -274,26 +294,41 @@ public class SyncDevice extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+>>>>>>> master
         }
-        return sb.toString();
-    }
-
-    class RunCreateDocTask extends AsyncTask<String, Void, Boolean> {
-
-        private Exception exception;
-
         protected Boolean doInBackground(String... urls) {
             try {
+<<<<<<< HEAD
+                Log.e("MyCouch", "URL = "+getSyncServerURL());
+                URI uri = URI.create(getSyncServerURL());
+                String url_Scheme = uri.getScheme();
+                String url_Host = uri.getHost();
+                int url_Port = uri.getPort();
+                String url_user = "", url_pwd = "";
+                if (uri.getUserInfo() != null) {
+                    String[] userinfo = uri.getUserInfo().split(":");
+                    url_user = userinfo[0];
+                    url_pwd = userinfo[1];
+                }
+                CouchDbClientAndroid dbClient = new CouchDbClientAndroid(getDbName(), true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+                Log.e("MyCouch", "Creating design document "+getDocNameId()+" --- "+getDbName()+" --- "+url_Scheme+" --- " +url_Host+" --- " +url_Port+" --- " + url_user+" --- " + url_pwd);
+                if(!dbClient.contains(URLEncoder.encode(getDocNameId(), "UTF-8"))){
+                    JsonObject json = new JsonObject();
+                    json.addProperty("_id", getDocNameId());
+                    json.add("filters", getViewContent());
+                    dbClient.save(json);
+                }
+=======
                 ///// Todo Call light couch function
                // createDocument(sys_oldSyncServerURL, "resources", designViewDoc,"_design/apps");
+>>>>>>> master
                 return true;
             } catch (Exception e) {
                 this.exception = e;
-
-                return null;
+                Log.e("MyCouch", e.toString());
+                return false;
             }
         }
-
         protected void onPostExecute(Boolean docResult) {
 
         }

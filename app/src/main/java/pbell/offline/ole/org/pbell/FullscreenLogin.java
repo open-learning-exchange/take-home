@@ -1,5 +1,9 @@
 package pbell.offline.ole.org.pbell;
 
+<<<<<<< HEAD
+import android.app.AlarmManager;
+=======
+>>>>>>> master
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -17,6 +21,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 
 import com.couchbase.lite.Database;
@@ -31,9 +36,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.github.kittinunf.fuel.Fuel;
 import com.github.kittinunf.fuel.core.FuelError;
-import com.github.kittinunf.fuel.core.Handler;
 import com.github.kittinunf.fuel.core.Request;
 import com.github.kittinunf.fuel.core.Response;
+<<<<<<< HEAD
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.lightcouch.CouchDbClientAndroid;
+=======
 import com.google.gson.JsonObject;
 
 import org.jetbrains.annotations.NotNull;
@@ -43,8 +55,10 @@ import org.lightcouch.CouchDbClient;
 import org.lightcouch.CouchDbClientAndroid;
 import org.lightcouch.CouchDbException;
 import org.lightcouch.CouchDbProperties;
+>>>>>>> master
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -52,7 +66,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,10 +80,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+<<<<<<< HEAD
+=======
 import javax.xml.parsers.SAXParserFactory;
 
 import kotlin.Pair;
 
+>>>>>>> master
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
@@ -89,7 +108,7 @@ public class FullscreenLogin extends AppCompatActivity {
 
     String sys_oldSyncServerURL,sys_username,sys_lastSyncDate,
             sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
-            sys_usergender,sys_uservisits,sys_servername,sys_serverversion="";
+            sys_usergender,sys_uservisits,sys_servername,sys_serverversion,sys_NewDate="";
     Boolean sys_singlefilestreamdownload,sys_multiplefilestreamdownload;
     Object[] sys_membersWithResource;
     int sys_uservisits_Int;
@@ -112,7 +131,6 @@ public class FullscreenLogin extends AppCompatActivity {
     boolean syncmembers,openMemberList= false;
     int syncCnt =0;
     AndroidContext androidContext;
-    JSONObject designViewDoc;
     Database database;
     Replication pullReplication;
     Button dialogSyncButton;
@@ -233,12 +251,10 @@ public class FullscreenLogin extends AppCompatActivity {
         });
 
     }
-
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
     }
-
     public boolean authenticateUser(){
         AndroidContext androidContext = new AndroidContext(this);
         Manager manager = null;
@@ -285,8 +301,8 @@ public class FullscreenLogin extends AppCompatActivity {
                         editor.putStringSet("pf_userroles", stgSet);
                         editor.commit();
                         Log.e("MYAPP", " RowChipsView Login OLD encryption: " + doc_loginId + " Password: " + doc_password);
-                        Intent intent = new Intent(this, FullscreenActivity.class);
-                        startActivity(intent);
+                        setDateDialog();
+
                         return true;
 
                     }else if (doc_password == "" && !mPasswordView.getText().toString().equals("")) {
@@ -320,14 +336,9 @@ public class FullscreenLogin extends AppCompatActivity {
                                 editor.putStringSet("pf_userroles", stgSet);
                                 editor.commit();
                                 Log.e("MYAPP", " RowChipsView Login Id: " + doc_loginId + " Password: " + doc_password);
-                                Intent intent = new Intent(this, FullscreenActivity.class);
-                                startActivity(intent);
+                                setDateDialog();
                                 return true;
-
                             }
-
-                            ////doc_credentials.get("salt").toString());
-                            ///doc_credentials.get("value").toString()
                         } catch (Exception err) {
                             Log.e("MYAPP", " Encryption Err  " + err.getMessage());
                         }
@@ -345,7 +356,6 @@ public class FullscreenLogin extends AppCompatActivity {
             return false;
         }
     }
-
     public boolean getSystemInfo(){
         AndroidContext androidContext = new AndroidContext(this);
         Manager manager = null;
@@ -379,7 +389,6 @@ public class FullscreenLogin extends AppCompatActivity {
             return false;
         }
     }
-
     public int totalVisits(String memberId){
         AndroidContext androidContext = new AndroidContext(this);
         Manager manager = null;
@@ -417,11 +426,8 @@ public class FullscreenLogin extends AppCompatActivity {
             Log.e("MyCouch", "ERR : " +err.getMessage());
 
         }
-
         return -1;
-
     }
-
     public String todaysDate(){
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Calendar cal = Calendar.getInstance();
@@ -429,9 +435,7 @@ public class FullscreenLogin extends AppCompatActivity {
         return dateFormat.format(cal.getTime());
 
     }
-
     public void getSyncURLDialog(){
-
         final WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
         AlertDialog.Builder dialogB = new AlertDialog.Builder(this);
         dialogB.setView(R.layout.dialog_setup);
@@ -440,12 +444,10 @@ public class FullscreenLogin extends AppCompatActivity {
         dialog.show();
         final EditText txtSuncURL = (EditText) dialog.findViewById(R.id.txtNewSyncURL);
         txtSuncURL.setText(sys_oldSyncServerURL);
-
         Button TestConnButton = (Button) dialog.findViewById(R.id.btnTestCnnection);
         TestConnButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 TestConnectionToServer(txtSuncURL.getText().toString());
             }
         });
@@ -474,9 +476,7 @@ public class FullscreenLogin extends AppCompatActivity {
                 }
             }
         });
-
         dialogSyncButton.setVisibility(View.INVISIBLE);
-
         if(wifiManager.isWifiEnabled()) {
             dialog.show();
             ////
@@ -503,9 +503,45 @@ public class FullscreenLogin extends AppCompatActivity {
             builder.setMessage("Wifi is off. Are you sure you want to turn it on?").setPositiveButton("Yes", dialogClickListener)
                     .setNegativeButton("No", dialogClickListener).show();
         }
-
     }
+    public void setDateDialog(){
+        final WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        AlertDialog.Builder dialogB = new AlertDialog.Builder(this);
+        dialogB.setView(R.layout.dialog_date);
+        dialogB.setCancelable(true);
+        dialog = dialogB.create();
+        dialog.show();
+        Button saveDate = (Button) dialog.findViewById(R.id.btnSaveDate);
+        final DatePicker dp = (DatePicker) dialog.findViewById(R.id.datePicker);
+        String day = String.valueOf(dp.getDayOfMonth())+"-"+String.valueOf(dp.getMonth() + 1) +"-"+String.valueOf(dp.getYear());
+        Log.e("MyCouch", "  date   " + day);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+        try {
+            Date date = sdf.parse(day);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        saveDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Calendar cal = Calendar.getInstance();
+                cal.set(dp.getYear(), dp.getMonth(), dp.getDayOfMonth());
+                //int DateDif = cal.compareTo(Calendar.getInstance());
+                //Log.e("MyCouch", "  date diff  " + DateDif);
+                //if(){
 
+                //}
+                // sys_NewDate = dp.getMonth();
+                //SharedPreferences.Editor editor = settings.edit();
+                //editor.putString("pf_NewDate", sys_oldSyncServerURL);
+                //editor.commit();
+               // startActivity(new Intent(android.provider.Settings.ACTION_DATE_SETTINGS));
+                Intent intent = new Intent(context, FullscreenActivity.class);
+                startActivity(intent);
+                dialog.dismiss();
+            }
+        });
+    }
     public void restorePref(){
         // Restore preferences
         settings = getSharedPreferences(PREFS_NAME, 0);
@@ -538,28 +574,48 @@ public class FullscreenLogin extends AppCompatActivity {
             Log.e("MYAPP", " Error creating  sys_membersWithResource");
         }
     }
-
     public void syncNotifier(){
         emptyAllDbs();
         //// Start creating filtered replication design Document
         try{
-            designViewDoc = new JSONObject();
-            JSONObject filter = new JSONObject();
-            try {
-                filter.put("by_resource","function(doc, req){return doc._id === req.query._id;}");
-                designViewDoc.put("filters",filter);
-            } catch (JSONException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            new RunCreateDocTask().execute("");
+            JsonObject viewContent = new JsonObject();
+            viewContent.addProperty("by_resource","function(doc, req){return doc._id === req.query._id;}");
+            RunCreateDocTask newRunCreateDocTask = new RunCreateDocTask();
+            newRunCreateDocTask.setDbName("resources");
+            newRunCreateDocTask.setDocNameId("_design/apps");
+            newRunCreateDocTask.setSyncServerURL(sys_oldSyncServerURL);
+            newRunCreateDocTask.setViewContent(viewContent);
+            newRunCreateDocTask.execute("");
         }catch(Exception err){
             err.printStackTrace();
         }
         ///// End creating design Document
     }
+    public void emptyAllDbs(){
+        for (int cnt = 0; cnt < databaseList.length; cnt++) {
+            try {
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbResources = manager.getDatabase(databaseList[cnt]);
+                dbResources.delete();
 
+                String root = Environment.getExternalStorageDirectory().toString();
+                File myDir = new File(root + "/ole_temp");
+                String[] flist = myDir.list();
+                for(int i=0;i<flist.length;i++) {
+                    System.out.println(" " + myDir.getAbsolutePath());
+                    File temp = new File(myDir.getAbsolutePath() + "/" + flist[i]);
+                    if (temp.isDirectory()) {
+                        Log.d("Delete "," Deleting "+temp.getName());
+                        temp.delete();
+                    } else {
+                        temp.delete();
+                    }
+                }
 
+<<<<<<< HEAD
+            } catch (Exception e) {
+                e.printStackTrace();
+=======
     //////// Start creating filtered replication file in couchdb //
 /*
     public static String createDocument(String hostUrl, String databaseName, JSONObject jsonDoc,String DocId) {
@@ -584,68 +640,145 @@ public class FullscreenLogin extends AppCompatActivity {
                 return null;
             }else if(jsonResult.getString("error")=="conflict"){
                 Log.e("MyCouch", jsonResult.getString("reason"));
+>>>>>>> master
             }
-            return jsonResult.getString("rev");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
-    private static JSONObject sendCouchRequest(HttpUriRequest request) {
+        }
         try {
-            HttpResponse httpResponse = (HttpResponse) new DefaultHttpClient().execute(request);
-            HttpEntity entity = httpResponse.getEntity();
-            if (entity != null) {
-                // Read the content stream
-                InputStream instream = entity.getContent();
-                // Convert content stream to a String
-                String resultString = convertStreamToString(instream);
-                instream.close();
-                // Transform the String into a JSONObject
-                JSONObject jsonResult = new JSONObject(resultString);
-                return jsonResult;
-            }
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database dbResources = manager.getDatabase("resources");
+            dbResources.delete();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
     }
+<<<<<<< HEAD
+    public void connectWiFi() {
+        WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        wifiManager.setWifiEnabled(false);
+        String networkSSID = "\"Leonard's iPhone\"";
+        String password="\"0l3gh@n@\"";
+=======
     */
+>>>>>>> master
 
-    public static String convertStreamToString(InputStream is) {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is), 8192);
-        StringBuilder sb = new StringBuilder();
+        WifiConfiguration conf = new WifiConfiguration();
+        conf.SSID = "\"" + networkSSID + "\"";
+        conf.preSharedKey = "\"" + password + "\"";
+//      conf.hiddenSSID = true;
+//      conf.wepTxKeyIndex = 0;
+        conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+//        conf.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
+//      conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
 
-        String line = null;
-        try {
-            while ((line = reader.readLine()) != null) {
-                sb.append(line + "\n");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                is.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return sb.toString();
+        conf.status = WifiConfiguration.Status.ENABLED;
+        conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
+        conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
+        conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+        conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
+        conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
+        conf.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
+        int netId = wifiManager.addNetwork(conf);
+        wifiManager.enableNetwork(netId, true);
+        wifiManager.setWifiEnabled(true);
     }
-
+    public void alertDialogOkay(String Message){
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
+        builder1.setMessage(Message);
+        builder1.setCancelable(true);
+        builder1.setNegativeButton("Okay",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert11 = builder1.create();
+        alert11.show();
+    }
+    private void copyAPK(int resource, String apkUrl) {
+        InputStream in = getResources().openRawResource(resource);
+        String root = Environment.getExternalStorageDirectory().toString();
+        File myDir = new File(root + "/ole_temp2");
+        if (!myDir.exists()){
+            myDir.mkdirs();
+        }
+        File dst = new File(myDir,apkUrl);
+        try {
+            FileOutputStream out = new FileOutputStream(dst);
+            byte[] buff = new byte[1024];
+            int read = 0;
+            while ((read = in.read(buff)) > 0) {
+                out.write(buff, 0, read);
+            }
+            in.close();
+            out.close();
+            Log.e("tag", "Adobe Reader Copied "+ dst.toString());
+        }catch(Exception err){
+            err.printStackTrace();
+        }
+    }
     class RunCreateDocTask extends AsyncTask<String, Void, Boolean> {
-
+        //createDocument(sys_oldSyncServerURL, "resources", designViewDoc,"_design/apps");
         private Exception exception;
-
+        private String cls_SyncServerURL;
+        private String cls_DbName;
+        private String cls_DocNameId;
+        private JsonObject cls_ViewContent;
+        public String getSyncServerURL(){
+            return cls_SyncServerURL;
+        }
+        public void setSyncServerURL(String oldSyncServerURL){
+            cls_SyncServerURL = oldSyncServerURL;
+        }
+        public String getDbName(){
+            return cls_DbName;
+        }
+        public void setDbName(String dbName){
+            cls_DbName = dbName;
+        }
+        public String getDocNameId(){
+            return cls_DocNameId;
+        }
+        public void setDocNameId(String docNameId){
+            cls_DocNameId = docNameId;
+        }
+        public JsonObject getViewContent(){
+            return cls_ViewContent;
+        }
+        public void setViewContent(JsonObject viewContent) {
+            cls_ViewContent = viewContent;
+        }
         protected Boolean doInBackground(String... urls) {
             try {
+<<<<<<< HEAD
+                Log.e("MyCouch", "URL = "+getSyncServerURL());
+                URI uri = URI.create(getSyncServerURL());
+                String url_Scheme = uri.getScheme();
+                String url_Host = uri.getHost();
+                int url_Port = uri.getPort();
+                String url_user = "", url_pwd = "";
+                if (uri.getUserInfo() != null) {
+                    String[] userinfo = uri.getUserInfo().split(":");
+                    url_user = userinfo[0];
+                    url_pwd = userinfo[1];
+                }
+                CouchDbClientAndroid dbClient = new CouchDbClientAndroid(getDbName(), true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+                Log.e("MyCouch", "Creating design document "+getDocNameId()+" --- "+getDbName()+" --- "+url_Scheme+" --- " +url_Host+" --- " +url_Port+" --- " + url_user+" --- " + url_pwd);
+                if(!dbClient.contains(URLEncoder.encode(getDocNameId(), "UTF-8"))){
+                    JsonObject json = new JsonObject();
+                    json.addProperty("_id", getDocNameId());
+                    json.add("filters", getViewContent());
+                    dbClient.save(json);
+                }
+=======
                 ///// TODO: 07/03/2017 change to use lightcouch
                // createDocument(sys_oldSyncServerURL, "resources", designViewDoc,"_design/apps");
+>>>>>>> master
                 return true;
             } catch (Exception e) {
                 this.exception = e;
-                return null;
+                Log.e("MyCouch", e.toString());
+                return false;
             }
         }
         protected void onPostExecute(Boolean docResult) {
@@ -666,7 +799,6 @@ public class FullscreenLogin extends AppCompatActivity {
                                     syncmembers=false;
                                     return;
                                 }
-
                                 Log.d("runOnUiThread", "running pull members");
                                 mDialog.setMessage("Downloading, please wait ... " + databaseList[syncCnt] +" ["+ (syncCnt+1) +" / "+ databaseList.length+"]");
                             }
@@ -682,14 +814,10 @@ public class FullscreenLogin extends AppCompatActivity {
             th.start();
         }
     }
-
-    //////// End creating filtered replication file
-
     class TestAsyncPull extends AsyncTask<Void, Integer, String> {
         protected void onPreExecute (){
             Log.d("PreExceute","On pre Exceute......");
         }
-
         protected String doInBackground(Void...arg0) {
             Log.d("DoINBackGround","On doInBackground...");
             syncmembers =true;
@@ -722,11 +850,8 @@ public class FullscreenLogin extends AppCompatActivity {
                     }
                 });
                 pull[syncCnt].start();
-
             } catch (Exception e) {
                 Log.e("MyCouch", databaseList[syncCnt]+" "+" Cannot create database", e);
-
-
             }
             publishProgress(syncCnt);
             return "You are at PostExecute";
@@ -737,95 +862,81 @@ public class FullscreenLogin extends AppCompatActivity {
             }else{
             }
         }
-
         protected void onPostExecute(String result) {
             Log.d("OnPostExec",""+result);
         }
     }
-
-    public void emptyAllDbs(){
-        for (int cnt = 0; cnt < databaseList.length; cnt++) {
+    class UpdateResourceDocument extends AsyncTask<String, Void, String> {
+        private Exception exception;
+        private String cls_resouceId;
+        private Double cls_sum;
+        private int cls_timesRated;
+        private String cls_revision;
+        public String getResourceId(){
+            return cls_resouceId;
+        }
+        public void setResourceId(String resouceId){
+            cls_resouceId = resouceId;
+        }
+        public void getRevision(String revision){
+            cls_revision = revision;
+        }
+        public String setRevision(){
+            return cls_revision;
+        }
+        public Double getSum(){
+            return cls_sum;
+        }
+        public void setSum(Double sum){
+            cls_sum = sum;
+        }
+        public int getTimesRated(){
+            return cls_timesRated;
+        }
+        public void setTimesRated(int timesRated) {
+            cls_timesRated = timesRated;
+        }
+        protected String doInBackground(String... urls) {
             try {
-                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                Database dbResources = manager.getDatabase(databaseList[cnt]);
-                dbResources.delete();
-
-                String root = Environment.getExternalStorageDirectory().toString();
-                File myDir = new File(root + "/ole_temp");
-                String[] flist = myDir.list();
-                for(int i=0;i<flist.length;i++) {
-                    System.out.println(" " + myDir.getAbsolutePath());
-                    File temp = new File(myDir.getAbsolutePath() + "/" + flist[i]);
-                    if (temp.isDirectory()) {
-                        Log.d("Delete "," Deleting "+temp.getName());
-                        temp.delete();
-                    } else {
-                        temp.delete();
-                    }
+                URI uri = URI.create(sys_oldSyncServerURL);
+                String url_Scheme = uri.getScheme();
+                String url_Host = uri.getHost();
+                int url_Port = uri.getPort();
+                String url_user = "", url_pwd = "";
+                if (uri.getUserInfo() != null) {
+                    String[] userinfo = uri.getUserInfo().split(":");
+                    url_user = userinfo[0];
+                    url_pwd = userinfo[1];
                 }
+                CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+                if(dbClient.contains(cls_resouceId)){
+                    /// Handle with Json
+                    JsonObject json = dbClient.find(JsonObject.class, getResourceId());
+                    Double total_sum = (Double) (getSum() + Double.parseDouble(json.get("sum").getAsString()));
+                     int total_timesRated = getTimesRated() + Integer.parseInt(json.get("timesRated").toString());
+                     json.addProperty("sum",total_sum);
+                     json.addProperty("timesRated",total_timesRated);
+                     dbClient.update(json);
+                    Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                    Database dbResources = manager.getDatabase("resourcerating");
+                    dbResources.delete();
 
+                }
+                return "";
             } catch (Exception e) {
-                e.printStackTrace();
+                this.exception = e;
+                Log.e("MyCouch", e.getMessage());
+                return null;
             }
-
         }
-        try {
-            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-            Database dbResources = manager.getDatabase("resources");
-            dbResources.delete();
-        } catch (Exception e) {
-            e.printStackTrace();
+
+        protected void onPostExecute(String message) {
+            // TODO: check this.exception
+            // TODO: do something with the message
         }
+<<<<<<< HEAD
     }
-
-    public void connectWiFi() {
-        WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
-        wifiManager.setWifiEnabled(false);
-        String networkSSID = "\"Leonard's iPhone\"";
-        String password="\"0l3gh@n@\"";
-
-        WifiConfiguration conf = new WifiConfiguration();
-        conf.SSID = "\"" + networkSSID + "\"";
-        conf.preSharedKey = "\"" + password + "\"";
-//      conf.hiddenSSID = true;
-//      conf.wepTxKeyIndex = 0;
-        conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
-//        conf.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
-//      conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
-
-        conf.status = WifiConfiguration.Status.ENABLED;
-        conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
-        conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
-        conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
-        conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
-        conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
-        conf.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
-        int netId = wifiManager.addNetwork(conf);
-        wifiManager.enableNetwork(netId, true);
-        wifiManager.setWifiEnabled(true);
-    }
-
-    public void alertDialogOkay(String Message){
-        AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
-        builder1.setMessage(Message);
-        builder1.setCancelable(true);
-        builder1.setNegativeButton("Okay",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                    }
-                });
-        AlertDialog alert11 = builder1.create();
-        alert11.show();
-    }
-
-    private void copyAPK(int resource, String apkUrl) {
-        InputStream in = getResources().openRawResource(resource);
-        String root = Environment.getExternalStorageDirectory().toString();
-        File myDir = new File(root + "/ole_temp2");
-        if (!myDir.exists()){
-            myDir.mkdirs();
-        }
+=======
         File dst = new File(myDir,apkUrl);
         try {
             FileOutputStream out = new FileOutputStream(dst);
@@ -999,4 +1110,5 @@ public class FullscreenLogin extends AppCompatActivity {
             // TODO: do something with the message
         }
     }
+>>>>>>> master
 }
