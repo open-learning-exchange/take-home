@@ -1,5 +1,6 @@
 package pbell.offline.ole.org.pbell;
 
+import android.app.AlarmManager;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -17,6 +18,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 
 import com.couchbase.lite.Database;
@@ -39,6 +41,7 @@ import org.json.JSONObject;
 import org.lightcouch.CouchDbClientAndroid;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -48,10 +51,12 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -80,7 +85,7 @@ public class FullscreenLogin extends AppCompatActivity {
 
     String sys_oldSyncServerURL,sys_username,sys_lastSyncDate,
             sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
-            sys_usergender,sys_uservisits,sys_servername,sys_serverversion="";
+            sys_usergender,sys_uservisits,sys_servername,sys_serverversion,sys_NewDate="";
     Boolean sys_singlefilestreamdownload,sys_multiplefilestreamdownload;
     Object[] sys_membersWithResource;
     int sys_uservisits_Int;
@@ -223,12 +228,10 @@ public class FullscreenLogin extends AppCompatActivity {
         });
 
     }
-
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
     }
-
     public boolean authenticateUser(){
         AndroidContext androidContext = new AndroidContext(this);
         Manager manager = null;
@@ -275,8 +278,8 @@ public class FullscreenLogin extends AppCompatActivity {
                         editor.putStringSet("pf_userroles", stgSet);
                         editor.commit();
                         Log.e("MYAPP", " RowChipsView Login OLD encryption: " + doc_loginId + " Password: " + doc_password);
-                        Intent intent = new Intent(this, FullscreenActivity.class);
-                        startActivity(intent);
+                        setDateDialog();
+
                         return true;
 
                     }else if (doc_password == "" && !mPasswordView.getText().toString().equals("")) {
@@ -310,8 +313,7 @@ public class FullscreenLogin extends AppCompatActivity {
                                 editor.putStringSet("pf_userroles", stgSet);
                                 editor.commit();
                                 Log.e("MYAPP", " RowChipsView Login Id: " + doc_loginId + " Password: " + doc_password);
-                                Intent intent = new Intent(this, FullscreenActivity.class);
-                                startActivity(intent);
+                                setDateDialog();
                                 return true;
                             }
                         } catch (Exception err) {
@@ -479,6 +481,44 @@ public class FullscreenLogin extends AppCompatActivity {
                     .setNegativeButton("No", dialogClickListener).show();
         }
     }
+    public void setDateDialog(){
+        final WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        AlertDialog.Builder dialogB = new AlertDialog.Builder(this);
+        dialogB.setView(R.layout.dialog_date);
+        dialogB.setCancelable(true);
+        dialog = dialogB.create();
+        dialog.show();
+        Button saveDate = (Button) dialog.findViewById(R.id.btnSaveDate);
+        final DatePicker dp = (DatePicker) dialog.findViewById(R.id.datePicker);
+        String day = String.valueOf(dp.getDayOfMonth())+"-"+String.valueOf(dp.getMonth() + 1) +"-"+String.valueOf(dp.getYear());
+        Log.e("MyCouch", "  date   " + day);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+        try {
+            Date date = sdf.parse(day);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        saveDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Calendar cal = Calendar.getInstance();
+                cal.set(dp.getYear(), dp.getMonth(), dp.getDayOfMonth());
+                //int DateDif = cal.compareTo(Calendar.getInstance());
+                //Log.e("MyCouch", "  date diff  " + DateDif);
+                //if(){
+
+                //}
+                // sys_NewDate = dp.getMonth();
+                //SharedPreferences.Editor editor = settings.edit();
+                //editor.putString("pf_NewDate", sys_oldSyncServerURL);
+                //editor.commit();
+               // startActivity(new Intent(android.provider.Settings.ACTION_DATE_SETTINGS));
+                Intent intent = new Intent(context, FullscreenActivity.class);
+                startActivity(intent);
+                dialog.dismiss();
+            }
+        });
+    }
     public void restorePref(){
         // Restore preferences
         settings = getSharedPreferences(PREFS_NAME, 0);
@@ -527,6 +567,101 @@ public class FullscreenLogin extends AppCompatActivity {
             err.printStackTrace();
         }
         ///// End creating design Document
+    }
+    public void emptyAllDbs(){
+        for (int cnt = 0; cnt < databaseList.length; cnt++) {
+            try {
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbResources = manager.getDatabase(databaseList[cnt]);
+                dbResources.delete();
+
+                String root = Environment.getExternalStorageDirectory().toString();
+                File myDir = new File(root + "/ole_temp");
+                String[] flist = myDir.list();
+                for(int i=0;i<flist.length;i++) {
+                    System.out.println(" " + myDir.getAbsolutePath());
+                    File temp = new File(myDir.getAbsolutePath() + "/" + flist[i]);
+                    if (temp.isDirectory()) {
+                        Log.d("Delete "," Deleting "+temp.getName());
+                        temp.delete();
+                    } else {
+                        temp.delete();
+                    }
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database dbResources = manager.getDatabase("resources");
+            dbResources.delete();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public void connectWiFi() {
+        WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        wifiManager.setWifiEnabled(false);
+        String networkSSID = "\"Leonard's iPhone\"";
+        String password="\"0l3gh@n@\"";
+
+        WifiConfiguration conf = new WifiConfiguration();
+        conf.SSID = "\"" + networkSSID + "\"";
+        conf.preSharedKey = "\"" + password + "\"";
+//      conf.hiddenSSID = true;
+//      conf.wepTxKeyIndex = 0;
+        conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+//        conf.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
+//      conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
+
+        conf.status = WifiConfiguration.Status.ENABLED;
+        conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
+        conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
+        conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+        conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
+        conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
+        conf.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
+        int netId = wifiManager.addNetwork(conf);
+        wifiManager.enableNetwork(netId, true);
+        wifiManager.setWifiEnabled(true);
+    }
+    public void alertDialogOkay(String Message){
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
+        builder1.setMessage(Message);
+        builder1.setCancelable(true);
+        builder1.setNegativeButton("Okay",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert11 = builder1.create();
+        alert11.show();
+    }
+    private void copyAPK(int resource, String apkUrl) {
+        InputStream in = getResources().openRawResource(resource);
+        String root = Environment.getExternalStorageDirectory().toString();
+        File myDir = new File(root + "/ole_temp2");
+        if (!myDir.exists()){
+            myDir.mkdirs();
+        }
+        File dst = new File(myDir,apkUrl);
+        try {
+            FileOutputStream out = new FileOutputStream(dst);
+            byte[] buff = new byte[1024];
+            int read = 0;
+            while ((read = in.read(buff)) > 0) {
+                out.write(buff, 0, read);
+            }
+            in.close();
+            out.close();
+            Log.e("tag", "Adobe Reader Copied "+ dst.toString());
+        }catch(Exception err){
+            err.printStackTrace();
+        }
     }
     class RunCreateDocTask extends AsyncTask<String, Void, Boolean> {
         //createDocument(sys_oldSyncServerURL, "resources", designViewDoc,"_design/apps");
@@ -672,102 +807,6 @@ public class FullscreenLogin extends AppCompatActivity {
             Log.d("OnPostExec",""+result);
         }
     }
-    public void emptyAllDbs(){
-        for (int cnt = 0; cnt < databaseList.length; cnt++) {
-            try {
-                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                Database dbResources = manager.getDatabase(databaseList[cnt]);
-                dbResources.delete();
-
-                String root = Environment.getExternalStorageDirectory().toString();
-                File myDir = new File(root + "/ole_temp");
-                String[] flist = myDir.list();
-                for(int i=0;i<flist.length;i++) {
-                    System.out.println(" " + myDir.getAbsolutePath());
-                    File temp = new File(myDir.getAbsolutePath() + "/" + flist[i]);
-                    if (temp.isDirectory()) {
-                        Log.d("Delete "," Deleting "+temp.getName());
-                        temp.delete();
-                    } else {
-                        temp.delete();
-                    }
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-        }
-        try {
-            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-            Database dbResources = manager.getDatabase("resources");
-            dbResources.delete();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    public void connectWiFi() {
-        WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
-        wifiManager.setWifiEnabled(false);
-        String networkSSID = "\"Leonard's iPhone\"";
-        String password="\"0l3gh@n@\"";
-
-        WifiConfiguration conf = new WifiConfiguration();
-        conf.SSID = "\"" + networkSSID + "\"";
-        conf.preSharedKey = "\"" + password + "\"";
-//      conf.hiddenSSID = true;
-//      conf.wepTxKeyIndex = 0;
-        conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
-//        conf.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
-//      conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
-
-        conf.status = WifiConfiguration.Status.ENABLED;
-        conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
-        conf.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
-        conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
-        conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
-        conf.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
-        conf.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
-        int netId = wifiManager.addNetwork(conf);
-        wifiManager.enableNetwork(netId, true);
-        wifiManager.setWifiEnabled(true);
-    }
-    public void alertDialogOkay(String Message){
-        AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
-        builder1.setMessage(Message);
-        builder1.setCancelable(true);
-        builder1.setNegativeButton("Okay",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                    }
-                });
-        AlertDialog alert11 = builder1.create();
-        alert11.show();
-    }
-    private void copyAPK(int resource, String apkUrl) {
-        InputStream in = getResources().openRawResource(resource);
-        String root = Environment.getExternalStorageDirectory().toString();
-        File myDir = new File(root + "/ole_temp2");
-        if (!myDir.exists()){
-            myDir.mkdirs();
-        }
-        File dst = new File(myDir,apkUrl);
-        try {
-            FileOutputStream out = new FileOutputStream(dst);
-            byte[] buff = new byte[1024];
-            int read = 0;
-            while ((read = in.read(buff)) > 0) {
-                out.write(buff, 0, read);
-            }
-            in.close();
-            out.close();
-            Log.e("tag", "Adobe Reader Copied "+ dst.toString());
-        }catch(Exception err){
-            err.printStackTrace();
-        }
-    }
-
     class UpdateResourceDocument extends AsyncTask<String, Void, String> {
         private Exception exception;
         private String cls_resouceId;
@@ -819,7 +858,10 @@ public class FullscreenLogin extends AppCompatActivity {
                      json.addProperty("sum",total_sum);
                      json.addProperty("timesRated",total_timesRated);
                      dbClient.update(json);
-                    ///// TODO: 07/03/2017 Delete from device local couchdb since it has successfully updated server
+                    Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                    Database dbResources = manager.getDatabase("resourcerating");
+                    dbResources.delete();
+
                 }
                 return "";
             } catch (Exception e) {
