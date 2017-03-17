@@ -15,12 +15,14 @@ import android.os.Environment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 
+import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.Manager;
@@ -51,6 +53,7 @@ import org.json.JSONObject;
 import org.lightcouch.CouchDbClient;
 import org.lightcouch.CouchDbClientAndroid;
 import org.lightcouch.CouchDbException;
+import org.lightcouch.CouchDbInfo;
 import org.lightcouch.CouchDbProperties;
 
 
@@ -86,40 +89,30 @@ import kotlin.Pair;
  * status bar and navigation/system bar) with user interaction.
  */
 public class FullscreenLogin extends AppCompatActivity {
-
-
     private View mContentView;
-
     private static final int REQUEST_READ_CONTACTS = 0;
     public static final String PREFS_NAME = "MyPrefsFile";
-
     SharedPreferences settings;
     CouchViews chViews = new CouchViews();
     String doc_lastVisit;
     private EditText mUsername;
     private EditText mPasswordView;
     private LoginActivity.UserLoginTask mAuthTask = null;
-
     String sys_oldSyncServerURL,sys_username,sys_lastSyncDate,
             sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
             sys_usergender,sys_uservisits,sys_servername,sys_serverversion,sys_NewDate="";
     Boolean sys_singlefilestreamdownload,sys_multiplefilestreamdownload;
     Object[] sys_membersWithResource;
     int sys_uservisits_Int;
+    String Serverdate=null;
     private Dialog dialog,promptDialog;
     private ProgressDialog mDialog;
     JSONObject jsonServerData;
-
-
-
     final Context context = this;
     String[] databaseList = {"members","membercourseprogress","meetups","usermeetups","assignments",
             "calendar","groups","invitations","configurations","requests","shelf","languages"};
-
     Replication[] push = new Replication[databaseList.length];
     Replication[] pull= new Replication[databaseList.length];
-
-
     Database[] db = new Database[databaseList.length];
     Manager[] manager = new Manager[databaseList.length];
     boolean syncmembers,openMemberList= false;
@@ -128,7 +121,6 @@ public class FullscreenLogin extends AppCompatActivity {
     Database database;
     Replication pullReplication;
     Button dialogSyncButton;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -136,27 +128,28 @@ public class FullscreenLogin extends AppCompatActivity {
         mContentView = findViewById(R.id.fullscreen_content2);
         ActionBar actionBar = getSupportActionBar();
         actionBar.hide();
-
         androidContext = new AndroidContext(this);
         // Todo - : Decide on either to clear resource database and file storage anytime user syncs or rather keep old resources only if user doesn't change server url
         /////////////////////////////////////
         // Set up the login form.
         mUsername = (EditText) mContentView.findViewById(R.id.txtUsername);
         mPasswordView = (EditText) findViewById(R.id.txtPassword);
-
-
         Button SignInButton = (Button) findViewById(R.id.btnSignIn);
         SignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(authenticateUser()){
-
+                    if(updateActivityLog()){
+                        Intent intent = new Intent(context, FullscreenActivity.class);
+                        startActivity(intent);
+                    }else{
+                        alertDialogOkay("System Error. Please contact administrator");
+                    }
                 }else {
                     alertDialogOkay("Login incorrect or Not found. Check and try again.");
                 }
             }
         });
-
         Button SetupButton = (Button) findViewById(R.id.btnSetup);
         SetupButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -164,7 +157,6 @@ public class FullscreenLogin extends AppCompatActivity {
                 getSyncURLDialog();
             }
         });
-
         Button btnFeedback = (Button) findViewById(R.id.btnFeedback);
         btnFeedback.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -183,8 +175,6 @@ public class FullscreenLogin extends AppCompatActivity {
                         Map<String, Object> properties = doc.getProperties();
                         Double sum = ((Double) properties.get("sum"));
                         int timesRated = ((Integer) properties.get("timesRated"));
-                        //updateRemoteResourceRating(docId,sum,timesRated,((String) properties.get("_rev")));
-                        //updateServerResourceRating(docId,sum,timesRated,((String) properties.get("_rev")));
                         UpdateResourceDocument nwUpdateResDoc = new UpdateResourceDocument();
                         nwUpdateResDoc.setResourceId(docId);
                         nwUpdateResDoc.setSum(sum);
@@ -203,6 +193,10 @@ public class FullscreenLogin extends AppCompatActivity {
         copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
         copyAPK(R.raw.firefox_49_0_multi_android, "firefox_49_0_multi_android.apk");
 
+        GetServerDate gtSvDt= new GetServerDate();
+        gtSvDt.setdbName("activitylog");
+        gtSvDt.setView("date_now");
+        gtSvDt.execute("");
     }
 ////////
     private void TestConnectionToServer(String textURL) {
@@ -268,11 +262,8 @@ public class FullscreenLogin extends AppCompatActivity {
                 Map<String, Object> properties = doc.getProperties();
                 String doc_loginId = (String) properties.get("login");
                 String doc_password = (String) properties.get("password");
-
                 if(mUsername.getText().toString().equals(doc_loginId)) {
-                    Log.e("MYAPP", "Authenticating User");
-
-                    if (mPasswordView.getText().toString().equals(doc_password) && !properties.containsKey("credentials") ) {
+                   if (mPasswordView.getText().toString().equals(doc_password) && !properties.containsKey("credentials") ) {
                         SharedPreferences.Editor editor = settings.edit();
                         editor.putString("pf_username", (String) properties.get("login"));
                         editor.putString("pf_password", (String) properties.get("password"));
@@ -288,6 +279,7 @@ public class FullscreenLogin extends AppCompatActivity {
                             editor.putString("pf_lastVisitDate", doc_lastVisit);
 
                         } catch (Exception err) {
+                            Log.e("MYAPP", "Pref Error "+ err.getMessage());
                         }
                         Set<String> stgSet = settings.getStringSet("pf_userroles", new HashSet<String>());
                         ArrayList roleList = (ArrayList<String>) properties.get("roles");
@@ -297,10 +289,7 @@ public class FullscreenLogin extends AppCompatActivity {
                         editor.putStringSet("pf_userroles", stgSet);
                         editor.commit();
                         Log.e("MYAPP", " RowChipsView Login OLD encryption: " + doc_loginId + " Password: " + doc_password);
-                        setDateDialog();
-
                         return true;
-
                     }else if (doc_password == "" && !mPasswordView.getText().toString().equals("")) {
                         try {
                             Map<String, Object> doc_credentials = (Map<String, Object>) properties.get("credentials");
@@ -313,14 +302,12 @@ public class FullscreenLogin extends AppCompatActivity {
                                 editor.putString("pf_userfirstname", (String) properties.get("firstName"));
                                 editor.putString("pf_userlastname", (String) properties.get("lastName"));
                                 editor.putString("pf_usergender", (String) properties.get("Gender"));
-
                                 try {
                                     String noOfVisits = properties.get("visits").toString();
                                     int currentTotalVisits = Integer.parseInt(noOfVisits) + totalVisits((String) properties.get("_id"));
                                     editor.putInt("pf_uservisits_Int", currentTotalVisits);
                                     editor.putString("pf_uservisits", currentTotalVisits+"");
                                     editor.putString("pf_lastVisitDate", doc_lastVisit);
-
                                 } catch (Exception err) {
                                     alertDialogOkay(err.getMessage());
                                 }
@@ -332,13 +319,13 @@ public class FullscreenLogin extends AppCompatActivity {
                                 editor.putStringSet("pf_userroles", stgSet);
                                 editor.commit();
                                 Log.e("MYAPP", " RowChipsView Login Id: " + doc_loginId + " Password: " + doc_password);
-                                setDateDialog();
+                                restorePref();
                                 return true;
                             }
                         } catch (Exception err) {
                             Log.e("MYAPP", " Encryption Err  " + err.getMessage());
+                            return false;
                         }
-
                     } else{
                         return false;
                     }
@@ -379,10 +366,9 @@ public class FullscreenLogin extends AppCompatActivity {
 
             }
             db.close();
-            return false;
+            return true;
         } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+            return true;
         }
     }
     public int totalVisits(String memberId){
@@ -419,10 +405,51 @@ public class FullscreenLogin extends AppCompatActivity {
                 return 1;
             }
         }catch(Exception err){
-            Log.e("MyCouch", "ERR : " +err.getMessage());
-
+            Log.e("MyCouch", "Error - Updating Visits Database  : " +err.getMessage());
         }
         return -1;
+    }
+    public boolean updateActivityLog(){
+        AndroidContext androidContext = new AndroidContext(this);
+        Manager manager = null;
+        Database activityLog;
+        int genderVisits;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            activityLog = manager.getDatabase("activitylog");
+            WifiManager wm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+            String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+            Document retrievedDocument = activityLog.getExistingDocument(m_WLANMAC);
+            if(retrievedDocument != null) {
+                Map<String, Object> properties = retrievedDocument.getProperties();
+                if(properties.containsKey(sys_usergender.toLowerCase()+"_visits")){
+                    genderVisits = (int) properties.get(sys_usergender.toLowerCase()+"_visits");
+                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    newProperties.putAll(retrievedDocument.getProperties());
+                    newProperties.put(sys_usergender.toLowerCase()+"_visits", (genderVisits+1));
+                    retrievedDocument.putProperties(newProperties);
+                    return true;
+                }else{
+                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    newProperties.putAll(retrievedDocument.getProperties());
+                    newProperties.put(sys_usergender.toLowerCase()+"_visits",1);
+                    retrievedDocument.putProperties(newProperties);
+                    return true;
+                }
+            }
+            else{
+                    Document newvistsdocument = activityLog.getDocument(m_WLANMAC);
+                    Map<String, Object> newvisitsProperties = new HashMap<String, Object>();
+                    newvisitsProperties.put(sys_usergender.toLowerCase() + "_visits", 1);
+                    newvistsdocument.putProperties(newvisitsProperties);
+                    Log.e("MyCouch", "Here Now 9 - " + sys_usergender.toLowerCase() + "_visits : ");
+                    return true;
+            }
+        }catch(Exception err){
+            Log.e("MyCouch", "Updating Activity Log : " +err.toString());
+            err.printStackTrace();
+            return false;
+        }
     }
     public String todaysDate(){
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -572,19 +599,40 @@ public class FullscreenLogin extends AppCompatActivity {
     }
     public void syncNotifier(){
         emptyAllDbs();
-        //// Start creating filtered replication design Document
         try{
-            JsonObject viewContent = new JsonObject();
-            viewContent.addProperty("by_resource","function(doc, req){return doc._id === req.query._id;}");
-            RunCreateDocTask newRunCreateDocTask = new RunCreateDocTask();
-            newRunCreateDocTask.setDbName("resources");
-            newRunCreateDocTask.setDocNameId("_design/apps");
-            newRunCreateDocTask.setSyncServerURL(sys_oldSyncServerURL);
-            newRunCreateDocTask.setViewContent(viewContent);
-            newRunCreateDocTask.execute("");
+/// Todo Decide either use design document in apps or not
+            /*JsonObject filterContent = new JsonObject();
+            filterContent.addProperty("by_resource","function(doc, req){return doc._id === req.query._id;}");
+            RunCreateDocTask newRunCreateFilterTask = new RunCreateDocTask();
+            newRunCreateFilterTask.setDbName("resources");
+            newRunCreateFilterTask.setDocNameId("_design/apps");
+            newRunCreateFilterTask.setSyncServerURL(sys_oldSyncServerURL);
+            newRunCreateFilterTask.setCategory("filters");
+            newRunCreateFilterTask.setViewContent(filterContent);
+            newRunCreateFilterTask.execute("");
+            */
         }catch(Exception err){
-            err.printStackTrace();
+            Log.e("MYAPP", err.getMessage());
         }
+        try{
+            /*
+            JsonObject viewContent = new JsonObject();
+            viewContent.addProperty("map","function() { var now = new Date().toLocaleDateString(); " +
+                    "var output = JSON.parse(JSON.stringify(now)); emit(output, output); }");
+            JsonObject dateViewContent = new JsonObject();
+            dateViewContent.add("date_now",viewContent);
+            RunCreateDocTask newRunCreateViewTask = new RunCreateDocTask();
+            newRunCreateViewTask.setDbName("activitylog");
+            newRunCreateViewTask.setDocNameId("_design/apps");
+            newRunCreateViewTask.setSyncServerURL(sys_oldSyncServerURL);
+            newRunCreateViewTask.setCategory("views");
+            newRunCreateViewTask.setViewContent(dateViewContent);
+            newRunCreateViewTask.execute("");
+            */
+        }catch(Exception err){
+            Log.e("MYAPP", err.getMessage());
+        }
+        startSyncProcess();
         ///// End creating design Document
     }
     public void emptyAllDbs() {
@@ -609,9 +657,40 @@ public class FullscreenLogin extends AppCompatActivity {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-
             }
         }
+    }
+    public void startSyncProcess(){
+        /// Start Syncing databases from server
+        final AsyncTask<Void, Integer, String> execute = new FullscreenLogin.TestAsyncPull().execute();
+        Log.e("MyCouch", "syncNotifier Running");
+        final Thread th = new Thread(new Runnable() {
+            private long startTime = System.currentTimeMillis();
+            public void run() {
+                while (syncmembers) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(openMemberList) {
+                                mDialog.dismiss();
+                                openMemberList=false;
+                                alertDialogOkay("Completed. Thank you for waiting, you can now \" Sign In \" .");
+                                syncmembers=false;
+                                return;
+                            }
+                            Log.d("runOnUiThread", "running pull members");
+                            mDialog.setMessage("Downloading, please wait ... " + databaseList[syncCnt] +" ["+ (syncCnt+1) +" / "+ databaseList.length+"]");
+                        }
+                    });
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        th.start();
     }
     public void alertDialogOkay(String Message){
         AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
@@ -649,11 +728,11 @@ public class FullscreenLogin extends AppCompatActivity {
         }
     }
     class RunCreateDocTask extends AsyncTask<String, Void, Boolean> {
-        //createDocument(sys_oldSyncServerURL, "resources", designViewDoc,"_design/apps");
         private Exception exception;
         private String cls_SyncServerURL;
         private String cls_DbName;
         private String cls_DocNameId;
+        private String cls_Category;
         private JsonObject cls_ViewContent;
         public String getSyncServerURL(){
             return cls_SyncServerURL;
@@ -669,6 +748,12 @@ public class FullscreenLogin extends AppCompatActivity {
         }
         public String getDocNameId(){
             return cls_DocNameId;
+        }
+        public void setCategory(String category){
+            cls_Category = category;
+        }
+        public String getCategory(){
+            return cls_Category;
         }
         public void setDocNameId(String docNameId){
             cls_DocNameId = docNameId;
@@ -693,15 +778,12 @@ public class FullscreenLogin extends AppCompatActivity {
                     url_pwd = userinfo[1];
                 }
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid(getDbName(), true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
-                Log.e("MyCouch", "Creating design document "+getDocNameId()+" --- "+getDbName()+" --- "+url_Scheme+" --- " +url_Host+" --- " +url_Port+" --- " + url_user+" --- " + url_pwd);
                 if(!dbClient.contains(URLEncoder.encode(getDocNameId(), "UTF-8"))){
                     JsonObject json = new JsonObject();
                     json.addProperty("_id", getDocNameId());
-                    json.add("filters", getViewContent());
+                    json.add(getCategory(), getViewContent());
                     dbClient.save(json);
                 }
-                ///// TODO: 07/03/2017 change to use lightcouch
-               // createDocument(sys_oldSyncServerURL, "resources", designViewDoc,"_design/apps");
                 return true;
             } catch (Exception e) {
                 this.exception = e;
@@ -710,36 +792,7 @@ public class FullscreenLogin extends AppCompatActivity {
             }
         }
         protected void onPostExecute(Boolean docResult) {
-            /// Start Syncing databases from server
-            final AsyncTask<Void, Integer, String> execute = new FullscreenLogin.TestAsyncPull().execute();
-            Log.e("MyCouch", "syncNotifier Running");
-            final Thread th = new Thread(new Runnable() {
-                private long startTime = System.currentTimeMillis();
-                public void run() {
-                    while (syncmembers) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if(openMemberList) {
-                                    mDialog.dismiss();
-                                    openMemberList=false;
-                                    alertDialogOkay("Completed. Thank you for waiting, you can now \" Sign In \" .");
-                                    syncmembers=false;
-                                    return;
-                                }
-                                Log.d("runOnUiThread", "running pull members");
-                                mDialog.setMessage("Downloading, please wait ... " + databaseList[syncCnt] +" ["+ (syncCnt+1) +" / "+ databaseList.length+"]");
-                            }
-                        });
-                        try {
-                            Thread.sleep(2000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            });
-            th.start();
+            startSyncProcess();
         }
     }
     class TestAsyncPull extends AsyncTask<Void, Integer, String> {
@@ -872,5 +925,55 @@ public class FullscreenLogin extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    class GetServerDate extends AsyncTask<String, Void, String> {
+        private Exception exception;
+        private String cls_dbName;
+        private String cls_View;
+        public String getdbName(){
+            return cls_dbName;
+        }
+        public void setdbName(String dbName){
+            cls_dbName = dbName;
+        }
+        public String getView(){
+            return cls_View;
+        }
+        public void setView(String view){
+            cls_View = view;
+        }
+        protected String doInBackground(String... urls) {
+            try {
+                URI uri = URI.create(sys_oldSyncServerURL);
+                String url_Scheme = uri.getScheme();
+                String url_Host = uri.getHost();
+                int url_Port = uri.getPort();
+                String url_user = "", url_pwd = "";
+                if (uri.getUserInfo() != null) {
+                    String[] userinfo = uri.getUserInfo().split(":");
+                    url_user = userinfo[0];
+                    url_pwd = userinfo[1];
+                }
+                CouchDbClientAndroid dbClient = new CouchDbClientAndroid(getdbName(), true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+//// Todo Decide either use design document in apps or not
+ ///               org.lightcouch.View view= dbClient.view("apps/date_now").includeDocs(true);
+                org.lightcouch.View view= dbClient.view("bell/date_now").includeDocs(true);
+                List<Map> results = view.reduce(false).includeDocs(false).query(Map.class);
+                if (results.size() != 0) {
+                    Serverdate= (String) results.get(0).get("value");
+                    Log.e("MyCouch", Serverdate);
+                }
+                return "";
+            } catch (Exception e) {
+                this.exception = e;
+                Log.e("MyCouch", "error "+e.getMessage());
+                return null;
+            }
+        }
+        protected void onPostExecute(String message) {
+            // TODO: check this.exception
+            // TODO: do something with the message
+        }
     }
 }
