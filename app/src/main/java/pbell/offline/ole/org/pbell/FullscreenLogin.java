@@ -1,13 +1,11 @@
 package pbell.offline.ole.org.pbell;
 
-import android.app.AlarmManager;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -15,14 +13,12 @@ import android.os.Environment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 
-import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.Manager;
@@ -31,8 +27,6 @@ import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.replicator.Replication;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
 import com.github.kittinunf.fuel.Fuel;
 import com.github.kittinunf.fuel.core.FuelError;
 import com.github.kittinunf.fuel.core.Request;
@@ -40,32 +34,21 @@ import com.github.kittinunf.fuel.core.Response;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.lightcouch.CouchDbClientAndroid;
 
-import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.internal.LinkedTreeMap;
 
-import org.jetbrains.annotations.NotNull;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.lightcouch.CouchDbClient;
-import org.lightcouch.CouchDbClientAndroid;
-import org.lightcouch.CouchDbException;
-import org.lightcouch.CouchDbInfo;
-import org.lightcouch.CouchDbProperties;
 
-
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.lang.reflect.Array;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -82,9 +65,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.xml.parsers.SAXParserFactory;
-
-import kotlin.Pair;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -211,8 +191,9 @@ public class FullscreenLogin extends AppCompatActivity {
                     Document doc = activitylog.getExistingDocument(m_WLANMAC);
                     Map<String, Object> properties = doc.getProperties();
                     // Update server resources with new ratings
+                    Gson gson = new Gson();
                     UpdateActivityLogDatabase nwActivityLog = new UpdateActivityLogDatabase();
-                    nwActivityLog.set_female_opened(((ArrayList) properties.get("female_opened")));
+                    nwActivityLog.set_female_opened((ArrayList) properties.get("female_opened"));
                     nwActivityLog.set_female_rating(((ArrayList) properties.get("female_rating")));
                     nwActivityLog.set_female_timesRated(((ArrayList) properties.get("female_timesRated")));
                     nwActivityLog.set_female_visits(((Integer) properties.get("female_visits")));
@@ -224,6 +205,8 @@ public class FullscreenLogin extends AppCompatActivity {
                     nwActivityLog.set_resources_opened(((ArrayList) properties.get("resources_opened")));
                     nwActivityLog.set_resourcesIds(((ArrayList) properties.get("resourcesIds")));
                     nwActivityLog.execute("");
+
+                    //Log.e("MyCouch", "reading log "+je);
 
                     //Database dbResources = manager.getDatabase("resourcerating");
                     //dbResources.delete();
@@ -989,18 +972,60 @@ public class FullscreenLogin extends AppCompatActivity {
                         JsonObject jsonObject = gson.toJsonTree(treemap).getAsJsonObject();
                         docDateStr = jsonObject.get("logDate").getAsString();
                         Log.e("MyCouch",i+" "+ docDateStr +" - "+ jsonObject.get("_id").toString());
-                        if(docDateStr.equals("05/27/2016")){
+                        // Todo convert to date Compare date, month, year
+                        if(docDateStr.equals("06/14/2016")){
                             todaysActivityDocId = jsonObject.get("_id").getAsString();
                             Log.e("MyCouch","Found "+docDateStr+" with Id "+todaysActivityDocId);
                             break;
                         }
                         i++;
                     }
-                    if(docDateStr!=null){
-                        JsonObject json = dbClient.find(JsonObject.class, todaysActivityDocId);
+                    if(docDateStr!=null && todaysActivityDocId !=null ){
+                        Gson gson = new Gson();
+                        JsonParser parser = new JsonParser();
+                        JsonObject jsonObject = dbClient.find(JsonObject.class, todaysActivityDocId);
+                        //female_opened
+                        JsonArray  female_opened_Array = jsonObject.get("female_opened").getAsJsonArray();
+                        JsonElement female_opened_Element = parser.parse(gson.toJson(cls_female_opened));
+                        female_opened_Array.addAll(female_opened_Element.getAsJsonArray());
+
+
+                        //female_opened_Array.add();
+
+                        //json.add();
+                        //JsonArray female_opened_Array = json.get("female_opened").getAs;
+                        //Array jsnArr = new Array();
+                        //for (int x=0; x < cls_male_rating.size(); x++) {
+                        //    jsnArr.add(cls_male_rating.get(x));
+                        //    maleRating.add(cls_male_rating.get(x).toString());
+                        //}
+                        //female_opened_Array.add();
+                        //gson.toJson(cls_female_opened.toArray());
+                        //JsonElement female_opened_Element = gson.fromJson(gson.toJson(cls_female_opened), JsonElement.class);
+                        //female_opened_Array.add(female_opened_Element.getAsJsonArray());
+
+                        //String result = gson.toJson(jsonElement);
+                        Log.e("MyCouch", "Rating "+ female_opened_Array);
+                        //maleRating.addAll(cls_male_rating.toArray());
+
+                        //json.addProperty("male_visits",cls_male_visits);
+                        //json.addProperty("female_visits",cls_female_visits);
+                        /*json.add("male_rating",cls_male_rating);
+                        json.add("male_timesRated",cls_male_timesRated);
+                        json.add("female_timesRated",cls_female_timesRated);
+                        json.add("female_rating",cls_female_rating);
+                        json.add("resourcesIds",cls_resourcesIds);
+                        json.add("male_opened",cls_male_opened);
+                        json.add("female_opened",cls_female_opened);
+                        json.add("resources_names",cls_resources_names);
+                        json.add("resources_opened",cls_resources_opened);*/
                         //// Todo, add up to existing data
+                        //private int cls_male_visits,cls_female_visits;
+                        //private ArrayList cls_male_rating,cls_male_timesRated,cls_female_timesRated,cls_female_rating,cls_resourcesIds;
+                        //private ArrayList cls_male_opened,cls_female_opened,cls_resources_names,cls_resources_opened;
+
                         //json.addProperty("timesRated",total_timesRated);
-                        dbClient.update(json);
+                        //dbClient.update(json);
                     }else{
                         //JsonObject json = dbClient.
                     }
