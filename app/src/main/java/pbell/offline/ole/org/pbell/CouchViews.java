@@ -101,4 +101,16 @@ public class CouchViews {
         );
         return ResourceRatingByIdView;
     }
+    public View ReadActivityLogById(Database db) {
+        View ReadActivityLogByIdView = db.getView("ActivityLogById");
+        ReadActivityLogByIdView.setMap(
+                new Mapper(){
+                    @Override
+                    public void map(Map<String, Object> document,Emitter emitter) {
+                        emitter.emit((String) document.get("_id"), (String) document.get("_id"));
+                    }
+                }, "3"
+        );
+        return ReadActivityLogByIdView;
+    }
 }

@@ -38,6 +38,7 @@ import com.github.kittinunf.fuel.core.FuelError;
 import com.github.kittinunf.fuel.core.Request;
 import com.github.kittinunf.fuel.core.Response;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -46,6 +47,7 @@ import org.json.JSONObject;
 import org.lightcouch.CouchDbClientAndroid;
 
 import com.google.gson.JsonObject;
+import com.google.gson.internal.LinkedTreeMap;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
@@ -157,12 +159,17 @@ public class FullscreenLogin extends AppCompatActivity {
                 getSyncURLDialog();
             }
         });
+
+        restorePref();
+        copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
+        copyAPK(R.raw.firefox_49_0_multi_android, "firefox_49_0_multi_android.apk");
+
         Button btnFeedback = (Button) findViewById(R.id.btnFeedback);
         btnFeedback.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Database resourceRating;
-                try {
+                Database resourceRating,activitylog;
+ /*               try {
                     Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                     resourceRating = manager.getDatabase("resourcerating");
                     Query orderedQuery = chViews.ReadResourceRatingByIdView(resourceRating).createQuery();
@@ -175,6 +182,7 @@ public class FullscreenLogin extends AppCompatActivity {
                         Map<String, Object> properties = doc.getProperties();
                         Double sum = ((Double) properties.get("sum"));
                         int timesRated = ((Integer) properties.get("timesRated"));
+                        // Update server resources with new ratings
                         UpdateResourceDocument nwUpdateResDoc = new UpdateResourceDocument();
                         nwUpdateResDoc.setResourceId(docId);
                         nwUpdateResDoc.setSum(sum);
@@ -186,17 +194,44 @@ public class FullscreenLogin extends AppCompatActivity {
                 }catch (Exception err){
                     Log.e("MyCouch", "reading resource rating error "+err);
                 }
+*/
 
+                // Get server date for activitylog update
+                GetServerDate gtSvDt= new GetServerDate();
+                gtSvDt.setdbName("activitylog");
+                gtSvDt.setView("date_now");
+                gtSvDt.execute("");
+
+                //// Read activitylog database details
+                try {
+                    Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                    activitylog = manager.getDatabase("activitylog");
+                    WifiManager wm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+                    String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+                    Document doc = activitylog.getExistingDocument(m_WLANMAC);
+                    Map<String, Object> properties = doc.getProperties();
+                    // Update server resources with new ratings
+                    UpdateActivityLogDatabase nwActivityLog = new UpdateActivityLogDatabase();
+                    nwActivityLog.set_female_opened(((ArrayList) properties.get("female_opened")));
+                    nwActivityLog.set_female_rating(((ArrayList) properties.get("female_rating")));
+                    nwActivityLog.set_female_timesRated(((ArrayList) properties.get("female_timesRated")));
+                    nwActivityLog.set_female_visits(((Integer) properties.get("female_visits")));
+                    nwActivityLog.set_male_opened(((ArrayList) properties.get("male_opened")));
+                    nwActivityLog.set_male_rating(((ArrayList) properties.get("male_rating")));
+                    nwActivityLog.set_male_timesRated(((ArrayList) properties.get("male_timesRated")));
+                    nwActivityLog.set_male_visits(((Integer) properties.get("male_visits")));
+                    nwActivityLog.set_resources_names(((ArrayList) properties.get("resources_names")));
+                    nwActivityLog.set_resources_opened(((ArrayList) properties.get("resources_opened")));
+                    nwActivityLog.set_resourcesIds(((ArrayList) properties.get("resourcesIds")));
+                    nwActivityLog.execute("");
+
+                    //Database dbResources = manager.getDatabase("resourcerating");
+                    //dbResources.delete();
+                }catch (Exception err){
+                    Log.e("MyCouch", "reading activity log error "+err);
+                }
             }
         });
-        restorePref();
-        copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
-        copyAPK(R.raw.firefox_49_0_multi_android, "firefox_49_0_multi_android.apk");
-
-        GetServerDate gtSvDt= new GetServerDate();
-        gtSvDt.setdbName("activitylog");
-        gtSvDt.setView("date_now");
-        gtSvDt.execute("");
     }
 ////////
     private void TestConnectionToServer(String textURL) {
@@ -912,6 +947,76 @@ public class FullscreenLogin extends AppCompatActivity {
             // TODO: do something with the message
         }
     }
+    class UpdateActivityLogDatabase extends AsyncTask<String, Void, String> {
+        private int cls_male_visits,cls_female_visits;
+        private ArrayList cls_male_rating,cls_male_timesRated,cls_female_timesRated,cls_female_rating,cls_resourcesIds;
+        private ArrayList cls_male_opened,cls_female_opened,cls_resources_names,cls_resources_opened;
+
+        public void set_resourcesIds(ArrayList resourcesIds){cls_resourcesIds=resourcesIds;};
+        public void set_resources_names(ArrayList resources_names){cls_resources_names=resources_names;};
+        public void set_resources_opened(ArrayList resources_opened){cls_resources_opened=resources_opened;};
+        public void set_male_visits(int male_visits){cls_male_visits=male_visits;};
+        public void set_female_visits(int female_visits){cls_female_visits=female_visits;};
+        public void set_male_rating(ArrayList male_rating){cls_male_rating=male_rating;};
+        public void set_female_rating(ArrayList female_rating){cls_female_rating=female_rating;};
+        public void set_male_timesRated(ArrayList male_timesRated){cls_male_timesRated=male_timesRated;};
+        public void set_female_timesRated(ArrayList female_timesRated){cls_female_timesRated=female_timesRated;};
+        public void set_male_opened(ArrayList male_opened){cls_male_opened=male_opened;};
+        public void set_female_opened(ArrayList female_opened){cls_female_opened=female_opened;};
+
+        protected String doInBackground(String... urls) {
+            try {
+                URI uri = URI.create(sys_oldSyncServerURL);
+                String url_Scheme = uri.getScheme();
+                String url_Host = uri.getHost();
+                int url_Port = uri.getPort();
+                String url_user = "", url_pwd = "";
+                if (uri.getUserInfo() != null) {
+                    String[] userinfo = uri.getUserInfo().split(":");
+                    url_user = userinfo[0];
+                    url_pwd = userinfo[1];
+                }
+                CouchDbClientAndroid dbClient = new CouchDbClientAndroid("activitylog", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+                org.lightcouch.View view= dbClient.view("bell/getdocBylogdate").includeDocs(false);
+                List<Map> results = view.reduce(false).includeDocs(false).query(Map.class);
+                String todaysActivityDocId = null;
+                String docDateStr = null;
+                int i= 0;
+                if (results.size() != 0) {
+                    while (i < results.size()){
+                        LinkedTreeMap treemap = (LinkedTreeMap) results.get(i).get("value");
+                        Gson gson = new Gson();
+                        JsonObject jsonObject = gson.toJsonTree(treemap).getAsJsonObject();
+                        docDateStr = jsonObject.get("logDate").getAsString();
+                        Log.e("MyCouch",i+" "+ docDateStr +" - "+ jsonObject.get("_id").toString());
+                        if(docDateStr.equals("05/27/2016")){
+                            todaysActivityDocId = jsonObject.get("_id").getAsString();
+                            Log.e("MyCouch","Found "+docDateStr+" with Id "+todaysActivityDocId);
+                            break;
+                        }
+                        i++;
+                    }
+                    if(docDateStr!=null){
+                        JsonObject json = dbClient.find(JsonObject.class, todaysActivityDocId);
+                        //// Todo, add up to existing data
+                        //json.addProperty("timesRated",total_timesRated);
+                        dbClient.update(json);
+                    }else{
+                        //JsonObject json = dbClient.
+                    }
+                }
+                return "";
+            } catch (Exception e) {
+                Log.e("MyCouch", e.getMessage());
+                return null;
+            }
+        }
+
+        protected void onPostExecute(String message) {
+            // TODO: check this.exception
+            // TODO: do something with the message
+        }
+    }
     private void updateUI(final FuelError error, final String result) {
         runOnUiThread(new Runnable() {
             @Override
@@ -957,12 +1062,12 @@ public class FullscreenLogin extends AppCompatActivity {
                 }
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid(getdbName(), true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
 //// Todo Decide either use design document in apps or not
- ///               org.lightcouch.View view= dbClient.view("apps/date_now").includeDocs(true);
-                org.lightcouch.View view= dbClient.view("bell/date_now").includeDocs(true);
+ ///               org.lightcouch.View view= dbClient.view("bell/date_now").includeDocs(true);
+                org.lightcouch.View view= dbClient.view("apps/date_now").includeDocs(true);
                 List<Map> results = view.reduce(false).includeDocs(false).query(Map.class);
                 if (results.size() != 0) {
-                    Serverdate= (String) results.get(0).get("value");
-                    Log.e("MyCouch", Serverdate);
+                    Serverdate = (String) results.get(0).get("value");
+                    Log.e("MyCouch", Serverdate.toString());
                 }
                 return "";
             } catch (Exception e) {
