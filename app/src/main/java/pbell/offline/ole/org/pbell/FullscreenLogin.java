@@ -149,7 +149,7 @@ public class FullscreenLogin extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Database resourceRating,activitylog;
- /*               try {
+                try {
                     Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                     resourceRating = manager.getDatabase("resourcerating");
                     Query orderedQuery = chViews.ReadResourceRatingByIdView(resourceRating).createQuery();
@@ -169,12 +169,12 @@ public class FullscreenLogin extends AppCompatActivity {
                         nwUpdateResDoc.setTimesRated(timesRated);
                         nwUpdateResDoc.execute("");
                     }
-                    Database dbResources = manager.getDatabase("resourcerating");
-                    dbResources.delete();
+                    //Database dbResources = manager.getDatabase("resourcerating");
+                    //dbResources.delete();
                 }catch (Exception err){
                     Log.e("MyCouch", "reading resource rating error "+err);
                 }
-*/
+
 
                 // Get server date for activitylog update
                 GetServerDate gtSvDt= new GetServerDate();
@@ -191,7 +191,6 @@ public class FullscreenLogin extends AppCompatActivity {
                     Document doc = activitylog.getExistingDocument(m_WLANMAC);
                     Map<String, Object> properties = doc.getProperties();
                     // Update server resources with new ratings
-                    Gson gson = new Gson();
                     UpdateActivityLogDatabase nwActivityLog = new UpdateActivityLogDatabase();
                     nwActivityLog.set_female_opened((ArrayList) properties.get("female_opened"));
                     nwActivityLog.set_female_rating(((ArrayList) properties.get("female_rating")));
@@ -205,11 +204,7 @@ public class FullscreenLogin extends AppCompatActivity {
                     nwActivityLog.set_resources_opened(((ArrayList) properties.get("resources_opened")));
                     nwActivityLog.set_resourcesIds(((ArrayList) properties.get("resourcesIds")));
                     nwActivityLog.execute("");
-
                     //Log.e("MyCouch", "reading log "+je);
-
-                    //Database dbResources = manager.getDatabase("resourcerating");
-                    //dbResources.delete();
                 }catch (Exception err){
                     Log.e("MyCouch", "reading activity log error "+err);
                 }
@@ -926,15 +921,21 @@ public class FullscreenLogin extends AppCompatActivity {
         }
 
         protected void onPostExecute(String message) {
-            // TODO: check this.exception
-            // TODO: do something with the message
+            try{
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database resourceRating = manager.getDatabase("resourcerating");
+                resourceRating.delete();
+                //Document doc = resourceRating.getExistingDocument(cls_resouceId);
+                //doc.delete();
+            }catch(Exception err){
+                Log.e("MyCouch", "Error deleting local resourcerating document "+err.getMessage());
+            }
         }
     }
     class UpdateActivityLogDatabase extends AsyncTask<String, Void, String> {
         private int cls_male_visits,cls_female_visits;
         private ArrayList cls_male_rating,cls_male_timesRated,cls_female_timesRated,cls_female_rating,cls_resourcesIds;
         private ArrayList cls_male_opened,cls_female_opened,cls_resources_names,cls_resources_opened;
-
         public void set_resourcesIds(ArrayList resourcesIds){cls_resourcesIds=resourcesIds;};
         public void set_resources_names(ArrayList resources_names){cls_resources_names=resources_names;};
         public void set_resources_opened(ArrayList resources_opened){cls_resources_opened=resources_opened;};
@@ -946,7 +947,6 @@ public class FullscreenLogin extends AppCompatActivity {
         public void set_female_timesRated(ArrayList female_timesRated){cls_female_timesRated=female_timesRated;};
         public void set_male_opened(ArrayList male_opened){cls_male_opened=male_opened;};
         public void set_female_opened(ArrayList female_opened){cls_female_opened=female_opened;};
-
         protected String doInBackground(String... urls) {
             try {
                 URI uri = URI.create(sys_oldSyncServerURL);
@@ -973,61 +973,129 @@ public class FullscreenLogin extends AppCompatActivity {
                         docDateStr = jsonObject.get("logDate").getAsString();
                         Log.e("MyCouch",i+" "+ docDateStr +" - "+ jsonObject.get("_id").toString());
                         // Todo convert to date Compare date, month, year
-                        if(docDateStr.equals("06/14/2016")){
+                        if(docDateStr.equals(Serverdate)){
                             todaysActivityDocId = jsonObject.get("_id").getAsString();
                             Log.e("MyCouch","Found "+docDateStr+" with Id "+todaysActivityDocId);
                             break;
                         }
                         i++;
                     }
+                    //// Check if activitylog document for today exist
                     if(docDateStr!=null && todaysActivityDocId !=null ){
-                        Gson gson = new Gson();
-                        JsonParser parser = new JsonParser();
-                        JsonObject jsonObject = dbClient.find(JsonObject.class, todaysActivityDocId);
-                        //female_opened
-                        JsonArray  female_opened_Array = jsonObject.get("female_opened").getAsJsonArray();
-                        JsonElement female_opened_Element = parser.parse(gson.toJson(cls_female_opened));
-                        female_opened_Array.addAll(female_opened_Element.getAsJsonArray());
-
-
-                        //female_opened_Array.add();
-
-                        //json.add();
-                        //JsonArray female_opened_Array = json.get("female_opened").getAs;
-                        //Array jsnArr = new Array();
-                        //for (int x=0; x < cls_male_rating.size(); x++) {
-                        //    jsnArr.add(cls_male_rating.get(x));
-                        //    maleRating.add(cls_male_rating.get(x).toString());
-                        //}
-                        //female_opened_Array.add();
-                        //gson.toJson(cls_female_opened.toArray());
-                        //JsonElement female_opened_Element = gson.fromJson(gson.toJson(cls_female_opened), JsonElement.class);
-                        //female_opened_Array.add(female_opened_Element.getAsJsonArray());
-
-                        //String result = gson.toJson(jsonElement);
-                        Log.e("MyCouch", "Rating "+ female_opened_Array);
-                        //maleRating.addAll(cls_male_rating.toArray());
-
-                        //json.addProperty("male_visits",cls_male_visits);
-                        //json.addProperty("female_visits",cls_female_visits);
-                        /*json.add("male_rating",cls_male_rating);
-                        json.add("male_timesRated",cls_male_timesRated);
-                        json.add("female_timesRated",cls_female_timesRated);
-                        json.add("female_rating",cls_female_rating);
-                        json.add("resourcesIds",cls_resourcesIds);
-                        json.add("male_opened",cls_male_opened);
-                        json.add("female_opened",cls_female_opened);
-                        json.add("resources_names",cls_resources_names);
-                        json.add("resources_opened",cls_resources_opened);*/
-                        //// Todo, add up to existing data
-                        //private int cls_male_visits,cls_female_visits;
-                        //private ArrayList cls_male_rating,cls_male_timesRated,cls_female_timesRated,cls_female_rating,cls_resourcesIds;
-                        //private ArrayList cls_male_opened,cls_female_opened,cls_resources_names,cls_resources_opened;
-
-                        //json.addProperty("timesRated",total_timesRated);
-                        //dbClient.update(json);
+                        try {
+                            Gson gson = new Gson();
+                            JsonParser parser = new JsonParser();
+                            JsonObject jsonObject = dbClient.find(JsonObject.class, todaysActivityDocId);
+                            //female_opened
+                            JsonArray female_opened_Array = jsonObject.get("female_opened").getAsJsonArray();
+                            JsonElement female_opened_Element = parser.parse(gson.toJson(cls_female_opened));
+                            female_opened_Array.addAll(female_opened_Element.getAsJsonArray());
+                            //male_rating
+                            JsonArray male_rating_Array = jsonObject.get("male_rating").getAsJsonArray();
+                            JsonElement male_rating_Element = parser.parse(gson.toJson(cls_male_rating));
+                            male_rating_Array.addAll(male_rating_Element.getAsJsonArray());
+                            //male_timesRated
+                            JsonArray male_timesRated_Array = jsonObject.get("male_timesRated").getAsJsonArray();
+                            JsonElement male_timesRated_Element = parser.parse(gson.toJson(cls_male_timesRated));
+                            male_timesRated_Array.addAll(male_timesRated_Element.getAsJsonArray());
+                            //female_timesRated
+                            JsonArray female_timesRated_Array = jsonObject.get("female_timesRated").getAsJsonArray();
+                            JsonElement female_timesRated_Element = parser.parse(gson.toJson(cls_female_timesRated));
+                            female_timesRated_Array.addAll(female_timesRated_Element.getAsJsonArray());
+                            //female_rating
+                            JsonArray female_rating_Array = jsonObject.get("female_rating").getAsJsonArray();
+                            JsonElement female_rating_Element = parser.parse(gson.toJson(cls_female_rating));
+                            female_rating_Array.addAll(female_rating_Element.getAsJsonArray());
+                            //resourcesIds
+                            JsonArray resourcesIds_Array = jsonObject.get("resourcesIds").getAsJsonArray();
+                            JsonElement resourcesIds_Element = parser.parse(gson.toJson(cls_resourcesIds));
+                            resourcesIds_Array.addAll(resourcesIds_Element.getAsJsonArray());
+                            //male_opened
+                            JsonArray male_opened_Array = jsonObject.get("male_opened").getAsJsonArray();
+                            JsonElement male_opened_Element = parser.parse(gson.toJson(cls_male_opened));
+                            male_opened_Array.addAll(male_opened_Element.getAsJsonArray());
+                            //resources_names
+                            JsonArray resources_names_Array = jsonObject.get("resources_names").getAsJsonArray();
+                            JsonElement resources_names_Element = parser.parse(gson.toJson(cls_resources_names));
+                            resources_names_Array.addAll(resources_names_Element.getAsJsonArray());
+                            //resources_opened
+                            JsonArray resources_opened_Array = jsonObject.get("resources_opened").getAsJsonArray();
+                            JsonElement resources_opened_Element = parser.parse(gson.toJson(cls_resources_opened));
+                            resources_opened_Array.addAll(resources_opened_Element.getAsJsonArray());
+                            Log.e("MyCouch", "Rating " + female_opened_Array);
+                            jsonObject.addProperty("male_visits", (cls_male_visits + jsonObject.get("male_visits").getAsDouble()));
+                            jsonObject.addProperty("female_visits", (cls_female_visits+ jsonObject.get("female_visits").getAsDouble()));
+                            jsonObject.add("female_opened", female_opened_Array);
+                            jsonObject.add("male_rating", male_rating_Array);
+                            jsonObject.add("male_timesRated", male_timesRated_Array);
+                            jsonObject.add("female_timesRated", female_timesRated_Array);
+                            jsonObject.add("female_rating", female_rating_Array);
+                            jsonObject.add("resourcesIds", resourcesIds_Array);
+                            jsonObject.add("male_opened", male_opened_Array);
+                            jsonObject.add("resources_names", resources_names_Array);
+                            jsonObject.add("resources_opened", resources_opened_Array);
+                            dbClient.update(jsonObject);
+                        }catch(Exception err){
+                            Log.e("MyCouch", "Error updating existing activity log "+ err.getMessage());
+                        }
                     }else{
-                        //JsonObject json = dbClient.
+                        try {
+                            Gson gson = new Gson();
+                            JsonParser parser = new JsonParser();
+                            JsonObject jsonObject = new JsonObject();
+                            //female_opened
+                            JsonArray female_opened_Array = new JsonArray();
+                            JsonElement female_opened_Element = parser.parse(gson.toJson(cls_female_opened));
+                            female_opened_Array.addAll(female_opened_Element.getAsJsonArray());
+                            //male_rating
+                            JsonArray male_rating_Array = new JsonArray();
+                            JsonElement male_rating_Element = parser.parse(gson.toJson(cls_male_rating));
+                            male_rating_Array.addAll(male_rating_Element.getAsJsonArray());
+                            //male_timesRated
+                            JsonArray male_timesRated_Array = new JsonArray();
+                            JsonElement male_timesRated_Element = parser.parse(gson.toJson(cls_male_timesRated));
+                            male_timesRated_Array.addAll(male_timesRated_Element.getAsJsonArray());
+                            //female_timesRated
+                            JsonArray female_timesRated_Array = new JsonArray();
+                            JsonElement female_timesRated_Element = parser.parse(gson.toJson(cls_female_timesRated));
+                            female_timesRated_Array.addAll(female_timesRated_Element.getAsJsonArray());
+                            //female_rating
+                            JsonArray female_rating_Array = new JsonArray();
+                            JsonElement female_rating_Element = parser.parse(gson.toJson(cls_female_rating));
+                            female_rating_Array.addAll(female_rating_Element.getAsJsonArray());
+                            //resourcesIds
+                            JsonArray resourcesIds_Array = new JsonArray();
+                            JsonElement resourcesIds_Element = parser.parse(gson.toJson(cls_resourcesIds));
+                            resourcesIds_Array.addAll(resourcesIds_Element.getAsJsonArray());
+                            //male_opened
+                            JsonArray male_opened_Array = new JsonArray();
+                            JsonElement male_opened_Element = parser.parse(gson.toJson(cls_male_opened));
+                            male_opened_Array.addAll(male_opened_Element.getAsJsonArray());
+                            //resources_names
+                            JsonArray resources_names_Array = new JsonArray();
+                            JsonElement resources_names_Element = parser.parse(gson.toJson(cls_resources_names));
+                            resources_names_Array.addAll(resources_names_Element.getAsJsonArray());
+                            //resources_opened
+                            JsonArray resources_opened_Array = new JsonArray();
+                            JsonElement resources_opened_Element = parser.parse(gson.toJson(cls_resources_opened));
+                            resources_opened_Array.addAll(resources_opened_Element.getAsJsonArray());
+                            Log.e("MyCouch", "Rating " + female_opened_Array);
+                            jsonObject.addProperty("logDate", Serverdate);
+                            jsonObject.addProperty("male_visits", cls_male_visits);
+                            jsonObject.addProperty("female_visits", cls_female_visits);
+                            jsonObject.add("female_opened", female_opened_Array);
+                            jsonObject.add("male_rating", male_rating_Array);
+                            jsonObject.add("male_timesRated", male_timesRated_Array);
+                            jsonObject.add("female_timesRated", female_timesRated_Array);
+                            jsonObject.add("female_rating", female_rating_Array);
+                            jsonObject.add("resourcesIds", resourcesIds_Array);
+                            jsonObject.add("male_opened", male_opened_Array);
+                            jsonObject.add("resources_names", resources_names_Array);
+                            jsonObject.add("resources_opened", resources_opened_Array);
+                            dbClient.save(jsonObject);
+                        }catch(Exception err){
+                            Log.e("MyCouch", "Error writing new activity log data "+ err.getMessage());
+                        }
                     }
                 }
                 return "";
@@ -1036,10 +1104,18 @@ public class FullscreenLogin extends AppCompatActivity {
                 return null;
             }
         }
-
         protected void onPostExecute(String message) {
-            // TODO: check this.exception
-            // TODO: do something with the message
+            try{
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database activitylog = manager.getDatabase("activitylog");
+                activitylog.delete();
+                //WifiManager wm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+                //String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+                //Document doc = activitylog.getExistingDocument(m_WLANMAC);
+                //doc.delete();
+            }catch(Exception err){
+                Log.e("MyCouch", "Error deleting document from activitylog " + err.getMessage());
+            }
         }
     }
     private void updateUI(final FuelError error, final String result) {
