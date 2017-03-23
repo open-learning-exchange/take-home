@@ -80,29 +80,30 @@ public class FullscreenLogin extends AppCompatActivity {
     private EditText mUsername;
     private EditText mPasswordView;
     private LoginActivity.UserLoginTask mAuthTask = null;
-    String sys_oldSyncServerURL,sys_username,sys_lastSyncDate,
-            sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
-            sys_usergender,sys_uservisits,sys_servername,sys_serverversion,sys_NewDate="";
-    Boolean sys_singlefilestreamdownload,sys_multiplefilestreamdownload;
+    String sys_oldSyncServerURL, sys_username, sys_lastSyncDate,
+            sys_password, sys_usercouchId, sys_userfirstname, sys_userlastname,
+            sys_usergender, sys_uservisits, sys_servername, sys_serverversion, sys_NewDate = "";
+    Boolean sys_singlefilestreamdownload, sys_multiplefilestreamdownload;
     Object[] sys_membersWithResource;
     int sys_uservisits_Int;
-    String Serverdate=null;
-    private Dialog dialog,promptDialog;
+    String Serverdate = null;
+    private Dialog dialog, promptDialog;
     private ProgressDialog mDialog;
     JSONObject jsonServerData;
     final Context context = this;
-    String[] databaseList = {"members","membercourseprogress","meetups","usermeetups","assignments",
-            "calendar","groups","invitations","configurations","requests","shelf","languages"};
+    String[] databaseList = {"members", "membercourseprogress", "meetups", "usermeetups", "assignments",
+            "calendar", "groups", "invitations", "configurations", "requests", "shelf", "languages"};
     Replication[] push = new Replication[databaseList.length];
-    Replication[] pull= new Replication[databaseList.length];
+    Replication[] pull = new Replication[databaseList.length];
     Database[] db = new Database[databaseList.length];
     Manager[] manager = new Manager[databaseList.length];
-    boolean syncmembers,openMemberList= false;
-    int syncCnt =0;
+    boolean syncmembers, openMemberList = false;
+    int syncCnt = 0;
     AndroidContext androidContext;
     Database database;
     Replication pullReplication;
     Button dialogSyncButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -120,14 +121,14 @@ public class FullscreenLogin extends AppCompatActivity {
         SignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(authenticateUser()){
-                    if(updateActivityLog()){
+                if (authenticateUser()) {
+                    if (updateActivityLog()) {
                         Intent intent = new Intent(context, FullscreenActivity.class);
                         startActivity(intent);
-                    }else{
+                    } else {
                         alertDialogOkay("System Error. Please contact administrator");
                     }
-                }else {
+                } else {
                     alertDialogOkay("Login incorrect or Not found. Check and try again.");
                 }
             }
@@ -148,7 +149,7 @@ public class FullscreenLogin extends AppCompatActivity {
         btnFeedback.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Database resourceRating,activitylog;
+                Database resourceRating, activitylog, visits;
                 try {
                     Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                     resourceRating = manager.getDatabase("resourcerating");
@@ -160,7 +161,7 @@ public class FullscreenLogin extends AppCompatActivity {
                         String docId = (String) row.getValue();
                         Document doc = resourceRating.getExistingDocument(docId);
                         Map<String, Object> properties = doc.getProperties();
-                        Double sum = ((Double) properties.get("sum"));
+                        int sum = ((int) properties.get("sum"));
                         int timesRated = ((Integer) properties.get("timesRated"));
                         // Update server resources with new ratings
                         UpdateResourceDocument nwUpdateResDoc = new UpdateResourceDocument();
@@ -169,15 +170,42 @@ public class FullscreenLogin extends AppCompatActivity {
                         nwUpdateResDoc.setTimesRated(timesRated);
                         nwUpdateResDoc.execute("");
                     }
-                    //Database dbResources = manager.getDatabase("resourcerating");
-                    //dbResources.delete();
-                }catch (Exception err){
-                    Log.e("MyCouch", "reading resource rating error "+err);
+                    Database dbResources = manager.getDatabase("resourcerating");
+                    dbResources.delete();
+                } catch (Exception err) {
+                    Log.e("MyCouch", "reading resource rating error " + err);
                 }
 
 
+                try {
+                    Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                    visits = manager.getDatabase("visits");
+                    Query orderedQuery = chViews.ReadMemberVisitsId(visits).createQuery();
+                    orderedQuery.setDescending(true);
+                    QueryEnumerator results = orderedQuery.run();
+                    for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                        QueryRow row = it.next();
+                        String docId = (String) row.getValue();
+                        Document doc = visits.getExistingDocument(docId);
+                        Map<String, Object> properties = doc.getProperties();
+                        int numOfVisits = ((Integer) properties.get("noOfVisits"));
+                        Log.e("MyCouch", "Number Of visits for "+docId+" is " + numOfVisits );
+                        // Update server members with visits
+                        UpdateMemberVisitsDocument nwUpdateMemberVisits = new UpdateMemberVisitsDocument();
+                        nwUpdateMemberVisits.setMemberId(docId);
+                        nwUpdateMemberVisits.setSumVisits(numOfVisits);
+                        nwUpdateMemberVisits.execute("");
+                    }
+                    Database dbResources = manager.getDatabase("visits");
+                    dbResources.delete();
+                } catch (Exception err) {
+                    Log.e("MyCouch", "reading visits error " + err);
+                }
+
+
+
                 // Get server date for activitylog update
-                GetServerDate gtSvDt= new GetServerDate();
+                GetServerDate gtSvDt = new GetServerDate();
                 gtSvDt.setdbName("activitylog");
                 gtSvDt.setView("date_now");
                 gtSvDt.execute("");
@@ -186,32 +214,43 @@ public class FullscreenLogin extends AppCompatActivity {
                 try {
                     Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                     activitylog = manager.getDatabase("activitylog");
-                    WifiManager wm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+                    WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
                     String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
                     Document doc = activitylog.getExistingDocument(m_WLANMAC);
                     Map<String, Object> properties = doc.getProperties();
                     // Update server resources with new ratings
                     UpdateActivityLogDatabase nwActivityLog = new UpdateActivityLogDatabase();
+                    if(properties.get("female_visits")!=null){
+                        nwActivityLog.set_female_visits(((Integer) properties.get("female_visits")));
+                    }else{
+                        nwActivityLog.set_female_visits(0);
+                    }
+                    if(properties.get("male_visits")!=null){
+                        nwActivityLog.set_male_visits(((Integer) properties.get("male_visits")));
+                    }else{
+                        nwActivityLog.set_male_visits(0);
+                    }
+
                     nwActivityLog.set_female_opened((ArrayList) properties.get("female_opened"));
                     nwActivityLog.set_female_rating(((ArrayList) properties.get("female_rating")));
                     nwActivityLog.set_female_timesRated(((ArrayList) properties.get("female_timesRated")));
-                    nwActivityLog.set_female_visits(((Integer) properties.get("female_visits")));
                     nwActivityLog.set_male_opened(((ArrayList) properties.get("male_opened")));
                     nwActivityLog.set_male_rating(((ArrayList) properties.get("male_rating")));
                     nwActivityLog.set_male_timesRated(((ArrayList) properties.get("male_timesRated")));
-                    nwActivityLog.set_male_visits(((Integer) properties.get("male_visits")));
                     nwActivityLog.set_resources_names(((ArrayList) properties.get("resources_names")));
                     nwActivityLog.set_resources_opened(((ArrayList) properties.get("resources_opened")));
                     nwActivityLog.set_resourcesIds(((ArrayList) properties.get("resourcesIds")));
                     nwActivityLog.execute("");
                     //Log.e("MyCouch", "reading log "+je);
-                }catch (Exception err){
-                    Log.e("MyCouch", "reading activity log error "+err);
+                } catch (Exception err) {
+                    Log.e("MyCouch", "reading activity log error " + err);
                 }
+
             }
         });
     }
-////////
+
+    ////////
     private void TestConnectionToServer(String textURL) {
         mDialog = new ProgressDialog(context);
         mDialog.setMessage("Please wait. Connecting to server...");
@@ -220,19 +259,19 @@ public class FullscreenLogin extends AppCompatActivity {
 
         final Fuel ful = new Fuel();
 
-        ful.get(textURL+"/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+        ful.get(textURL + "/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
             @Override
             public void success(Request request, Response response, String s) {
                 try {
                     List<String> myList = new ArrayList<String>();
                     myList.clear();
-                    myList=Arrays.asList(s.split(","));
-                    Log.e("MyCouch", "-- "+myList.size());
-                    if(myList.size() < 8){
+                    myList = Arrays.asList(s.split(","));
+                    Log.e("MyCouch", "-- " + myList.size());
+                    if (myList.size() < 8) {
                         mDialog.dismiss();
                         alertDialogOkay("Check the server address again. What i connected to wasn't the BeLL Server");
                         dialogSyncButton.setVisibility(View.INVISIBLE);
-                    }else{
+                    } else {
                         mDialog.dismiss();
                         alertDialogOkay("Test successful. You can now click on \"Save and Proceed\" ");
                         dialogSyncButton.setVisibility(View.VISIBLE);
@@ -243,22 +282,25 @@ public class FullscreenLogin extends AppCompatActivity {
                 }
 
             }
+
             @Override
             public void failure(Request request, Response response, FuelError fuelError) {
                 mDialog.dismiss();
                 alertDialogOkay("Device couldn't reach server. Check and try again");
                 dialogSyncButton.setVisibility(View.INVISIBLE);
-                Log.e("MyCouch", " "+fuelError);
+                Log.e("MyCouch", " " + fuelError);
 
             }
         });
 
     }
+
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
     }
-    public boolean authenticateUser(){
+
+    public boolean authenticateUser() {
         AndroidContext androidContext = new AndroidContext(this);
         Manager manager = null;
         getSystemInfo();
@@ -268,15 +310,15 @@ public class FullscreenLogin extends AppCompatActivity {
             Query orderedQuery = chViews.CreateLoginByIdView(db).createQuery();
             orderedQuery.setDescending(true);
             QueryEnumerator results = orderedQuery.run();
-            for (Iterator<QueryRow> it = results; it.hasNext();) {
+            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
                 QueryRow row = it.next();
                 String docId = (String) row.getValue();
                 Document doc = db.getExistingDocument(docId);
                 Map<String, Object> properties = doc.getProperties();
                 String doc_loginId = (String) properties.get("login");
                 String doc_password = (String) properties.get("password");
-                if(mUsername.getText().toString().equals(doc_loginId)) {
-                   if (mPasswordView.getText().toString().equals(doc_password) && !properties.containsKey("credentials") ) {
+                if (mUsername.getText().toString().equals(doc_loginId)) {
+                    if (mPasswordView.getText().toString().equals(doc_password) && !properties.containsKey("credentials")) {
                         SharedPreferences.Editor editor = settings.edit();
                         editor.putString("pf_username", (String) properties.get("login"));
                         editor.putString("pf_password", (String) properties.get("password"));
@@ -284,15 +326,16 @@ public class FullscreenLogin extends AppCompatActivity {
                         editor.putString("pf_userfirstname", (String) properties.get("firstName"));
                         editor.putString("pf_userlastname", (String) properties.get("lastName"));
                         editor.putString("pf_usergender", (String) properties.get("Gender"));
+                        sys_usergender = (String) properties.get("Gender");
                         try {
                             String noOfVisits = properties.get("visits").toString();
                             int currentTotalVisits = Integer.parseInt(noOfVisits) + totalVisits((String) properties.get("_id"));
                             editor.putInt("pf_uservisits_Int", currentTotalVisits);
-                            editor.putString("pf_uservisits", currentTotalVisits+"");
+                            editor.putString("pf_uservisits", currentTotalVisits + "");
                             editor.putString("pf_lastVisitDate", doc_lastVisit);
 
                         } catch (Exception err) {
-                            Log.e("MYAPP", "Pref Error "+ err.getMessage());
+                            Log.e("MYAPP", "Pref Error " + err.getMessage());
                         }
                         Set<String> stgSet = settings.getStringSet("pf_userroles", new HashSet<String>());
                         ArrayList roleList = (ArrayList<String>) properties.get("roles");
@@ -303,11 +346,11 @@ public class FullscreenLogin extends AppCompatActivity {
                         editor.commit();
                         Log.e("MYAPP", " RowChipsView Login OLD encryption: " + doc_loginId + " Password: " + doc_password);
                         return true;
-                    }else if (doc_password == "" && !mPasswordView.getText().toString().equals("")) {
+                    } else if (doc_password == "" && !mPasswordView.getText().toString().equals("")) {
                         try {
                             Map<String, Object> doc_credentials = (Map<String, Object>) properties.get("credentials");
                             AndroidDecrypter adc = new AndroidDecrypter();
-                            if(adc.AndroidDecrypter(doc_loginId, mPasswordView.getText().toString(), doc_credentials.get("value").toString())){
+                            if (adc.AndroidDecrypter(doc_loginId, mPasswordView.getText().toString(), doc_credentials.get("value").toString())) {
                                 SharedPreferences.Editor editor = settings.edit();
                                 editor.putString("pf_username", (String) properties.get("login"));
                                 editor.putString("pf_password", (String) properties.get("password"));
@@ -315,11 +358,12 @@ public class FullscreenLogin extends AppCompatActivity {
                                 editor.putString("pf_userfirstname", (String) properties.get("firstName"));
                                 editor.putString("pf_userlastname", (String) properties.get("lastName"));
                                 editor.putString("pf_usergender", (String) properties.get("Gender"));
+                                sys_usergender = (String) properties.get("Gender");
                                 try {
                                     String noOfVisits = properties.get("visits").toString();
                                     int currentTotalVisits = Integer.parseInt(noOfVisits) + totalVisits((String) properties.get("_id"));
                                     editor.putInt("pf_uservisits_Int", currentTotalVisits);
-                                    editor.putString("pf_uservisits", currentTotalVisits+"");
+                                    editor.putString("pf_uservisits", currentTotalVisits + "");
                                     editor.putString("pf_lastVisitDate", doc_lastVisit);
                                 } catch (Exception err) {
                                     alertDialogOkay(err.getMessage());
@@ -339,7 +383,7 @@ public class FullscreenLogin extends AppCompatActivity {
                             Log.e("MYAPP", " Encryption Err  " + err.getMessage());
                             return false;
                         }
-                    } else{
+                    } else {
                         return false;
                     }
                 }
@@ -352,7 +396,8 @@ public class FullscreenLogin extends AppCompatActivity {
             return false;
         }
     }
-    public boolean getSystemInfo(){
+
+    public boolean getSystemInfo() {
         AndroidContext androidContext = new AndroidContext(this);
         Manager manager = null;
         try {
@@ -361,7 +406,7 @@ public class FullscreenLogin extends AppCompatActivity {
             Query orderedQuery = chViews.LocalServerInfo(db).createQuery();
             orderedQuery.setDescending(true);
             QueryEnumerator results = orderedQuery.run();
-            for (Iterator<QueryRow> it = results; it.hasNext();) {
+            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
                 QueryRow row = it.next();
                 String docId = (String) row.getValue();
                 Document doc = db.getExistingDocument(docId);
@@ -384,7 +429,8 @@ public class FullscreenLogin extends AppCompatActivity {
             return true;
         }
     }
-    public int totalVisits(String memberId){
+
+    public int totalVisits(String memberId) {
         AndroidContext androidContext = new AndroidContext(this);
         Manager manager = null;
         Database visitHolder;
@@ -393,10 +439,10 @@ public class FullscreenLogin extends AppCompatActivity {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             visitHolder = manager.getDatabase("visits");
             Document retrievedDocument = visitHolder.getExistingDocument(memberId);
-            if(retrievedDocument != null) {
+            if (retrievedDocument != null) {
                 Map<String, Object> properties = retrievedDocument.getProperties();
-                if(properties.containsKey("noOfVisits")){
-                    doc_noOfVisits = (int) properties.get("noOfVisits") ;
+                if (properties.containsKey("noOfVisits")) {
+                    doc_noOfVisits = (int) properties.get("noOfVisits");
                     doc_lastVisit = (String) properties.get("lastVisits");
                     /// Increase No Of visits by 1
                     Map<String, Object> newProperties = new HashMap<String, Object>();
@@ -407,8 +453,7 @@ public class FullscreenLogin extends AppCompatActivity {
                     retrievedDocument.putProperties(newProperties);
                     return doc_noOfVisits;
                 }
-            }
-            else{
+            } else {
                 Document newdocument = visitHolder.getDocument(memberId);
                 Map<String, Object> newProperties = new HashMap<String, Object>();
                 newProperties.put("noOfVisits", 1);
@@ -417,12 +462,13 @@ public class FullscreenLogin extends AppCompatActivity {
                 newdocument.putProperties(newProperties);
                 return 1;
             }
-        }catch(Exception err){
-            Log.e("MyCouch", "Error - Updating Visits Database  : " +err.getMessage());
+        } catch (Exception err) {
+            Log.e("MyCouch", "Error - Updating Visits Database  : " + err.getMessage());
         }
         return -1;
     }
-    public boolean updateActivityLog(){
+
+    public boolean updateActivityLog() {
         AndroidContext androidContext = new AndroidContext(this);
         Manager manager = null;
         Database activityLog;
@@ -430,40 +476,41 @@ public class FullscreenLogin extends AppCompatActivity {
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             activityLog = manager.getDatabase("activitylog");
-            WifiManager wm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+            WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
             String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
-            Document retrievedDocument = activityLog.getExistingDocument(m_WLANMAC);
-            if(retrievedDocument != null) {
-                Map<String, Object> properties = retrievedDocument.getProperties();
-                if(properties.containsKey(sys_usergender.toLowerCase()+"_visits")){
-                    genderVisits = (int) properties.get(sys_usergender.toLowerCase()+"_visits");
-                    Map<String, Object> newProperties = new HashMap<String, Object>();
-                    newProperties.putAll(retrievedDocument.getProperties());
-                    newProperties.put(sys_usergender.toLowerCase()+"_visits", (genderVisits+1));
-                    retrievedDocument.putProperties(newProperties);
+            Document retrievedDocument = activityLog.getDocument(m_WLANMAC);
+            if (retrievedDocument != null) {
+                if (retrievedDocument.getProperties() != null) {
+                    Map<String, Object> properties = retrievedDocument.getProperties();
+                    if (properties.containsKey(sys_usergender.toLowerCase() + "_visits")) {
+                        genderVisits = (int) properties.get(sys_usergender.toLowerCase() + "_visits");
+                        Map<String, Object> newProperties = new HashMap<String, Object>();
+                        newProperties.putAll(retrievedDocument.getProperties());
+                        newProperties.put(sys_usergender.toLowerCase() + "_visits", (genderVisits + 1));
+                        retrievedDocument.putProperties(newProperties);
+                        return true;
+                    }
                     return true;
-                }else{
+                } else {
                     Map<String, Object> newProperties = new HashMap<String, Object>();
-                    newProperties.putAll(retrievedDocument.getProperties());
-                    newProperties.put(sys_usergender.toLowerCase()+"_visits",1);
+                    newProperties.put(sys_usergender.toLowerCase() + "_visits", 1);
                     retrievedDocument.putProperties(newProperties);
                     return true;
                 }
+            } else {
+                Document newvistsdocument = activityLog.getDocument(m_WLANMAC);
+                Map<String, Object> newvisitsProperties = new HashMap<String, Object>();
+                newvisitsProperties.put(sys_usergender.toLowerCase() + "_visits", 1);
+                newvistsdocument.putProperties(newvisitsProperties);
+                return true;
             }
-            else{
-                    Document newvistsdocument = activityLog.getDocument(m_WLANMAC);
-                    Map<String, Object> newvisitsProperties = new HashMap<String, Object>();
-                    newvisitsProperties.put(sys_usergender.toLowerCase() + "_visits", 1);
-                    newvistsdocument.putProperties(newvisitsProperties);
-                    Log.e("MyCouch", "Here Now 9 - " + sys_usergender.toLowerCase() + "_visits : ");
-                    return true;
-            }
-        }catch(Exception err){
-            Log.e("MyCouch", "Updating Activity Log : " +err.toString());
+        } catch (Exception err) {
+            Log.e("MyCouch", "Updating Activity Log : " + err.toString());
             err.printStackTrace();
             return false;
         }
     }
+
     public String todaysDate(){
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Calendar cal = Calendar.getInstance();
@@ -562,16 +609,6 @@ public class FullscreenLogin extends AppCompatActivity {
             public void onClick(View view) {
                 Calendar cal = Calendar.getInstance();
                 cal.set(dp.getYear(), dp.getMonth(), dp.getDayOfMonth());
-                //int DateDif = cal.compareTo(Calendar.getInstance());
-                //Log.e("MyCouch", "  date diff  " + DateDif);
-                //if(){
-
-                //}
-                // sys_NewDate = dp.getMonth();
-                //SharedPreferences.Editor editor = settings.edit();
-                //editor.putString("pf_NewDate", sys_oldSyncServerURL);
-                //editor.commit();
-               // startActivity(new Intent(android.provider.Settings.ACTION_DATE_SETTINGS));
                 Intent intent = new Intent(context, FullscreenActivity.class);
                 startActivity(intent);
                 dialog.dismiss();
@@ -784,12 +821,15 @@ public class FullscreenLogin extends AppCompatActivity {
                 String url_Scheme = uri.getScheme();
                 String url_Host = uri.getHost();
                 int url_Port = uri.getPort();
-                String url_user = "", url_pwd = "";
-                if (uri.getUserInfo() != null) {
+                String url_user = null, url_pwd = null;
+                if(sys_oldSyncServerURL.contains("@")){
                     String[] userinfo = uri.getUserInfo().split(":");
                     url_user = userinfo[0];
                     url_pwd = userinfo[1];
                 }
+                //if (uri.getUserInfo() != null) {
+                //
+                //}
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid(getDbName(), true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
                 if(!dbClient.contains(URLEncoder.encode(getDocNameId(), "UTF-8"))){
                     JsonObject json = new JsonObject();
@@ -860,10 +900,76 @@ public class FullscreenLogin extends AppCompatActivity {
             Log.d("OnPostExec",""+result);
         }
     }
+    class UpdateMemberVisitsDocument extends AsyncTask<String, Void, String> {
+        private Exception exception;
+        private String cls_memberId;
+        private int cls_sumVisits;
+        private int cls_serverNewTotalVisits;
+        public String getMemberId(){
+            return cls_memberId;
+        }
+        public void setMemberId(String memberId){
+            cls_memberId = memberId;
+        }
+        public int getSumVisits(){
+            return cls_sumVisits;
+        }
+        public void setSumVisits(int sumVisits){
+            cls_sumVisits = sumVisits;
+        }
+        protected String doInBackground(String... urls) {
+            try {
+                URI uri = URI.create(sys_oldSyncServerURL);
+                String url_Scheme = uri.getScheme();
+                String url_Host = uri.getHost();
+                int url_Port = uri.getPort();
+                String url_user = null, url_pwd = null;
+                if(sys_oldSyncServerURL.contains("@")){
+                    String[] userinfo = uri.getUserInfo().split(":");
+                    url_user = userinfo[0];
+                    url_pwd = userinfo[1];
+                }
+                CouchDbClientAndroid dbClient = new CouchDbClientAndroid("members", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+                if(dbClient.contains(cls_memberId)){
+                    /// Handle with Json
+                    JsonObject json = dbClient.find(JsonObject.class, getMemberId());
+                    cls_serverNewTotalVisits = (getSumVisits() + Integer.parseInt(json.get("visits").getAsString()));
+                    json.addProperty("visits",cls_serverNewTotalVisits);
+                    dbClient.update(json);
+                }
+                return "";
+            } catch (Exception e) {
+                this.exception = e;
+                Log.e("MyCouch","Updating member visits on server "+ e.getMessage());
+                return null;
+            }
+        }
+        protected void onPostExecute(String message) {
+            AndroidContext androidContext = new AndroidContext(context);
+            Manager manager = null;
+            try {
+                manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database members = manager.getDatabase("members");
+                Document retrievedDocument = members.getExistingDocument(getMemberId());
+                if (retrievedDocument != null) {
+                    Map<String, Object> properties = retrievedDocument.getProperties();
+                    if (properties.containsKey("visits")) {
+                        Map<String, Object> newProperties = new HashMap<String, Object>();
+                        newProperties.putAll(retrievedDocument.getProperties());
+                        newProperties.put("visits", cls_serverNewTotalVisits);
+                        retrievedDocument.putProperties(newProperties);
+                    }
+                }
+            }catch(Exception err){
+                Log.e("MyCouch","Updating local member visits on device "+ err.getMessage());
+            }
+
+        }
+    }
     class UpdateResourceDocument extends AsyncTask<String, Void, String> {
         private Exception exception;
         private String cls_resouceId;
-        private Double cls_sum;
+        private int cls_sum;
         private int cls_timesRated;
         private String cls_revision;
         public String getResourceId(){
@@ -878,10 +984,10 @@ public class FullscreenLogin extends AppCompatActivity {
         public String setRevision(){
             return cls_revision;
         }
-        public Double getSum(){
+        public int getSum(){
             return cls_sum;
         }
-        public void setSum(Double sum){
+        public void setSum(int sum){
             cls_sum = sum;
         }
         public int getTimesRated(){
@@ -896,17 +1002,20 @@ public class FullscreenLogin extends AppCompatActivity {
                 String url_Scheme = uri.getScheme();
                 String url_Host = uri.getHost();
                 int url_Port = uri.getPort();
-                String url_user = "", url_pwd = "";
-                if (uri.getUserInfo() != null) {
+                String url_user = null, url_pwd = null;
+                if(sys_oldSyncServerURL.contains("@")){
                     String[] userinfo = uri.getUserInfo().split(":");
                     url_user = userinfo[0];
                     url_pwd = userinfo[1];
                 }
+                //if (uri.getUserInfo() != null) {
+                //
+                //}
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
                 if(dbClient.contains(cls_resouceId)){
                     /// Handle with Json
                     JsonObject json = dbClient.find(JsonObject.class, getResourceId());
-                    Double total_sum = (Double) (getSum() + Double.parseDouble(json.get("sum").getAsString()));
+                    int total_sum = (int) (getSum() + Integer.parseInt(json.get("sum").getAsString()));
                      int total_timesRated = getTimesRated() + Integer.parseInt(json.get("timesRated").toString());
                      json.addProperty("sum",total_sum);
                      json.addProperty("timesRated",total_timesRated);
@@ -919,17 +1028,8 @@ public class FullscreenLogin extends AppCompatActivity {
                 return null;
             }
         }
-
         protected void onPostExecute(String message) {
-            try{
-                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                Database resourceRating = manager.getDatabase("resourcerating");
-                resourceRating.delete();
-                //Document doc = resourceRating.getExistingDocument(cls_resouceId);
-                //doc.delete();
-            }catch(Exception err){
-                Log.e("MyCouch", "Error deleting local resourcerating document "+err.getMessage());
-            }
+
         }
     }
     class UpdateActivityLogDatabase extends AsyncTask<String, Void, String> {
@@ -953,12 +1053,15 @@ public class FullscreenLogin extends AppCompatActivity {
                 String url_Scheme = uri.getScheme();
                 String url_Host = uri.getHost();
                 int url_Port = uri.getPort();
-                String url_user = "", url_pwd = "";
-                if (uri.getUserInfo() != null) {
+                String url_user = null, url_pwd = null;
+                if(sys_oldSyncServerURL.contains("@")){
                     String[] userinfo = uri.getUserInfo().split(":");
                     url_user = userinfo[0];
                     url_pwd = userinfo[1];
                 }
+                //if (uri.getUserInfo() != null) {
+                //
+                //}
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid("activitylog", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
                 org.lightcouch.View view= dbClient.view("bell/getdocBylogdate").includeDocs(false);
                 List<Map> results = view.reduce(false).includeDocs(false).query(Map.class);
@@ -973,7 +1076,7 @@ public class FullscreenLogin extends AppCompatActivity {
                         docDateStr = jsonObject.get("logDate").getAsString();
                         Log.e("MyCouch",i+" "+ docDateStr +" - "+ jsonObject.get("_id").toString());
                         // Todo convert to date Compare date, month, year
-                        if(docDateStr.equals(Serverdate)){
+                        if(docDateStr.equalsIgnoreCase(Serverdate)){
                             todaysActivityDocId = jsonObject.get("_id").getAsString();
                             Log.e("MyCouch","Found "+docDateStr+" with Id "+todaysActivityDocId);
                             break;
@@ -989,42 +1092,82 @@ public class FullscreenLogin extends AppCompatActivity {
                             //female_opened
                             JsonArray female_opened_Array = jsonObject.get("female_opened").getAsJsonArray();
                             JsonElement female_opened_Element = parser.parse(gson.toJson(cls_female_opened));
-                            female_opened_Array.addAll(female_opened_Element.getAsJsonArray());
+                            Log.e("MyCouch", "Begun -- ");
+                            try{
+                                female_opened_Array.addAll(female_opened_Element.getAsJsonArray());
+                            }catch(Exception err){
+                                Log.e("MyCouch", "Got to female_opened "+err.getLocalizedMessage());
+                            }
                             //male_rating
                             JsonArray male_rating_Array = jsonObject.get("male_rating").getAsJsonArray();
                             JsonElement male_rating_Element = parser.parse(gson.toJson(cls_male_rating));
-                            male_rating_Array.addAll(male_rating_Element.getAsJsonArray());
+                            try{
+                                male_rating_Array.addAll(male_rating_Element.getAsJsonArray());
+                            }catch(Exception err){
+                                Log.e("MyCouch", "Got to male_rating "+err.getLocalizedMessage());
+                            }
+
                             //male_timesRated
                             JsonArray male_timesRated_Array = jsonObject.get("male_timesRated").getAsJsonArray();
                             JsonElement male_timesRated_Element = parser.parse(gson.toJson(cls_male_timesRated));
-                            male_timesRated_Array.addAll(male_timesRated_Element.getAsJsonArray());
+                            try{
+                                male_timesRated_Array.addAll(male_timesRated_Element.getAsJsonArray());
+                            }catch(Exception err){
+                                Log.e("MyCouch", "Got to male_timesRated "+err.getLocalizedMessage());
+                            }
                             //female_timesRated
                             JsonArray female_timesRated_Array = jsonObject.get("female_timesRated").getAsJsonArray();
                             JsonElement female_timesRated_Element = parser.parse(gson.toJson(cls_female_timesRated));
-                            female_timesRated_Array.addAll(female_timesRated_Element.getAsJsonArray());
+                            try{
+                                female_timesRated_Array.addAll(female_timesRated_Element.getAsJsonArray());
+                            }catch(Exception err){
+                                Log.e("MyCouch", "Got to female_timesRated "+err.getLocalizedMessage());
+                            }
                             //female_rating
                             JsonArray female_rating_Array = jsonObject.get("female_rating").getAsJsonArray();
                             JsonElement female_rating_Element = parser.parse(gson.toJson(cls_female_rating));
-                            female_rating_Array.addAll(female_rating_Element.getAsJsonArray());
+                            try{
+                                female_rating_Array.addAll(female_rating_Element.getAsJsonArray());
+                            }catch(Exception err){
+                                Log.e("MyCouch", "Got to female_rating "+err.getLocalizedMessage());
+                            }
                             //resourcesIds
                             JsonArray resourcesIds_Array = jsonObject.get("resourcesIds").getAsJsonArray();
                             JsonElement resourcesIds_Element = parser.parse(gson.toJson(cls_resourcesIds));
-                            resourcesIds_Array.addAll(resourcesIds_Element.getAsJsonArray());
+                            try{
+                                resourcesIds_Array.addAll(resourcesIds_Element.getAsJsonArray());
+                            }catch(Exception err){
+                                Log.e("MyCouch", "Got to resourcesIds "+err.getLocalizedMessage());
+                            }
                             //male_opened
                             JsonArray male_opened_Array = jsonObject.get("male_opened").getAsJsonArray();
                             JsonElement male_opened_Element = parser.parse(gson.toJson(cls_male_opened));
-                            male_opened_Array.addAll(male_opened_Element.getAsJsonArray());
+                            try{
+                                male_opened_Array.addAll(male_opened_Element.getAsJsonArray());
+                            }catch(Exception err){
+                                Log.e("MyCouch", "Got to male_opened "+err.getLocalizedMessage());
+                            }
                             //resources_names
                             JsonArray resources_names_Array = jsonObject.get("resources_names").getAsJsonArray();
                             JsonElement resources_names_Element = parser.parse(gson.toJson(cls_resources_names));
-                            resources_names_Array.addAll(resources_names_Element.getAsJsonArray());
+                            try{
+                                resources_names_Array.addAll(resources_names_Element.getAsJsonArray());
+                            }catch(Exception err){
+                                Log.e("MyCouch", "Got to resources_names "+err.getLocalizedMessage());
+                            }
                             //resources_opened
                             JsonArray resources_opened_Array = jsonObject.get("resources_opened").getAsJsonArray();
                             JsonElement resources_opened_Element = parser.parse(gson.toJson(cls_resources_opened));
-                            resources_opened_Array.addAll(resources_opened_Element.getAsJsonArray());
-                            Log.e("MyCouch", "Rating " + female_opened_Array);
-                            jsonObject.addProperty("male_visits", (cls_male_visits + jsonObject.get("male_visits").getAsDouble()));
-                            jsonObject.addProperty("female_visits", (cls_female_visits+ jsonObject.get("female_visits").getAsDouble()));
+                            try{
+                                resources_opened_Array.addAll(resources_opened_Element.getAsJsonArray());
+                            }catch(Exception err){
+                                Log.e("MyCouch", "Got to resources_opened "+err.getLocalizedMessage());
+                            }
+                            Log.e("MyCouch", "Ended -- ");
+                            int totalMaleVisits = (cls_male_visits + jsonObject.get("male_visits").getAsInt());
+                            jsonObject.addProperty("male_visits", totalMaleVisits);
+                            int totalFemaleVisits = (cls_female_visits+ jsonObject.get("female_visits").getAsInt());
+                            jsonObject.addProperty("female_visits",totalFemaleVisits);
                             jsonObject.add("female_opened", female_opened_Array);
                             jsonObject.add("male_rating", male_rating_Array);
                             jsonObject.add("male_timesRated", male_timesRated_Array);
@@ -1043,39 +1186,73 @@ public class FullscreenLogin extends AppCompatActivity {
                             Gson gson = new Gson();
                             JsonParser parser = new JsonParser();
                             JsonObject jsonObject = new JsonObject();
+                            Log.e("MyCouch", "Begun New Activity Resource -- ");
                             //female_opened
                             JsonArray female_opened_Array = new JsonArray();
                             JsonElement female_opened_Element = parser.parse(gson.toJson(cls_female_opened));
-                            female_opened_Array.addAll(female_opened_Element.getAsJsonArray());
+                            try{
+                                female_opened_Array.addAll(female_opened_Element.getAsJsonArray());
+                            }catch(Exception err){
+                                Log.e("MyCouch", "Got to female_opened "+err.getLocalizedMessage());
+                            }
                             //male_rating
                             JsonArray male_rating_Array = new JsonArray();
                             JsonElement male_rating_Element = parser.parse(gson.toJson(cls_male_rating));
-                            male_rating_Array.addAll(male_rating_Element.getAsJsonArray());
+                            try{
+                               male_rating_Array.addAll(male_rating_Element.getAsJsonArray());
+                            }catch(Exception err){
+                               Log.e("MyCouch", "Got to male_rating "+err.getLocalizedMessage());
+                            }
                             //male_timesRated
                             JsonArray male_timesRated_Array = new JsonArray();
                             JsonElement male_timesRated_Element = parser.parse(gson.toJson(cls_male_timesRated));
-                            male_timesRated_Array.addAll(male_timesRated_Element.getAsJsonArray());
+                            try{
+                                male_timesRated_Array.addAll(male_timesRated_Element.getAsJsonArray());
+                            }catch(Exception err){
+                                Log.e("MyCouch", "Got to male_timesRated "+err.getLocalizedMessage());
+                            }
                             //female_timesRated
                             JsonArray female_timesRated_Array = new JsonArray();
                             JsonElement female_timesRated_Element = parser.parse(gson.toJson(cls_female_timesRated));
-                            female_timesRated_Array.addAll(female_timesRated_Element.getAsJsonArray());
+                            try{
+                                female_timesRated_Array.addAll(female_timesRated_Element.getAsJsonArray());
+                            }catch(Exception err){
+                                Log.e("MyCouch", "Got to female_timesRated "+err.getLocalizedMessage());
+                            }
                             //female_rating
                             JsonArray female_rating_Array = new JsonArray();
                             JsonElement female_rating_Element = parser.parse(gson.toJson(cls_female_rating));
-                            female_rating_Array.addAll(female_rating_Element.getAsJsonArray());
+                            try{
+                                female_rating_Array.addAll(female_rating_Element.getAsJsonArray());
+                            }catch(Exception err){
+                                Log.e("MyCouch", "Got to female_rating "+err.getLocalizedMessage());
+                            }
                             //resourcesIds
                             JsonArray resourcesIds_Array = new JsonArray();
                             JsonElement resourcesIds_Element = parser.parse(gson.toJson(cls_resourcesIds));
-                            resourcesIds_Array.addAll(resourcesIds_Element.getAsJsonArray());
+                            try{
+                                resourcesIds_Array.addAll(resourcesIds_Element.getAsJsonArray());
+                            }catch(Exception err){
+                                Log.e("MyCouch", "Got to resourcesIds "+err.getLocalizedMessage());
+                            }
                             //male_opened
                             JsonArray male_opened_Array = new JsonArray();
                             JsonElement male_opened_Element = parser.parse(gson.toJson(cls_male_opened));
-                            male_opened_Array.addAll(male_opened_Element.getAsJsonArray());
+                            try{
+                                male_opened_Array.addAll(male_opened_Element.getAsJsonArray());
+                            }catch(Exception err){
+                                Log.e("MyCouch", "Got to male_opened "+err.getLocalizedMessage());
+                            }
                             //resources_names
                             JsonArray resources_names_Array = new JsonArray();
                             JsonElement resources_names_Element = parser.parse(gson.toJson(cls_resources_names));
-                            resources_names_Array.addAll(resources_names_Element.getAsJsonArray());
+                            try{
+                                resources_names_Array.addAll(resources_names_Element.getAsJsonArray());
+                            }catch(Exception err){
+                                Log.e("MyCouch", "Got to resources_names "+err.getLocalizedMessage());
+                            }
                             //resources_opened
+                            Log.e("MyCouch", "Ended New Activity Resource -- ");
                             JsonArray resources_opened_Array = new JsonArray();
                             JsonElement resources_opened_Element = parser.parse(gson.toJson(cls_resources_opened));
                             resources_opened_Array.addAll(resources_opened_Element.getAsJsonArray());
@@ -1155,16 +1332,20 @@ public class FullscreenLogin extends AppCompatActivity {
                 String url_Scheme = uri.getScheme();
                 String url_Host = uri.getHost();
                 int url_Port = uri.getPort();
-                String url_user = "", url_pwd = "";
-                if (uri.getUserInfo() != null) {
+                String url_user = null, url_pwd = null;
+                if(sys_oldSyncServerURL.contains("@")){
                     String[] userinfo = uri.getUserInfo().split(":");
                     url_user = userinfo[0];
                     url_pwd = userinfo[1];
+                    Log.e("MyCouch", "Doesnt contain @");
                 }
+                //if (uri.getUserInfo() != null) {
+                //
+                //}
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid(getdbName(), true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
 //// Todo Decide either use design document in apps or not
- ///               org.lightcouch.View view= dbClient.view("bell/date_now").includeDocs(true);
-                org.lightcouch.View view= dbClient.view("apps/date_now").includeDocs(true);
+                org.lightcouch.View view= dbClient.view("bell/date_now").includeDocs(true);
+///                org.lightcouch.View view= dbClient.view("apps/date_now").includeDocs(true);
                 List<Map> results = view.reduce(false).includeDocs(false).query(Map.class);
                 if (results.size() != 0) {
                     Serverdate = (String) results.get(0).get("value");
@@ -1173,7 +1354,7 @@ public class FullscreenLogin extends AppCompatActivity {
                 return "";
             } catch (Exception e) {
                 this.exception = e;
-                Log.e("MyCouch", "error "+e.getMessage());
+                Log.e("MyCouch", "error getting date "+e.getMessage());
                 return null;
             }
         }

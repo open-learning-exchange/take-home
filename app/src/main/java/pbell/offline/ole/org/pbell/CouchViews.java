@@ -77,6 +77,18 @@ public class CouchViews {
         );
         return VisitsByMemberIdView;
     }
+    public View ReadMemberVisitsId(Database db) {
+        View VisitsMemberVisitsIdView = db.getView("visits");
+        VisitsMemberVisitsIdView.setMap(
+                new Mapper(){
+                    @Override
+                    public void map(Map<String, Object> document,Emitter emitter) {
+                        emitter.emit((String) document.get("_id"), (String) document.get("_id"));
+                    }
+                }, "4"
+        );
+        return VisitsMemberVisitsIdView;
+    }
     public View LocalServerInfo(Database db) {
         View ServerInfoView = db.getView("name");
         ServerInfoView.setMap(

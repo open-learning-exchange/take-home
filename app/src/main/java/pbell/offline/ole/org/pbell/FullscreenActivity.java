@@ -738,8 +738,8 @@ public class FullscreenActivity extends AppCompatActivity {
                 repl = database.createPullReplication(remote);
                 repl.setContinuous(false);
 //// Todo Decide either use design document in app or not
-///                repl.setFilter("bell/by_resource");
-                repl.setFilter("apps/by_resource");
+                repl.setFilter("bell/by_resource");
+                //repl.setFilter("apps/by_resource");
                 Map<String, Object> map = new HashMap<String, Object>();
                 map.put("_id", OneByOneResID);
                 repl.setFilterParams(map);
@@ -1521,9 +1521,9 @@ public class FullscreenActivity extends AppCompatActivity {
             activityLog = manager.getDatabase("activitylog");
             WifiManager wm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
             String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
-            Document retrievedDocument = activityLog.getExistingDocument(m_WLANMAC);
-            if(retrievedDocument != null) {
-                Map<String, Object> properties = retrievedDocument.getProperties();
+            Document retrievedDocument = activityLog.getDocument(m_WLANMAC);
+            Map<String, Object> properties = retrievedDocument.getProperties();
+            if((ArrayList<String>) properties.get("female_opened")!= null){
                 try {
                     ArrayList female_opened = (ArrayList<String>) properties.get("female_opened");
                     ArrayList male_opened = (ArrayList<String>) properties.get("male_opened");
@@ -1550,38 +1550,40 @@ public class FullscreenActivity extends AppCompatActivity {
                     return true;
                 }catch(Exception err){
                     Log.e("MyCouch", "Option 1 Failed "+err.getMessage());
-                    try {
-                        Log.e("MyCouch", "Option 2");
-                        Document newdocument = activityLog.getDocument(m_WLANMAC);
-                        Map<String, Object> newProperties = new HashMap<String, Object>();
-                        newProperties.putAll(retrievedDocument.getProperties());
-                        ArrayList female_opened = new ArrayList<String>();
-                        ArrayList male_opened = new ArrayList<String>();
-                        ArrayList resources_names = new ArrayList<String>();
-                        ArrayList resources_opened = new ArrayList<String>();
-                        if (sys_usergender.toLowerCase() == "female") {
-                            female_opened.add(1);
-                            male_opened.add(0);
-                        } else {
-                            female_opened.add(0);
-                            male_opened.add(1);
-                        }
-                        resources_names.add(resource_name);
-                        resources_opened.add(resourceid);
-                        newProperties.put("female_opened", female_opened);
-                        newProperties.put("male_opened", male_opened);
-                        newProperties.put("resources_names", resources_names);
-                        newProperties.put("resources_opened", resources_opened);
-                        newdocument.putProperties(newProperties);
-                        Log.e("MyCouch", "Saved resource open in local Activity Log ");
-                        return true;
-                    }catch(Exception er) {
-                        Log.e("MyCouch", "Option 2 Failed" + er.getMessage());
-                        return false;
+                    return false;
+                }
+            }else{
+                try {
+                    Log.e("MyCouch", "Option 2");
+                    Document newdocument = activityLog.getDocument(m_WLANMAC);
+                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    newProperties.putAll(retrievedDocument.getProperties());
+                    ArrayList female_opened = new ArrayList<String>();
+                    ArrayList male_opened = new ArrayList<String>();
+                    ArrayList resources_names = new ArrayList<String>();
+                    ArrayList resources_opened = new ArrayList<String>();
+                    if (sys_usergender.toLowerCase() == "female") {
+                        female_opened.add(1);
+                        male_opened.add(0);
+                    } else {
+                        female_opened.add(0);
+                        male_opened.add(1);
                     }
+                    resources_names.add(resource_name);
+                    resources_opened.add(resourceid);
+                    newProperties.put("female_opened", female_opened);
+                    newProperties.put("male_opened", male_opened);
+                    newProperties.put("resources_names", resources_names);
+                    newProperties.put("resources_opened", resources_opened);
+                    newdocument.putProperties(newProperties);
+                    Log.e("MyCouch", "Saved resource open in local Activity Log ");
+                    return true;
+                }catch(Exception er) {
+                    Log.e("MyCouch", "Option 2 Failed" + er.getMessage());
+                    return false;
                 }
             }
-            else {
+            /*
                 try {
                     Log.e("MyCouch", "Option 1b");
                     Document newdocument = activityLog.getDocument(m_WLANMAC);
@@ -1607,11 +1609,11 @@ public class FullscreenActivity extends AppCompatActivity {
                     newdocument.putProperties(newProperties);
                     Log.e("MyCouch", "Saved resource open in local Activity Log ");
                     return true;
-                }catch(Exception err){
-                    Log.e("MyCouch", "Opetion 1b Failed : " +err.getMessage());
+                }catch(Exception err) {
+                    Log.e("MyCouch", "Opetion 1b Failed : " + err.getMessage());
                     return false;
                 }
-            }
+            */
         }catch(Exception err){
             Log.e("MyCouch", "Updating Activity Log : " +err.getMessage());
             return false;
@@ -1626,7 +1628,7 @@ public class FullscreenActivity extends AppCompatActivity {
             activityLog = manager.getDatabase("activitylog");
             WifiManager wm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
             String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
-            Document retrievedDocument = activityLog.getExistingDocument(m_WLANMAC);
+            Document retrievedDocument = activityLog.getDocument(m_WLANMAC);
             if(retrievedDocument != null) {
                 Map<String, Object> properties = retrievedDocument.getProperties();
                 try {
@@ -1636,7 +1638,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     ArrayList male_timesRated = (ArrayList<String>) properties.get("male_timesRated");
                     ArrayList resourcesIds = (ArrayList<String>) properties.get("resourcesIds");
                     Log.e("MyCouch", "Option Rating 1");
-                    if (sys_usergender.toLowerCase() == "female") {
+                    if (sys_usergender.toLowerCase().equalsIgnoreCase("female")) {
                         female_rating.add(rate);
                         female_timesRated.add(1);
                         male_rating.add(0);
@@ -1662,7 +1664,6 @@ public class FullscreenActivity extends AppCompatActivity {
                     Log.e("MyCouch", "Option Rating 1 Failed "+err.getMessage());
                     try {
                         Log.e("MyCouch", "Option 2");
-                        Document newdocument = activityLog.getDocument(m_WLANMAC);
                         Map<String, Object> newProperties = new HashMap<String, Object>();
                         newProperties.putAll(retrievedDocument.getProperties());
                         ArrayList female_rating = new ArrayList<String>();
@@ -1670,10 +1671,14 @@ public class FullscreenActivity extends AppCompatActivity {
                         ArrayList male_rating = new ArrayList<String>();
                         ArrayList male_timesRated = new ArrayList<String>();
                         ArrayList resourcesIds = new ArrayList<String>();
-                        if (sys_usergender.toLowerCase() == "female") {
+                        if (sys_usergender.toLowerCase().equalsIgnoreCase("female")) {
                             female_rating.add(rate);
                             female_timesRated.add(1);
+                            male_rating.add(0);
+                            male_timesRated.add(0);
                         } else {
+                            female_rating.add(0);
+                            female_timesRated.add(0);
                             male_rating.add(rate);
                             male_timesRated.add(1);
                         }
@@ -1696,7 +1701,6 @@ public class FullscreenActivity extends AppCompatActivity {
             else {
                 try {
                     Log.e("MyCouch", "Option Rating 1b");
-                    Document newdocument = activityLog.getDocument(m_WLANMAC);
                     Map<String, Object> newProperties = new HashMap<String, Object>();
                     newProperties.putAll(retrievedDocument.getProperties());
                     ArrayList female_rating = new ArrayList<String>();
@@ -1704,10 +1708,14 @@ public class FullscreenActivity extends AppCompatActivity {
                     ArrayList male_rating = new ArrayList<String>();
                     ArrayList male_timesRated = new ArrayList<String>();
                     ArrayList resourcesIds = new ArrayList<String>();
-                    if (sys_usergender.toLowerCase() == "female") {
+                    if (sys_usergender.toLowerCase().equalsIgnoreCase("female")) {
                         female_rating.add(rate);
                         female_timesRated.add(1);
+                        male_rating.add(0);
+                        male_timesRated.add(0);
                     } else {
+                        female_rating.add(0);
+                        female_timesRated.add(0);
                         male_rating.add(rate);
                         male_timesRated.add(1);
                     }
@@ -2137,18 +2145,18 @@ public class FullscreenActivity extends AppCompatActivity {
         dialogButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                saveRating(ratingBar.getRating(),String.valueOf(txtComment.getText()),resourceID);
+                saveRating((int) ratingBar.getRating(),String.valueOf(txtComment.getText()),resourceID);
                 dialog.dismiss();
             }
         });
         dialog.show();
     }
 
-    public void saveRating(float rate,String comment,String resourceId){
+    public void saveRating(int rate,String comment,String resourceId){
         AndroidContext androidContext = new AndroidContext(context);
         Manager manager = null;
         Database resourceRating;
-        double doc_rating;
+        int doc_rating;
         int doc_timesRated;
         ArrayList<String> commentList = new ArrayList<String>();
         try {
@@ -2158,7 +2166,7 @@ public class FullscreenActivity extends AppCompatActivity {
             if(retrievedDocument != null) {
                 Map<String, Object> properties = retrievedDocument.getProperties();
                 if(properties.containsKey("sum")){
-                    doc_rating = (double) properties.get("sum") ;
+                    doc_rating = (int) properties.get("sum") ;
                     doc_timesRated  = (int) properties.get("timesRated") ;
                     commentList = (ArrayList<String>) properties.get("comments");
                     commentList.add(comment);
@@ -2180,7 +2188,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 commentList.add(comment);
                 newProperties.put("comments", commentList);
                 newdocument.putProperties(newProperties);
- /// todo check updating resource to see it  it works
+ /// todo check updating resource to see it works
                 updateActivityRatingResources(rate, resourceId);
                 Toast.makeText(context,String.valueOf(rate),Toast.LENGTH_SHORT).show();
             }
@@ -2193,49 +2201,6 @@ public class FullscreenActivity extends AppCompatActivity {
         if(openedResource) {
             rateResourceDialog(openedResourceId,openedResourceTitle);
             openedResource=false;
-        }
-    }
-
-    public boolean updateActivityLog(){
-        AndroidContext androidContext = new AndroidContext(this);
-        Manager manager = null;
-        Database activityLog;
-        int genderVisits;
-        try {
-            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-            activityLog = manager.getDatabase("activitylog");
-            WifiManager wm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
-            String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
-            Document retrievedDocument = activityLog.getExistingDocument(m_WLANMAC);
-            if(retrievedDocument != null) {
-                Map<String, Object> properties = retrievedDocument.getProperties();
-                if(properties.containsKey(sys_usergender.toLowerCase()+"_visits")){
-                    genderVisits = (int) properties.get(sys_usergender.toLowerCase()+"_visits");
-                    Map<String, Object> newProperties = new HashMap<String, Object>();
-                    newProperties.putAll(retrievedDocument.getProperties());
-                    newProperties.put(sys_usergender.toLowerCase()+"_visits", (genderVisits+1));
-                    retrievedDocument.putProperties(newProperties);
-                    return true;
-                }else{
-                    Map<String, Object> newProperties = new HashMap<String, Object>();
-                    newProperties.putAll(retrievedDocument.getProperties());
-                    newProperties.put(sys_usergender.toLowerCase()+"_visits",1);
-                    retrievedDocument.putProperties(newProperties);
-                    return true;
-                }
-            }
-            else{
-                Document newvistsdocument = activityLog.getDocument(m_WLANMAC);
-                Map<String, Object> newvisitsProperties = new HashMap<String, Object>();
-                newvisitsProperties.put(sys_usergender.toLowerCase() + "_visits", 1);
-                newvistsdocument.putProperties(newvisitsProperties);
-                Log.e("MyCouch", "Here Now 9 - " + sys_usergender.toLowerCase() + "_visits : ");
-                return true;
-            }
-        }catch(Exception err){
-            Log.e("MyCouch", "Updating Activity Log : " +err.toString());
-            err.printStackTrace();
-            return false;
         }
     }
 
