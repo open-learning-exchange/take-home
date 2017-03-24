@@ -61,9 +61,15 @@ import com.github.kittinunf.fuel.Fuel;
 import com.github.kittinunf.fuel.core.FuelError;
 import com.github.kittinunf.fuel.core.Request;
 import com.github.kittinunf.fuel.core.Response;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.lightcouch.CouchDbClientAndroid;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -71,6 +77,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
@@ -380,18 +387,6 @@ public class FullscreenActivity extends AppCompatActivity {
         Window win = dialogSetting.getWindow();
         win.setLayout(width.intValue(), height.intValue());
 
-
-        dialogSetting.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        final ToggleButton toggleBtnSingle = (ToggleButton) dialogSetting.findViewById(R.id.toggleBtn_Single);
-        toggleBtnSingle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-               if(toggleBtnSingle.isChecked()) {
-               }else {
-
-               }
-            }
-        });
     }
 
     public String curdate(){
@@ -629,7 +624,6 @@ public class FullscreenActivity extends AppCompatActivity {
 
                     //// Todo Decide which option is best
                     singleFiledownload=true;
-                   // alertDialogOkay(OneByOneResID+"");
                     new downloadSpecificResourceToDisk().execute();
                     //final AsyncTask<String, Void, Boolean> execute = new SyncResource().execute();
                 } catch (Exception e) {
@@ -1949,66 +1943,238 @@ public class FullscreenActivity extends AppCompatActivity {
         AlertDialog alert11 = builder1.create();
         alert11.show();
     }
+    public void downloadOneResourceToDisk(){
+        try {
+            URI uri = URI.create(sys_oldSyncServerURL);
+            String url_Scheme = uri.getScheme();
+            String url_Host = uri.getHost();
+            int url_Port = uri.getPort();
+            String url_user = null, url_pwd = null;
+            if(sys_oldSyncServerURL.contains("@")){
+                String[] userinfo = uri.getUserInfo().split(":");
+                url_user = userinfo[0];
+                url_pwd = userinfo[1];
+            }
+
+            CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+            Log.e("MyCouch","Here Now");
+            if(dbClient.contains(OneByOneResID)){
+                /// Handle with Json
+                JsonObject jsonObject = dbClient.find(JsonObject.class,OneByOneResID);
+                JsonObject jsonAttachments = jsonObject.getAsJsonObject("_attachments");
+                String openWith = (String) jsonObject.get("openWith").getAsString();
+                Log.e("MyCouch", "Open With -- " + openWith);
+                if(!openWith.equalsIgnoreCase("HTML")) {
+                    JSONObject _attachments = new JSONObject(jsonAttachments.toString());
+                    Iterator<String> keys = _attachments.keys();
+                    if (keys.hasNext()) {
+                        String key = (String) keys.next();
+                        Log.e("MyCouch", "-- " + key);
+                        String encodedkey = URLEncoder.encode(key, "utf-8");
+                        File file = new File(encodedkey);
+                        String extension = encodedkey.substring(encodedkey.lastIndexOf("."));
+                        String diskFileName = OneByOneResID + extension;
+                        //createResourceDoc(OneByOneResID, jsonObject.get("title").getAsString(), jsonObject.get("openWith").getAsString());
+                        //downloadWithDownloadManagerSingleFile(sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey, diskFileName);
+                    }
+                }else {
+                    Log.e("MyCouch", "-- HTML NOT PART OF DOWNLOADS ");
+                    htmlResourceList.add(OneByOneResID);
+                    if (allhtmlDownload < htmlResourceList.size()) {
+                        try {
+                            URL remote = getReplicationURL();
+                            CountDownLatch replicationDoneSignal = new CountDownLatch(1);
+                            final Database database;
+                            database = manager.getDatabase("resources");
+                            final Replication repl = (Replication) database.createPullReplication(remote);
+                            repl.setContinuous(false);
+                            repl.setDocIds(htmlResourceList);
+                            repl.addChangeListener(new Replication.ChangeListener() {
+                                @Override
+                                public void changed(Replication.ChangeEvent event) {
+                                    Log.e("MyCouch", "Current Status "+repl.getStatus());
+                                    if(repl.isRunning()){
+                                        if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_ACTIVE")) {
+                                            Log.e("MyCouch", " " + event.getChangeCount());
+                                            Log.e("MyCouch", " Document Count " + database.getDocumentCount());
+                                            mDialog.setMessage("Downloading HTML resources now .. "+ database.getDocumentCount() +"/"+ htmlResourceList.size());
+                                        }else if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")){
+                                            mDialog.dismiss();
+                                            alertDialogOkay("Download Completed");
+                                        }
+                                        else{
+                                            mDialog.setMessage("Data transfer error. Check connection to server.");
+                                        }
+                                    }else {
+                                        Log.e("MyCouch", "Document Count Last " + database.getDocumentCount());
+                                        mDialog.dismiss();
+                                        // dbDiagnosticCheck();
+                                    }
+                                }
+                            });
+                            repl.start();
+                        } catch (CouchbaseLiteException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        mDialog.dismiss();
+                        alertDialogOkay("Download Completed");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.e("MyCouch","Download this resource error "+ e.getMessage());
+            mDialog.dismiss();
+            alertDialogOkay("Error downloading file, check connection and try again");
+        }
+    }
     /// Todo Review Code and test class
     class downloadSpecificResourceToDisk extends AsyncTask<String, Void, Boolean> {
         @Override
         protected Boolean doInBackground(String... params) {
-            Fuel ful = new Fuel();
-            Log.e("Called", " class- downloadSpecificResourceToDisk " );
-            ful.get(sys_oldSyncServerURL+"/resources/" + OneByOneResID).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
-                @Override
-                public void success(Request request, Response response, String s) {
-                    try {
-                        try {
-                           /// alertDialogOkay(OneByOneResID+"");
-                            openFromDiskDirectly = true;
-                            jsonData = new JSONObject(s);
-                            String openWith = (String) jsonData.get("openWith");
-                            Log.e("MyCouch", "Open With -- " + openWith);
-                            if(!openWith.equalsIgnoreCase("HTML")) {
-                                JSONObject _attachments = (JSONObject) jsonData.get("_attachments");
-                                Iterator<String> keys = _attachments.keys();
-                                if (keys.hasNext()) {
-                                    String key = (String) keys.next();
-                                    Log.e("MyCouch", "-- " + key);
-                                    String encodedkey = URLEncoder.encode(key, "utf-8");
-                                    File file = new File(encodedkey);
-                                    String extension = encodedkey.substring(encodedkey.lastIndexOf("."));
-                                    String diskFileName = OneByOneResID + extension;
-                                    createResourceDoc(OneByOneResID,(String) jsonData.get("title"), (String) jsonData.get("openWith"));
+            try {
+                URI uri = URI.create(sys_oldSyncServerURL);
+                String url_Scheme = uri.getScheme();
+                String url_Host = uri.getHost();
+                int url_Port = uri.getPort();
+                String url_user = null, url_pwd = null;
+                if(sys_oldSyncServerURL.contains("@")){
+                    String[] userinfo = uri.getUserInfo().split(":");
+                    url_user = userinfo[0];
+                    url_pwd = userinfo[1];
+                }
+                CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+                if(dbClient.contains(OneByOneResID)){
+                    /// Handle with Json
+                    JsonObject jsonObject = dbClient.find(JsonObject.class,OneByOneResID);
+                    JsonObject jsonAttachments = jsonObject.getAsJsonObject("_attachments");
+                    final String openWith = (String) jsonObject.get("openWith").getAsString();
+                    final String title =  jsonObject.get("title").getAsString();
+                    Log.e("MyCouch", "Open With -- " + openWith);
+                    if(!openWith.equalsIgnoreCase("HTML")) {
+                        JSONObject _attachments = new JSONObject(jsonAttachments.toString());
+                        Iterator<String> keys = _attachments.keys();
+                        if (keys.hasNext()) {
+                            String key = (String) keys.next();
+                            Log.e("MyCouch", "-- " + key);
+                            final String encodedkey = URLEncoder.encode(key, "utf-8");
+                            File file = new File(encodedkey);
+                            String extension = encodedkey.substring(encodedkey.lastIndexOf("."));
+                            final String diskFileName = OneByOneResID + extension;
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
                                     downloadWithDownloadManagerSingleFile(sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey, diskFileName);
+                                    createResourceDoc(OneByOneResID, title, openWith);
                                 }
-                            }else{
-                                Log.e("MyCouch", "-- HTML NOT PART OF DOWNLOADS " );
-                                htmlResourceList.add(OneByOneResID);
-                                if(allhtmlDownload<htmlResourceList.size()) {
-                                    new SyncSingleHTMLResource().execute();
-                                }else{
-                                    mDialog.dismiss();
-                                    alertDialogOkay("Download Completed");
+                            });}
+                    }else {
+                        Log.e("MyCouch", "-- HTML NOT PART OF DOWNLOADS ");
+                        htmlResourceList.add(OneByOneResID);
+                        if (allhtmlDownload < htmlResourceList.size()) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    callSuncOneHTMLResource();
                                 }
-                            }
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                            });
+                        } else {
+                            mDialog.dismiss();
+                            alertDialogOkay("Download Completed");
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
                 }
-                @Override
-                public void failure(Request request, Response response, FuelError fuelError) {
-                    alertDialogOkay("Error downloading file");
-                    Log.e("MyCouch", " "+fuelError);
-                }
-            });
+            } catch (Exception e) {
+                Log.e("MyCouch","Download this resource error "+ e.getMessage());
+                mDialog.dismiss();
+                alertDialogOkay("Error downloading file, check connection and try again");
+                return null;
+            }
             return null;
         }
+    }
+    public void callSuncOneHTMLResource(){
+        SyncSingleHTMLResource ssHTML = new SyncSingleHTMLResource();
+        ssHTML.execute();
     }
 
     class downloadAllResourceToDisk extends AsyncTask<String, Void, Boolean> {
         @Override
         protected Boolean doInBackground(String... params) {
+            try {
+                URI uri = URI.create(sys_oldSyncServerURL);
+                String url_Scheme = uri.getScheme();
+                String url_Host = uri.getHost();
+                int url_Port = uri.getPort();
+                String url_user = null, url_pwd = null;
+                if(sys_oldSyncServerURL.contains("@")){
+                    String[] userinfo = uri.getUserInfo().split(":");
+                    url_user = userinfo[0];
+                    url_pwd = userinfo[1];
+                }
+                CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+                if(dbClient.contains(resourceIdList[allresDownload])){
+                    /// Handle with Json
+                    JsonObject jsonObject = dbClient.find(JsonObject.class,resourceIdList[allresDownload]);
+                    JsonObject jsonAttachments = jsonObject.getAsJsonObject("_attachments");
+                    final String openWith = (String) jsonObject.get("openWith").getAsString();
+                    final String title =  jsonObject.get("title").getAsString();
+                    Log.e("MyCouch", "Open With -- " + openWith);
+                    if(!openWith.equalsIgnoreCase("HTML")) {
+                        JSONObject _attachments = new JSONObject(jsonAttachments.toString());
+                        Iterator<String> keys = _attachments.keys();
+                        if (keys.hasNext()) {
+                            String key = (String) keys.next();
+                            Log.e("MyCouch", "-- " + key);
+                            final String encodedkey = URLEncoder.encode(key, "utf-8");
+                            File file = new File(encodedkey);
+                            String extension = encodedkey.substring(encodedkey.lastIndexOf("."));
+                            final String diskFileName = resourceIdList[allresDownload] + extension;
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    downloadWithDownloadManagerSingleFile(sys_oldSyncServerURL + "/resources/" + resourceIdList[allresDownload] + "/" + encodedkey, diskFileName);
+                                    createResourceDoc(resourceIdList[allresDownload], title, openWith);
+                                }
+                            });}
+                    }else {
+                        Log.e("MyCouch", "-- HTML NOT PART OF DOWNLOADS ");
+                        htmlResourceList.add(resourceIdList[allresDownload]);
+                        if(allresDownload<libraryButtons.length) {
+                            allresDownload++;
+                            if(resourceTitleList[allresDownload]!=null) {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mDialog.setMessage("Download please wait ...");
+                                        new downloadAllResourceToDisk().execute();
+                                    }
+                                });
+                            }else{
+                                if(allhtmlDownload<htmlResourceList.size()) {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            callSuncOneHTMLResource();
+                                        }
+                                    });
+                                }else{
+                                    mDialog.dismiss();
+                                    alertDialogOkay("Download Completed");
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                Log.e("MyCouch","Download this resource error "+ e.getMessage());
+                mDialog.dismiss();
+                alertDialogOkay("Error downloading file, check connection and try again");
+                return null;
+            }
+            return null;
+
+            /*
             Fuel ful = new Fuel();
             ful.get(sys_oldSyncServerURL+"/resources/" + resourceIdList[allresDownload]).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
                 @Override
@@ -2064,6 +2230,9 @@ public class FullscreenActivity extends AppCompatActivity {
                 }
             });
             return null;
+
+            */
+
         }
     }
 
@@ -2112,6 +2281,7 @@ public class FullscreenActivity extends AppCompatActivity {
             Map<String, Object> properties = new HashMap<String, Object>();
             properties.put("title", manualResTitle);
             properties.put("openWith", manualResopenWith);
+            properties.put("localfile", "yes");
            // properties.put("resourceType", manualResType);
             Document document = database.getDocument(manualResId);
             try {
