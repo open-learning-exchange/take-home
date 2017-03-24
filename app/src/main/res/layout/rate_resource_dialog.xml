@@ -22,7 +22,8 @@
             android:layout_height="wrap_content"
             android:id="@+id/ratingBar"
             android:numStars="5"
-            android:layout_gravity="center_horizontal" />
+            android:layout_gravity="center_horizontal"
+            android:stepSize="1" />
 
     <EditText
         android:layout_width="match_parent"

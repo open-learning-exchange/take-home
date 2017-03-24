@@ -16,6 +16,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -178,7 +179,6 @@ public class FullscreenActivity extends AppCompatActivity {
                                     allresDownload++;
                                     if (resourceTitleList[allresDownload] != null) {
                                         new downloadAllResourceToDisk().execute();
-
                                     } else {
                                         if (allhtmlDownload < htmlResourceList.size()) {
                                             new SyncAllHTMLResource().execute();
@@ -198,7 +198,6 @@ public class FullscreenActivity extends AppCompatActivity {
 
                                 }
                             }else{
-
                                 libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_white));
                                 mDialog.dismiss();
                                 alertDialogOkay("Download Completed");
@@ -229,14 +228,10 @@ public class FullscreenActivity extends AppCompatActivity {
                 }
             }
         };
-
         registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
-
-
         ///////////////////////////////////
         TextView txtcurDate = (TextView) findViewById(R.id.lblDate);
         txtcurDate.setText(curdate());
-
         /////////////////////////////////
         settings = getSharedPreferences(PREFS_NAME, 0);
         sys_username = settings.getString("pf_username","");
@@ -251,9 +246,7 @@ public class FullscreenActivity extends AppCompatActivity {
         sys_uservisits_Int = settings.getInt("pf_uservisits_Int",0);
         sys_servername = settings.getString("pf_server_name"," ------------- ");
         sys_serverversion = settings.getString("pf_server_version"," ------------");
-
         /////////////////////////
-
         resourceList.clear();
         resIDArrayList.clear();
         LoadShelfResourceList();
@@ -262,7 +255,6 @@ public class FullscreenActivity extends AppCompatActivity {
         updateUI();
 
         /// Todo :- Sync user usage data back to server
-
 
         if (!userShelfSynced){
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -324,12 +316,10 @@ public class FullscreenActivity extends AppCompatActivity {
         super.onResume();
         checkResourceOpened();
     }
-
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
 
     }
-
     public void populateLibraryDialogList(){
         AlertDialog.Builder dialogBMyLibrary = new AlertDialog.Builder(this);
         // custom dialog
@@ -345,8 +335,6 @@ public class FullscreenActivity extends AppCompatActivity {
         Double height = metrics.heightPixels*.8;
         Window win = dialogMyLibrary.getWindow();
         win.setLayout(width.intValue(), height.intValue());
-
-
         dialogMyLibrary.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         listView = (ListView) dialogMyLibrary.findViewById(R.id.list);
         adapter = new CustomListAdapter(this, resourceList);
@@ -692,7 +680,6 @@ public class FullscreenActivity extends AppCompatActivity {
         mDialog.setCancelable(false);
         mDialog.show();
         new AsyncCheckConnection().execute();
-
     }
 
     ///todo check and replace below
@@ -741,7 +728,6 @@ public class FullscreenActivity extends AppCompatActivity {
 
         }
     }
-
     class SyncResource extends AsyncTask<String, Void, Boolean> {
         @Override
         protected Boolean doInBackground(String... params) {
@@ -751,7 +737,9 @@ public class FullscreenActivity extends AppCompatActivity {
                 database = manager.getDatabase("resources");
                 repl = database.createPullReplication(remote);
                 repl.setContinuous(false);
-                repl.setFilter("apps/by_resource");
+//// Todo Decide either use design document in app or not
+                repl.setFilter("bell/by_resource");
+                //repl.setFilter("apps/by_resource");
                 Map<String, Object> map = new HashMap<String, Object>();
                 map.put("_id", OneByOneResID);
                 repl.setFilterParams(map);
@@ -787,7 +775,6 @@ public class FullscreenActivity extends AppCompatActivity {
             return null;
         }
     }
-
     class SyncAllHTMLResource extends AsyncTask<String, Void, Boolean> {
         @Override
         protected Boolean doInBackground(String... params) {
@@ -835,7 +822,6 @@ public class FullscreenActivity extends AppCompatActivity {
             alertDialogOkay("Download Completed");
         }
     }
-
     class SyncSingleHTMLResource extends AsyncTask<String, Void, Boolean> {
         @Override
         protected Boolean doInBackground(String... params) {
@@ -881,7 +867,6 @@ public class FullscreenActivity extends AppCompatActivity {
             alertDialogOkay("Download Completed");
         }
     }
-
     public URL getReplicationURL(){
         URL url=null;
         try {
@@ -891,7 +876,6 @@ public class FullscreenActivity extends AppCompatActivity {
         }
         return url;
     }
-
     public void checkAllDocsInDB(){
         try {
             Database database = manager.getDatabase("resources");
@@ -924,7 +908,6 @@ public class FullscreenActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
     public void dbDiagnosticCheck(){
         try {
             Database database = manager.getDatabase("resources");
@@ -962,7 +945,6 @@ public class FullscreenActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
     public int getIconType(String myresExt){
 
         int img = R.drawable.web;
@@ -988,15 +970,16 @@ public class FullscreenActivity extends AppCompatActivity {
         }
         return img;
     }
-
     public void openDoc(String docId) {
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database res_Db = manager.getExistingDatabase("resources");
             Document res_doc = res_Db.getExistingDocument(docId);
             String openwith = (String) res_doc.getProperty("openWith");
+            String openResName = (String) res_doc.getProperty("title");
             openFromDiskDirectly = true;
-            Log.e("MYAPP", " membersWithID  = " + docId +" and Open with "+ openwith);
+            updateActivityOpenedResources(openResName,docId);
+            Log.e("MYAPP", " member opening resource  = " + docId +" and Open with "+ openwith);
             List<String> attmentNames = res_doc.getCurrentRevision().getAttachmentNames();
 /////HTML
             if(openwith.equalsIgnoreCase("HTML")) {
@@ -1014,8 +997,6 @@ public class FullscreenActivity extends AppCompatActivity {
 ////PDF
             }else if(openwith.equalsIgnoreCase("Just download")){
                 //// Todo work to get just download
-
-
             }else if(openwith.equalsIgnoreCase("PDF.js")){
                 if(openFromDiskDirectly) {
                     Log.e("MyCouch", " Command Video name -:  "+docId);
@@ -1129,7 +1110,6 @@ public class FullscreenActivity extends AppCompatActivity {
                 }
   /////VIDEO
             }else if(openwith.equalsIgnoreCase("Flow Video Player")){
-
                 if(openFromDiskDirectly) {
                     Log.e("MyCouch", " Command Video name -:  "+docId);
                     String filenameOnly="";
@@ -1205,7 +1185,6 @@ public class FullscreenActivity extends AppCompatActivity {
             Log.d("MyCouch", "Opening resource error "+Er.getMessage());
         }
     }
-
     public void openHTML(String index) {
         final String mainFile =  index;
         try {
@@ -1236,7 +1215,6 @@ public class FullscreenActivity extends AppCompatActivity {
         }
 
     }
-
     public void downloadHTMLContent(String docId, final String fileName) {
         final String myfilename =  fileName;
         AndroidContext androidContext = new AndroidContext(context);
@@ -1295,7 +1273,6 @@ public class FullscreenActivity extends AppCompatActivity {
 
         }
     }
-
     public void openImage(String docId, final String fileName, String player) {
         final String myfilename =  fileName;
         AndroidContext androidContext = new AndroidContext(context);
@@ -1348,7 +1325,6 @@ public class FullscreenActivity extends AppCompatActivity {
         }
 
     }
-
     public static void mkDirs(File root, List<String> dirs, int depth) {
         if (depth == 0) return;
         for (String s : dirs) {
@@ -1357,7 +1333,6 @@ public class FullscreenActivity extends AppCompatActivity {
             mkDirs(subdir, dirs, depth - 1);
         }
     }
-
     public void openPDF(String docId, final String fileName, String player) {
         final String myfilename =  fileName;
         AndroidContext androidContext = new AndroidContext(context);
@@ -1469,7 +1444,6 @@ public class FullscreenActivity extends AppCompatActivity {
         }
 
     }
-
     public void openAudioVideo(String docId,String fileName, String player) {
 
             AndroidContext androidContext = new AndroidContext(context);
@@ -1529,7 +1503,6 @@ public class FullscreenActivity extends AppCompatActivity {
             }
 
     }
-
     public String getExtension(final String filename) {
         if (filename == null){
             return null;
@@ -1539,7 +1512,233 @@ public class FullscreenActivity extends AppCompatActivity {
         final int dotIndex = afterLastSlash.indexOf('.', afterLastBackslash);
         return (dotIndex == -1) ? "" : afterLastSlash.substring(dotIndex + 1);
     }
-
+    public boolean updateActivityOpenedResources(String resource_name,String resourceid){
+        AndroidContext androidContext = new AndroidContext(this);
+        Manager manager = null;
+        Database activityLog;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            activityLog = manager.getDatabase("activitylog");
+            WifiManager wm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+            String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+            Document retrievedDocument = activityLog.getDocument(m_WLANMAC);
+            Map<String, Object> properties = retrievedDocument.getProperties();
+            if((ArrayList<String>) properties.get("female_opened")!= null){
+                try {
+                    ArrayList female_opened = (ArrayList<String>) properties.get("female_opened");
+                    ArrayList male_opened = (ArrayList<String>) properties.get("male_opened");
+                    ArrayList resources_names = (ArrayList<String>) properties.get("resources_names");
+                    ArrayList resources_opened = (ArrayList<String>) properties.get("resources_opened");
+                    Log.e("MyCouch", "Option 1");
+                    if (sys_usergender.toLowerCase() == "female") {
+                        female_opened.add(1);
+                        male_opened.add(0);
+                    } else {
+                        female_opened.add(0);
+                        male_opened.add(1);
+                    }
+                    resources_names.add(resource_name);
+                    resources_opened.add(resourceid);
+                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    newProperties.putAll(retrievedDocument.getProperties());
+                    newProperties.put("female_opened", female_opened);
+                    newProperties.put("male_opened", male_opened);
+                    newProperties.put("resources_names", resources_names);
+                    newProperties.put("resources_opened", resources_opened);
+                    retrievedDocument.putProperties(newProperties);
+                    Log.e("MyCouch", "Saved resource open in local Activity Log ");
+                    return true;
+                }catch(Exception err){
+                    Log.e("MyCouch", "Option 1 Failed "+err.getMessage());
+                    return false;
+                }
+            }else{
+                try {
+                    Log.e("MyCouch", "Option 2");
+                    Document newdocument = activityLog.getDocument(m_WLANMAC);
+                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    newProperties.putAll(retrievedDocument.getProperties());
+                    ArrayList female_opened = new ArrayList<String>();
+                    ArrayList male_opened = new ArrayList<String>();
+                    ArrayList resources_names = new ArrayList<String>();
+                    ArrayList resources_opened = new ArrayList<String>();
+                    if (sys_usergender.toLowerCase() == "female") {
+                        female_opened.add(1);
+                        male_opened.add(0);
+                    } else {
+                        female_opened.add(0);
+                        male_opened.add(1);
+                    }
+                    resources_names.add(resource_name);
+                    resources_opened.add(resourceid);
+                    newProperties.put("female_opened", female_opened);
+                    newProperties.put("male_opened", male_opened);
+                    newProperties.put("resources_names", resources_names);
+                    newProperties.put("resources_opened", resources_opened);
+                    newdocument.putProperties(newProperties);
+                    Log.e("MyCouch", "Saved resource open in local Activity Log ");
+                    return true;
+                }catch(Exception er) {
+                    Log.e("MyCouch", "Option 2 Failed" + er.getMessage());
+                    return false;
+                }
+            }
+            /*
+                try {
+                    Log.e("MyCouch", "Option 1b");
+                    Document newdocument = activityLog.getDocument(m_WLANMAC);
+                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    newProperties.putAll(retrievedDocument.getProperties());
+                    ArrayList female_opened = new ArrayList<String>();
+                    ArrayList male_opened = new ArrayList<String>();
+                    ArrayList resources_names = new ArrayList<String>();
+                    ArrayList resources_opened = new ArrayList<String>();
+                    if (sys_usergender.toLowerCase() == "female") {
+                        female_opened.add(1);
+                        male_opened.add(0);
+                    } else {
+                        female_opened.add(0);
+                        male_opened.add(1);
+                    }
+                    resources_names.add(resource_name);
+                    resources_opened.add(resourceid);
+                    newProperties.put("female_opened", female_opened);
+                    newProperties.put("male_opened", male_opened);
+                    newProperties.put("resources_names", resources_names);
+                    newProperties.put("resources_opened", resources_opened);
+                    newdocument.putProperties(newProperties);
+                    Log.e("MyCouch", "Saved resource open in local Activity Log ");
+                    return true;
+                }catch(Exception err) {
+                    Log.e("MyCouch", "Opetion 1b Failed : " + err.getMessage());
+                    return false;
+                }
+            */
+        }catch(Exception err){
+            Log.e("MyCouch", "Updating Activity Log : " +err.getMessage());
+            return false;
+        }
+    }
+    public boolean updateActivityRatingResources(float rate,String resourceid){
+        AndroidContext androidContext = new AndroidContext(this);
+        Manager manager = null;
+        Database activityLog;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            activityLog = manager.getDatabase("activitylog");
+            WifiManager wm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+            String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+            Document retrievedDocument = activityLog.getDocument(m_WLANMAC);
+            if(retrievedDocument != null) {
+                Map<String, Object> properties = retrievedDocument.getProperties();
+                try {
+                    ArrayList female_rating = (ArrayList<String>) properties.get("female_rating");
+                    ArrayList female_timesRated = (ArrayList<String>) properties.get("female_timesRated");
+                    ArrayList male_rating = (ArrayList<String>) properties.get("male_rating");
+                    ArrayList male_timesRated = (ArrayList<String>) properties.get("male_timesRated");
+                    ArrayList resourcesIds = (ArrayList<String>) properties.get("resourcesIds");
+                    Log.e("MyCouch", "Option Rating 1");
+                    if (sys_usergender.toLowerCase().equalsIgnoreCase("female")) {
+                        female_rating.add(rate);
+                        female_timesRated.add(1);
+                        male_rating.add(0);
+                        male_timesRated.add(0);
+                    } else {
+                        female_rating.add(0);
+                        female_timesRated.add(0);
+                        male_rating.add(rate);
+                        male_timesRated.add(1);
+                    }
+                    resourcesIds.add(resourceid);
+                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    newProperties.putAll(retrievedDocument.getProperties());
+                    newProperties.put("female_rating", female_rating);
+                    newProperties.put("female_timesRated", female_timesRated);
+                    newProperties.put("male_rating", male_rating);
+                    newProperties.put("male_timesRated", male_timesRated);
+                    newProperties.put("resourcesIds", resourcesIds);
+                    retrievedDocument.putProperties(newProperties);
+                    Log.e("MyCouch", "Saved resource rating in local Activity Log ");
+                    return true;
+                }catch(Exception err){
+                    Log.e("MyCouch", "Option Rating 1 Failed "+err.getMessage());
+                    try {
+                        Log.e("MyCouch", "Option 2");
+                        Map<String, Object> newProperties = new HashMap<String, Object>();
+                        newProperties.putAll(retrievedDocument.getProperties());
+                        ArrayList female_rating = new ArrayList<String>();
+                        ArrayList female_timesRated = new ArrayList<String>();
+                        ArrayList male_rating = new ArrayList<String>();
+                        ArrayList male_timesRated = new ArrayList<String>();
+                        ArrayList resourcesIds = new ArrayList<String>();
+                        if (sys_usergender.toLowerCase().equalsIgnoreCase("female")) {
+                            female_rating.add(rate);
+                            female_timesRated.add(1);
+                            male_rating.add(0);
+                            male_timesRated.add(0);
+                        } else {
+                            female_rating.add(0);
+                            female_timesRated.add(0);
+                            male_rating.add(rate);
+                            male_timesRated.add(1);
+                        }
+                        resourcesIds.add(resourceid);
+                        newProperties.putAll(retrievedDocument.getProperties());
+                        newProperties.put("female_rating", female_rating);
+                        newProperties.put("female_timesRated", female_timesRated);
+                        newProperties.put("male_rating", male_rating);
+                        newProperties.put("male_timesRated", male_timesRated);
+                        newProperties.put("resourcesIds", resourcesIds);
+                        retrievedDocument.putProperties(newProperties);
+                        Log.e("MyCouch", "Saved resource rating in local Activity Log ");
+                        return true;
+                    }catch(Exception er) {
+                        Log.e("MyCouch", "Option Rating 2 Failed" + er.getMessage());
+                        return false;
+                    }
+                }
+            }
+            else {
+                try {
+                    Log.e("MyCouch", "Option Rating 1b");
+                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    newProperties.putAll(retrievedDocument.getProperties());
+                    ArrayList female_rating = new ArrayList<String>();
+                    ArrayList female_timesRated = new ArrayList<String>();
+                    ArrayList male_rating = new ArrayList<String>();
+                    ArrayList male_timesRated = new ArrayList<String>();
+                    ArrayList resourcesIds = new ArrayList<String>();
+                    if (sys_usergender.toLowerCase().equalsIgnoreCase("female")) {
+                        female_rating.add(rate);
+                        female_timesRated.add(1);
+                        male_rating.add(0);
+                        male_timesRated.add(0);
+                    } else {
+                        female_rating.add(0);
+                        female_timesRated.add(0);
+                        male_rating.add(rate);
+                        male_timesRated.add(1);
+                    }
+                    resourcesIds.add(resourceid);
+                    newProperties.putAll(retrievedDocument.getProperties());
+                    newProperties.put("female_rating", female_rating);
+                    newProperties.put("female_timesRated", female_timesRated);
+                    newProperties.put("male_rating", male_rating);
+                    newProperties.put("male_timesRated", male_timesRated);
+                    newProperties.put("resourcesIds", resourcesIds);
+                    retrievedDocument.putProperties(newProperties);
+                    Log.e("MyCouch", "Saved resource rating in local Activity Log ");
+                    return true;
+                }catch(Exception err){
+                    Log.e("MyCouch", "Option Rating 1b Failed : " +err.getMessage());
+                    return false;
+                }
+            }
+        }catch(Exception err){
+            Log.e("MyCouch", "Updating Activity Rating Log : " +err.getMessage());
+            return false;
+        }
+    }
     public boolean deleteDirectory(File path) {
         if(path.exists()) {
             if (path.isDirectory()) {
@@ -1553,7 +1752,6 @@ public class FullscreenActivity extends AppCompatActivity {
 
         return false;
     }
-
     public void animateLayoutBars(){
 
     /////////  Layout Slide in Animation from bottom to up
@@ -1663,7 +1861,6 @@ public class FullscreenActivity extends AppCompatActivity {
 
 
     }
-
     public void toggleTopUserInfo(){
         final LinearLayout userInfoLayout = (LinearLayout) findViewById(R.id.layoutUserInfo);
         //userInfoLayout.setVisibility(View.INVISIBLE);
@@ -1725,7 +1922,6 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         });
     }
-
     public void updateUI(){
         TextView lblName = (TextView) findViewById(R.id.lblName);
         lblName.setText(" "+sys_userfirstname +" "+sys_userlastname);
@@ -1740,7 +1936,6 @@ public class FullscreenActivity extends AppCompatActivity {
         lblServerName.setText(""+sys_servername.toUpperCase());
 
     }
-
     public void alertDialogOkay(String Message){
         AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
         builder1.setMessage(Message);
@@ -1754,10 +1949,7 @@ public class FullscreenActivity extends AppCompatActivity {
         AlertDialog alert11 = builder1.create();
         alert11.show();
     }
-
-
     /// Todo Review Code and test class
-
     class downloadSpecificResourceToDisk extends AsyncTask<String, Void, Boolean> {
         @Override
         protected Boolean doInBackground(String... params) {
@@ -1953,18 +2145,18 @@ public class FullscreenActivity extends AppCompatActivity {
         dialogButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                saveRating(ratingBar.getRating(),String.valueOf(txtComment.getText()),resourceID);
+                saveRating((int) ratingBar.getRating(),String.valueOf(txtComment.getText()),resourceID);
                 dialog.dismiss();
             }
         });
         dialog.show();
     }
 
-    public void saveRating(float rate,String comment,String resourceId){
+    public void saveRating(int rate,String comment,String resourceId){
         AndroidContext androidContext = new AndroidContext(context);
         Manager manager = null;
         Database resourceRating;
-        double doc_rating;
+        int doc_rating;
         int doc_timesRated;
         ArrayList<String> commentList = new ArrayList<String>();
         try {
@@ -1974,7 +2166,7 @@ public class FullscreenActivity extends AppCompatActivity {
             if(retrievedDocument != null) {
                 Map<String, Object> properties = retrievedDocument.getProperties();
                 if(properties.containsKey("sum")){
-                    doc_rating = (double) properties.get("sum") ;
+                    doc_rating = (int) properties.get("sum") ;
                     doc_timesRated  = (int) properties.get("timesRated") ;
                     commentList = (ArrayList<String>) properties.get("comments");
                     commentList.add(comment);
@@ -1984,6 +2176,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     newProperties.put("timesRated", doc_timesRated + 1);
                     newProperties.put("comments", commentList);
                     retrievedDocument.putProperties(newProperties);
+                    updateActivityRatingResources(rate, resourceId);
                     Toast.makeText(context,String.valueOf(rate),Toast.LENGTH_SHORT).show();
                 }
             }
@@ -1995,6 +2188,8 @@ public class FullscreenActivity extends AppCompatActivity {
                 commentList.add(comment);
                 newProperties.put("comments", commentList);
                 newdocument.putProperties(newProperties);
+ /// todo check updating resource to see it works
+                updateActivityRatingResources(rate, resourceId);
                 Toast.makeText(context,String.valueOf(rate),Toast.LENGTH_SHORT).show();
             }
         }catch(Exception err){
