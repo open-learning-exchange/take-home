@@ -21,6 +21,9 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.StrictMode;
 import android.support.v4.content.IntentCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
@@ -56,6 +59,7 @@ import com.couchbase.lite.QueryOptions;
 import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.Revision;
 import com.couchbase.lite.android.AndroidContext;
+import com.couchbase.lite.auth.Authenticator;
 import com.couchbase.lite.replicator.Replication;
 import com.github.kittinunf.fuel.Fuel;
 import com.github.kittinunf.fuel.core.FuelError;
@@ -89,6 +93,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
@@ -102,38 +107,39 @@ public class FullscreenActivity extends AppCompatActivity {
     public static final String PREFS_NAME = "MyPrefsFile";
     SharedPreferences settings;
 
-    String sys_oldSyncServerURL,sys_username,sys_lastSyncDate,
-            sys_password,sys_usercouchId,sys_userfirstname,sys_userlastname,
-            sys_usergender, sys_uservisits,sys_servername,sys_serverversion = "";
-    int sys_uservisits_Int=0;
+    String sys_oldSyncServerURL, sys_username, sys_lastSyncDate,
+            sys_password, sys_usercouchId, sys_userfirstname, sys_userlastname,
+            sys_usergender, sys_uservisits, sys_servername, sys_serverversion = "";
+    Boolean sys_singlefilestreamdownload, sys_multiplefilestreamdownload;
+    int sys_uservisits_Int = 0;
     Object[] sys_membersWithResource;
-    boolean userShelfSynced =true;
+    boolean userShelfSynced = true;
     boolean synchronizing = true;
     JSONObject jsonData;
     Database dbResources;
-    int syncCnt,resourceNo,allresDownload,allhtmlDownload=0;
+    int syncCnt, resourceNo, allresDownload, allhtmlDownload = 0;
     AndroidContext androidContext;
     Replication pull;
     Manager manager;
     boolean status_SyncOneByOneResource = false;
     private ProgressDialog mDialog;
     String indexFilePath;
-    String openedResourceId,openedResourceTitle="";
-    boolean openedResource =false;
+    String openedResourceId, openedResourceTitle = "";
+    boolean openedResource = false;
     boolean openFromDiskDirectly = false;
-    boolean singleFiledownload =false;
-    boolean openFromOnlineServer =false;
+    boolean singleFiledownload = false;
+    boolean openFromOnlineServer = false;
     boolean clicked_rs_status;
-    String clicked_rs_title,clicked_rs_ID ;
+    String clicked_rs_title, clicked_rs_ID;
     String onlinecouchresource;
 
     CouchViews chViews = new CouchViews();
     String resourceIdList[];
     String resourceTitleList[];
-    int rsLstCnt=0;
+    int rsLstCnt = 0;
     Button[] libraryButtons;
     Dialog dialog2;
-    String OneByOneResID="";
+    String OneByOneResID = "";
     int resButtonId;
     boolean userInfoDisplayed = false;
 
@@ -146,18 +152,19 @@ public class FullscreenActivity extends AppCompatActivity {
     Database database;
     Replication repl;
     DownloadManager downloadManager;
-    Boolean initialActivityLoad =false;
+    Boolean initialActivityLoad = false;
 
 
     private List<Resource> resourceList = new ArrayList<Resource>();
     private List<String> resIDArrayList = new ArrayList<String>();
     private ListView listView;
     private CustomListAdapter adapter;
-    Boolean calbackStatus,syncALLInOneStarted=false;
-    Button dialogBtnDownoadAll,dialogBtnDownoadFile,dialogBtnOpenFileOnline;
+    Boolean calbackStatus, syncALLInOneStarted = false;
+    Button dialogBtnDownoadAll, dialogBtnDownoadFile, dialogBtnOpenFileOnline;
     private long enqueue;
-    int resourceCntr,attachmentLength;
+    int resourceCntr, attachmentLength;
     List<String> htmlResourceList = new ArrayList<String>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -166,7 +173,10 @@ public class FullscreenActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         actionBar.hide();
         androidContext = new AndroidContext(this);
-        initialActivityLoad=true;
+        //StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        //StrictMode.setThreadPolicy(policy);
+
+        initialActivityLoad = true;
         BroadcastReceiver receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -180,7 +190,7 @@ public class FullscreenActivity extends AppCompatActivity {
                         int columnIndex = c.getColumnIndex(DownloadManager.COLUMN_STATUS);
                         if (DownloadManager.STATUS_SUCCESSFUL == c.getInt(columnIndex)) {
                             openFromDiskDirectly = true;
-                            if(!singleFiledownload) {
+                            if (!singleFiledownload) {
                                 libraryButtons[allresDownload].setTextColor(getResources().getColor(R.color.ole_white));
                                 if (allresDownload < libraryButtons.length) {
                                     allresDownload++;
@@ -204,14 +214,14 @@ public class FullscreenActivity extends AppCompatActivity {
                                     }
 
                                 }
-                            }else{
+                            } else {
                                 libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_white));
                                 mDialog.dismiss();
                                 alertDialogOkay("Download Completed");
                             }
-                        }else if(DownloadManager.STATUS_FAILED ==c.getInt(columnIndex)){
-                            alertDialogOkay("Download Failed"+resourceTitleList[allresDownload]);
-                            if(!singleFiledownload) {
+                        } else if (DownloadManager.STATUS_FAILED == c.getInt(columnIndex)) {
+                            alertDialogOkay("Download Failed" + resourceTitleList[allresDownload]);
+                            if (!singleFiledownload) {
                                 if (allresDownload < libraryButtons.length) {
                                     allresDownload++;
                                     if (resourceTitleList[allresDownload] != null) {
@@ -226,7 +236,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                         }
                                     }
                                 }
-                            }else{
+                            } else {
                                 mDialog.dismiss();
                                 alertDialogOkay("Download Completed");
                             }
@@ -241,18 +251,18 @@ public class FullscreenActivity extends AppCompatActivity {
         txtcurDate.setText(curdate());
         /////////////////////////////////
         settings = getSharedPreferences(PREFS_NAME, 0);
-        sys_username = settings.getString("pf_username","");
-        sys_oldSyncServerURL = settings.getString("pf_sysncUrl","");
-        sys_lastSyncDate = settings.getString("pf_lastSyncDate","");
-        sys_password = settings.getString("pf_password","");
-        sys_usercouchId = settings.getString("pf_usercouchId","");
-        sys_userfirstname = settings.getString("pf_userfirstname","");
-        sys_userlastname = settings.getString("pf_userlastname","");
-        sys_usergender = settings.getString("pf_usergender","");
-        sys_uservisits = settings.getString("pf_uservisits","");
-        sys_uservisits_Int = settings.getInt("pf_uservisits_Int",0);
-        sys_servername = settings.getString("pf_server_name"," ------------- ");
-        sys_serverversion = settings.getString("pf_server_version"," ------------");
+        sys_username = settings.getString("pf_username", "");
+        sys_oldSyncServerURL = settings.getString("pf_sysncUrl", "");
+        sys_lastSyncDate = settings.getString("pf_lastSyncDate", "");
+        sys_password = settings.getString("pf_password", "");
+        sys_usercouchId = settings.getString("pf_usercouchId", "");
+        sys_userfirstname = settings.getString("pf_userfirstname", "");
+        sys_userlastname = settings.getString("pf_userlastname", "");
+        sys_usergender = settings.getString("pf_usergender", "");
+        sys_uservisits = settings.getString("pf_uservisits", "");
+        sys_uservisits_Int = settings.getInt("pf_uservisits_Int", 0);
+        sys_servername = settings.getString("pf_server_name", " ------------- ");
+        sys_serverversion = settings.getString("pf_server_version", " ------------");
         /////////////////////////
         resourceList.clear();
         resIDArrayList.clear();
@@ -263,7 +273,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
         /// Todo :- Sync user usage data back to server
 
-        if (!userShelfSynced){
+        if (!userShelfSynced) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setMessage("Materials on your shelf are NOT yet synchronized unto this device. " +
                     "You can only view title of items on your shelf BUT you can not launch or read them." +
@@ -297,11 +307,12 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         });
 
-        Button btnSettings = (Button) findViewById(R.id.btnSetting);
-        btnSettings.setOnClickListener(new View.OnClickListener() {
+        Button btnUpdate = (Button) findViewById(R.id.btnSetting);
+        btnUpdate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                openSettingDialogList();
+                ///openSettingDialogList();
+                new checkServerConnection().execute("");
             }
         });
 
@@ -313,21 +324,25 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         });
     }
+
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         animateLayoutBars();
     }
+
     @Override
     public void onResume() {
         super.onResume();
         checkResourceOpened();
     }
+
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
 
     }
-    public void populateLibraryDialogList(){
+
+    public void populateLibraryDialogList() {
         AlertDialog.Builder dialogBMyLibrary = new AlertDialog.Builder(this);
         // custom dialog
         dialogBMyLibrary.setView(R.layout.dialog_my_library);
@@ -338,8 +353,8 @@ public class FullscreenActivity extends AppCompatActivity {
         Display display = wm.getDefaultDisplay();
         DisplayMetrics metrics = new DisplayMetrics();
         display.getMetrics(metrics);
-        Double width = metrics.widthPixels*.8;
-        Double height = metrics.heightPixels*.8;
+        Double width = metrics.widthPixels * .8;
+        Double height = metrics.heightPixels * .8;
         Window win = dialogMyLibrary.getWindow();
         win.setLayout(width.intValue(), height.intValue());
         dialogMyLibrary.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
@@ -350,28 +365,29 @@ public class FullscreenActivity extends AppCompatActivity {
             listView.setAdapter(adapter);
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 public void onItemClick(AdapterView<?> adapter, View v, int position, long id) {
-                    if(libraryButtons[position].getCurrentTextColor()==getResources().getColor(R.color.ole_yellow)){
-                        MaterialClickDialog(false,resourceTitleList[position],resourceIdList[position],position);
+                    if (libraryButtons[position].getCurrentTextColor() == getResources().getColor(R.color.ole_yellow)) {
+                        MaterialClickDialog(false, resourceTitleList[position], resourceIdList[position], position);
                         dialogMyLibrary.dismiss();
-                    }else{
+                    } else {
                         mDialog = new ProgressDialog(context);
-                        mDialog.setMessage("Opening please "+resourceTitleList[position]+"wait...");
+                        mDialog.setMessage("Opening please " + resourceTitleList[position] + "wait...");
                         mDialog.setCancelable(true);
                         mDialog.show();
-                        openedResourceId=resourceIdList[position];
-                        openedResourceTitle=resourceTitleList[position];
-                        openedResource =true;
+                        openedResourceId = resourceIdList[position];
+                        openedResourceTitle = resourceTitleList[position];
+                        openedResource = true;
                         openDoc(resourceIdList[position]);
-                        Log.e("MyCouch", "Clicked to open resource Id "+ resourceIdList[position]);
+                        Log.e("MyCouch", "Clicked to open resource Id " + resourceIdList[position]);
                     }
                 }
             });
-        }catch (Exception err){
-            Log.e("adapter", " "+err);
+        } catch (Exception err) {
+            Log.e("adapter", " " + err);
         }
     }
 
-    public void openSettingDialogList(){
+    public void openSettingDialogList() {
+        restorePref();
         AlertDialog.Builder dialogBSettings = new AlertDialog.Builder(this);
         // custom dialog
         dialogBSettings.setView(R.layout.dialog_my_settings);
@@ -382,15 +398,23 @@ public class FullscreenActivity extends AppCompatActivity {
         Display display = wm.getDefaultDisplay();
         DisplayMetrics metrics = new DisplayMetrics();
         display.getMetrics(metrics);
-        Double width = metrics.widthPixels*.8;
-        Double height = metrics.heightPixels*.8;
+        Double width = metrics.widthPixels * .8;
+        Double height = metrics.heightPixels * .8;
         Window win = dialogSetting.getWindow();
         win.setLayout(width.intValue(), height.intValue());
 
+        Button btnCheck4Updates = (Button) dialogSetting.findViewById(R.id.btnCheck4Updates);
+        btnCheck4Updates.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                        new checkServerConnection().execute("");
+            }
+        });
+
     }
 
-    public String curdate(){
-        Calendar cal= Calendar.getInstance();
+    public String curdate() {
+        Calendar cal = Calendar.getInstance();
         Date d = new Date();
 
         SimpleDateFormat s_df = new SimpleDateFormat("EEEE");
@@ -401,8 +425,36 @@ public class FullscreenActivity extends AppCompatActivity {
         String month_name = month_df.format(cal.getTime());
         SimpleDateFormat year_df = new SimpleDateFormat("yyyy");
         String year = year_df.format(d);
-        String displayedDate = dayOfTheWeek + "  |  "+dayNumber+" " + month_name+" "+year;
+        String displayedDate = dayOfTheWeek + "  |  " + dayNumber + " " + month_name + " " + year;
         return displayedDate;
+    }
+
+    public void restorePref() {
+        // Restore preferences
+        settings = getSharedPreferences(PREFS_NAME, 0);
+        sys_username = settings.getString("pf_username", "");
+        sys_oldSyncServerURL = settings.getString("pf_sysncUrl", "");
+        sys_lastSyncDate = settings.getString("pf_lastSyncDate", "");
+        sys_password = settings.getString("pf_password", "");
+        sys_usercouchId = settings.getString("pf_usercouchId", "");
+        sys_userfirstname = settings.getString("pf_userfirstname", "");
+        sys_userlastname = settings.getString("pf_userlastname", "");
+        sys_usergender = settings.getString("pf_usergender", "");
+        sys_uservisits = settings.getString("pf_uservisits", "");
+        ;
+        sys_uservisits_Int = settings.getInt("pf_uservisits_Int", 0);
+        sys_singlefilestreamdownload = settings.getBoolean("pf_singlefilestreamdownload", true);
+        sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload", true);
+        sys_servername = settings.getString("pf_server_name", " ");
+        sys_serverversion = settings.getString("pf_server_version", " ");
+        Set<String> mwr = settings.getStringSet("membersWithResource", null);
+        try {
+            sys_membersWithResource = mwr.toArray();
+            Log.e("MYAPP", " membersWithResource  = " + sys_membersWithResource.length);
+
+        } catch (Exception err) {
+            Log.e("MYAPP", " Error creating  sys_membersWithResource");
+        }
     }
 
     public void LoadShelfResourceList() {
@@ -415,7 +467,7 @@ public class FullscreenActivity extends AppCompatActivity {
             orderedQuery.setDescending(true);
             QueryEnumerator results = orderedQuery.run();
             resourceIdList = new String[results.getCount()];
-            resourceTitleList= new String[results.getCount()];
+            resourceTitleList = new String[results.getCount()];
             rsLstCnt = 0;
             for (Iterator<QueryRow> it = results; it.hasNext(); ) {
                 QueryRow row = it.next();
@@ -423,30 +475,30 @@ public class FullscreenActivity extends AppCompatActivity {
                 Document doc = db.getExistingDocument(docId);
                 Map<String, Object> properties = doc.getProperties();
                 Map<String, Object> resource_properties = null;
-                if(memberId.equals((String) properties.get("memberId"))) {
+                if (memberId.equals((String) properties.get("memberId"))) {
                     String myresTitile = ((String) properties.get("resourceTitle"));
                     String myresId = ((String) properties.get("resourceId"));
-                    String myresType,myresDec,myresExt = "";
-                    resourceTitleList[rsLstCnt]=myresTitile;
-                    resourceIdList[rsLstCnt]=myresId;
+                    String myresType, myresDec, myresExt = "";
+                    resourceTitleList[rsLstCnt] = myresTitile;
+                    resourceIdList[rsLstCnt] = myresId;
                     resIDArrayList.add(myresId);
-                    Log.e("tag", "MEMBER ID "+ (String) properties.get("resourceTitle"));
+                    Log.e("tag", "MEMBER ID " + (String) properties.get("resourceTitle"));
                     try {
                         Document resource_doc = resource_Db.getExistingDocument((String) properties.get("resourceId"));
-                        Log.e("tag", "RES ID "+ (String) properties.get("resourceId"));
+                        Log.e("tag", "RES ID " + (String) properties.get("resourceId"));
                         try {
                             resource_properties = resource_doc.getProperties();
-                        }catch(Exception errs){
-                            Log.e("tag", "OBJECT ERROR "+ errs.toString());
+                        } catch (Exception errs) {
+                            Log.e("tag", "OBJECT ERROR " + errs.toString());
                         }
                         //myresTitile = (String) resource_properties.get("title")+"";
                         //myresId = (String) properties.get("resourceId")+"";
-                        myresDec = (String) resource_properties.get("author")+"";
-                        myresType = (String) resource_properties.get("averageRating")+"";
-                        myresExt = (String) resource_properties.get("openWith")+"";
+                        myresDec = (String) resource_properties.get("author") + "";
+                        myresType = (String) resource_properties.get("averageRating") + "";
+                        myresExt = (String) resource_properties.get("openWith") + "";
                         rsLstCnt++;
-                    }catch(Exception err){
-                        Log.e("tag", "ERROR "+ err.getMessage());
+                    } catch (Exception err) {
+                        Log.e("tag", "ERROR " + err.getMessage());
                         //myresTitile = "Unknown resource .. ";
                         //myresId = "";
                         myresDec = "";
@@ -468,7 +520,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
             LinearLayout row2 = (LinearLayout) findViewById(R.id.layholder_library);
             libraryButtons = new Button[rsLstCnt];
-            for( int ButtonCnt=0;ButtonCnt< rsLstCnt;ButtonCnt++) {
+            for (int ButtonCnt = 0; ButtonCnt < rsLstCnt; ButtonCnt++) {
                 libraryButtons[ButtonCnt] = new Button(this);
                 libraryButtons[ButtonCnt].setText(resourceTitleList[ButtonCnt]);
                 libraryButtons[ButtonCnt].setId(ButtonCnt);
@@ -479,7 +531,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
                     libraryButtons[ButtonCnt].setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 }
-                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(170,MATCH_PARENT);
+                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(170, MATCH_PARENT);
                 layoutParams.setMargins(1, 0, 1, 0); // left, top, right, bottom
                 GradientDrawable drawable = new GradientDrawable();
                 drawable.setShape(GradientDrawable.RECTANGLE);
@@ -495,26 +547,26 @@ public class FullscreenActivity extends AppCompatActivity {
                     Map<String, Object> resource_properties = resource_doc.getProperties();
                     Log.e("tag", "RES ID " + (String) resource_properties.get("resourceId"));
                     libraryButtons[ButtonCnt].setTextColor(getResources().getColor(R.color.ole_white));
-                }catch(Exception errs){
+                } catch (Exception errs) {
                     libraryButtons[ButtonCnt].setTextColor(getResources().getColor(R.color.ole_yellow));
-                    Log.e("tag", "OBJECT ERROR "+ errs.toString());
+                    Log.e("tag", "OBJECT ERROR " + errs.toString());
                 }
 
                 libraryButtons[ButtonCnt].setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        if(libraryButtons[view.getId()].getCurrentTextColor()==getResources().getColor(R.color.ole_yellow)){
-                            MaterialClickDialog(false,resourceTitleList[view.getId()],resourceIdList[view.getId()],view.getId());
-                        }else{
+                        if (libraryButtons[view.getId()].getCurrentTextColor() == getResources().getColor(R.color.ole_yellow)) {
+                            MaterialClickDialog(false, resourceTitleList[view.getId()], resourceIdList[view.getId()], view.getId());
+                        } else {
                             mDialog = new ProgressDialog(context);
-                            mDialog.setMessage("Opening please "+resourceTitleList[view.getId()]+" wait...");
+                            mDialog.setMessage("Opening please " + resourceTitleList[view.getId()] + " wait...");
                             mDialog.setCancelable(true);
                             mDialog.show();
-                            openedResourceId=resourceIdList[view.getId()];
+                            openedResourceId = resourceIdList[view.getId()];
                             openedResourceTitle = resourceTitleList[view.getId()];
-                            openedResource =true;
+                            openedResource = true;
                             openDoc(resourceIdList[view.getId()]);
-                            Log.e("MyCouch", "Clicked to open "+ resourceIdList[view.getId()]);
+                            Log.e("MyCouch", "Clicked to open " + resourceIdList[view.getId()]);
 
                         }
 
@@ -530,7 +582,7 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     }
 
-    public void MaterialClickDialog(boolean online,String title,String resId,int buttonPressedId){
+    public void MaterialClickDialog(boolean online, String title, String resId, int buttonPressedId) {
         clicked_rs_status = online;
         clicked_rs_title = title;
         clicked_rs_ID = resId;
@@ -552,8 +604,8 @@ public class FullscreenActivity extends AppCompatActivity {
                 dialog2.dismiss();
                 OneByOneResID = clicked_rs_ID;
                 Fuel ful = new Fuel();
-                onlinecouchresource = sys_oldSyncServerURL+"/resources/" + OneByOneResID;
-                ful.get(sys_oldSyncServerURL+"/resources/" + OneByOneResID).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+                onlinecouchresource = sys_oldSyncServerURL + "/resources/" + OneByOneResID;
+                ful.get(sys_oldSyncServerURL + "/resources/" + OneByOneResID).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
                     @Override
                     public void success(Request request, Response response, String s) {
                         try {
@@ -564,26 +616,26 @@ public class FullscreenActivity extends AppCompatActivity {
                                 String openWith = (String) jsonData.get("openWith");
                                 Log.e("MyCouch", "Open With -- " + openWith);
                                 JSONObject _attachments = (JSONObject) jsonData.get("_attachments");
-                                if(!openWith.equalsIgnoreCase("HTML")) {
+                                if (!openWith.equalsIgnoreCase("HTML")) {
                                     Iterator<String> keys = _attachments.keys();
                                     if (keys.hasNext()) {
                                         String key = (String) keys.next();
                                         String encodedkey = URLEncoder.encode(key, "utf-8");
-                                        onlinecouchresource = onlinecouchresource+"/"+encodedkey;
+                                        onlinecouchresource = onlinecouchresource + "/" + encodedkey;
                                         mDialog.dismiss();
                                         openHTML(onlinecouchresource);
                                     }
-                                }else{
-                                    if(_attachments.length() <= 1){
+                                } else {
+                                    if (_attachments.length() <= 1) {
                                         Iterator<String> keys = _attachments.keys();
                                         if (keys.hasNext()) {
                                             String key = (String) keys.next();
                                             String encodedkey = URLEncoder.encode(key, "utf-8");
-                                            onlinecouchresource = onlinecouchresource+"/"+encodedkey;
+                                            onlinecouchresource = onlinecouchresource + "/" + encodedkey;
                                             mDialog.dismiss();
                                             openHTML(onlinecouchresource);
                                         }
-                                    }else {
+                                    } else {
                                         onlinecouchresource = onlinecouchresource + "/index.html";
                                         mDialog.dismiss();
                                         openHTML(onlinecouchresource);
@@ -598,10 +650,11 @@ public class FullscreenActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                     }
+
                     @Override
                     public void failure(Request request, Response response, FuelError fuelError) {
                         alertDialogOkay("Error downloading file");
-                        Log.e("MyCouch", " "+fuelError);
+                        Log.e("MyCouch", " " + fuelError);
                     }
                 });
             }
@@ -623,7 +676,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     ///syncThreadHandler();
 
                     //// Todo Decide which option is best
-                    singleFiledownload=true;
+                    singleFiledownload = true;
                     new downloadSpecificResourceToDisk().execute();
                     //final AsyncTask<String, Void, Boolean> execute = new SyncResource().execute();
                 } catch (Exception e) {
@@ -640,7 +693,7 @@ public class FullscreenActivity extends AppCompatActivity {
         });
 
         //// Download all resources on button click
-        dialogBtnDownoadAll= (Button) dialog2.findViewById(R.id.btnDownloadAll);
+        dialogBtnDownoadAll = (Button) dialog2.findViewById(R.id.btnDownloadAll);
         dialogBtnDownoadAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -652,13 +705,13 @@ public class FullscreenActivity extends AppCompatActivity {
                     //deleteDirectory(myDir);
                     //myDir.mkdirs();
                     mDialog = new ProgressDialog(context);
-                    mDialog.setMessage("Downloading resource, please wait..."+resourceTitleList[allresDownload]);
+                    mDialog.setMessage("Downloading resource, please wait..." + resourceTitleList[allresDownload]);
                     mDialog.setCancelable(true);
                     mDialog.show();
                     htmlResourceList.clear();
-                    allhtmlDownload=0;
+                    allhtmlDownload = 0;
                     //// Todo Decide which option is best
-                    singleFiledownload=false;
+                    singleFiledownload = false;
                     new downloadAllResourceToDisk().execute();
                     //new SyncAllResource().execute();
                 } catch (Exception e) {
@@ -681,21 +734,21 @@ public class FullscreenActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... params) {
             Fuel ful = new Fuel();
-            ful.get(sys_oldSyncServerURL+"/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+            ful.get(sys_oldSyncServerURL + "/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
                 @Override
                 public void success(Request request, Response response, String s) {
                     try {
                         List<String> myList = new ArrayList<String>();
                         myList.clear();
-                        myList=Arrays.asList(s.split(","));
-                        Log.e("MyCouch", "-- "+myList.size());
-                        if(myList.size() < 8){
+                        myList = Arrays.asList(s.split(","));
+                        Log.e("MyCouch", "-- " + myList.size());
+                        if (myList.size() < 8) {
                             mDialog.dismiss();
                             dialog2.dismiss();
                             alertDialogOkay("Check the server address again. Saved address isn't the BeLL server");
-                            calbackStatus =  false;
-                        }else{
-                            calbackStatus=true;
+                            calbackStatus = false;
+                        } else {
+                            calbackStatus = true;
                             mDialog.dismiss();
                             dialog2.show();
                             ///alertDialogOkay("Test successful. You can now click on \"Save and Proceed\" ");
@@ -705,23 +758,26 @@ public class FullscreenActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
+
                 @Override
                 public void failure(Request request, Response response, FuelError fuelError) {
                     dialog2.dismiss();
                     mDialog.dismiss();
-                    calbackStatus =  false;
-                    alertDialogOkay("Device couldn't reach server ["+sys_oldSyncServerURL+"]. \n Check server address and try again");
-                    Log.e("MyCouch", " "+fuelError);
+                    calbackStatus = false;
+                    alertDialogOkay("Device couldn't reach server [" + sys_oldSyncServerURL + "]. \n Check server address and try again");
+                    Log.e("MyCouch", " " + fuelError);
 
                 }
             });
             return null;
         }
+
         @Override
         protected void onPostExecute(Void result) {
 
         }
     }
+
     class SyncResource extends AsyncTask<String, Void, Boolean> {
         @Override
         protected Boolean doInBackground(String... params) {
@@ -740,20 +796,19 @@ public class FullscreenActivity extends AppCompatActivity {
                 repl.addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
-                        Log.e("MyCouch", "Current Status "+repl.getStatus());
-                        if(repl.isRunning()){
-                            if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_ACTIVE")) {
+                        Log.e("MyCouch", "Current Status " + repl.getStatus());
+                        if (repl.isRunning()) {
+                            if (repl.getStatus().toString().equalsIgnoreCase("REPLICATION_ACTIVE")) {
                                 Log.e("MyCouch", " " + event.getChangeCount());
                                 Log.e("MyCouch", " Document Count " + database.getDocumentCount());
-                            }else if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")){
+                            } else if (repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")) {
                                 mDialog.dismiss();
                                 checkAllDocsInDB();
                                 libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_white));
-                            }
-                            else{
+                            } else {
                                 mDialog.setMessage("Data transfer error. Check connection to server.");
                             }
-                        }else {
+                        } else {
                             Log.e("MyCouch", "Document Count " + database.getDocumentCount());
                             mDialog.dismiss();
                             checkAllDocsInDB();
@@ -769,6 +824,7 @@ public class FullscreenActivity extends AppCompatActivity {
             return null;
         }
     }
+
     class SyncAllHTMLResource extends AsyncTask<String, Void, Boolean> {
         @Override
         protected Boolean doInBackground(String... params) {
@@ -783,25 +839,24 @@ public class FullscreenActivity extends AppCompatActivity {
                 repl.addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
-                        Log.e("MyCouch", "Current Status "+repl.getStatus());
-                        if(repl.isRunning()){
-                            if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_ACTIVE")) {
+                        Log.e("MyCouch", "Current Status " + repl.getStatus());
+                        if (repl.isRunning()) {
+                            if (repl.getStatus().toString().equalsIgnoreCase("REPLICATION_ACTIVE")) {
                                 Log.e("MyCouch", " " + event.getChangeCount());
                                 Log.e("MyCouch", " Document Count " + database.getDocumentCount());
-                                mDialog.setMessage("Downloading HTML resources now .. "+ database.getDocumentCount() +"/"+ htmlResourceList.size());
-                            }else if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")){
+                                mDialog.setMessage("Downloading HTML resources now .. " + database.getDocumentCount() + "/" + htmlResourceList.size());
+                            } else if (repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")) {
                                 mDialog.dismiss();
                                 alertDialogOkay("Download Completed");
 
-                            }
-                            else{
+                            } else {
                                 mDialog.setMessage("Data transfer error. Check connection to server.");
 
                             }
-                        }else {
+                        } else {
                             Log.e("MyCouch", "Document Count Last " + database.getDocumentCount());
                             mDialog.dismiss();
-                           // dbDiagnosticCheck();
+                            // dbDiagnosticCheck();
                         }
                     }
                 });
@@ -811,11 +866,13 @@ public class FullscreenActivity extends AppCompatActivity {
             }
             return null;
         }
+
         protected void onPostExecute(final Boolean success) {
             mDialog.dismiss();
             alertDialogOkay("Download Completed");
         }
     }
+
     class SyncSingleHTMLResource extends AsyncTask<String, Void, Boolean> {
         @Override
         protected Boolean doInBackground(String... params) {
@@ -830,23 +887,22 @@ public class FullscreenActivity extends AppCompatActivity {
                 repl.addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
-                        Log.e("MyCouch", "Current Status "+repl.getStatus());
-                        if(repl.isRunning()){
-                            if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_ACTIVE")) {
+                        Log.e("MyCouch", "Current Status " + repl.getStatus());
+                        if (repl.isRunning()) {
+                            if (repl.getStatus().toString().equalsIgnoreCase("REPLICATION_ACTIVE")) {
                                 Log.e("MyCouch", " " + event.getChangeCount());
                                 Log.e("MyCouch", " Document Count " + database.getDocumentCount());
-                                mDialog.setMessage("Downloading HTML resources now .. "+ database.getDocumentCount() +"/"+ htmlResourceList.size());
-                            }else if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")){
+                                mDialog.setMessage("Downloading HTML resources now .. " + database.getDocumentCount() + "/" + htmlResourceList.size());
+                            } else if (repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")) {
                                 mDialog.dismiss();
                                 alertDialogOkay("Download Completed");
-                            }
-                            else{
+                            } else {
                                 mDialog.setMessage("Data transfer error. Check connection to server.");
                             }
-                        }else {
+                        } else {
                             Log.e("MyCouch", "Document Count Last " + database.getDocumentCount());
                             mDialog.dismiss();
-                           // dbDiagnosticCheck();
+                            // dbDiagnosticCheck();
                         }
                     }
                 });
@@ -856,42 +912,45 @@ public class FullscreenActivity extends AppCompatActivity {
             }
             return null;
         }
+
         protected void onPostExecute(final Boolean success) {
             mDialog.dismiss();
             alertDialogOkay("Download Completed");
         }
     }
-    public URL getReplicationURL(){
-        URL url=null;
+
+    public URL getReplicationURL() {
+        URL url = null;
         try {
             url = new URL(sys_oldSyncServerURL + "/resources");
-        }catch(Exception err){
+        } catch (Exception err) {
             Log.d("TAG", "Error with URL ");
         }
         return url;
     }
-    public void checkAllDocsInDB(){
+
+    public void checkAllDocsInDB() {
         try {
             Database database = manager.getDatabase("resources");
             database.getAllDocs(new QueryOptions());
             Query queryAllDocs = database.createAllDocumentsQuery();
             QueryEnumerator queryEnumerator = queryAllDocs.run();
-            for (Iterator<QueryRow> it = queryEnumerator; it.hasNext();) {
+            for (Iterator<QueryRow> it = queryEnumerator; it.hasNext(); ) {
                 QueryRow row = it.next();
                 Document document = row.getDocument();
                 Revision revision = document.getCurrentRevision();
-                Log.d("MyCouch", document.getId() + " : " +  revision.getAttachments().size());
-                if(document.getId().equalsIgnoreCase(OneByOneResID)){
+                Log.d("MyCouch", document.getId() + " : " + revision.getAttachments().size());
+                if (document.getId().equalsIgnoreCase(OneByOneResID)) {
                     Resource resource = resourceList.get(resButtonId);
                     resource.setTitle((String) document.getProperty("title"));
                     String OpenWith = (String) document.getProperty("openWith");
-                    if( OpenWith.equalsIgnoreCase("Flow Video Player") || OpenWith.equalsIgnoreCase("MP3") || OpenWith.equalsIgnoreCase("PDF.js")   ||OpenWith.equalsIgnoreCase("HTML")){
+                    if (OpenWith.equalsIgnoreCase("Flow Video Player") || OpenWith.equalsIgnoreCase("MP3") || OpenWith.equalsIgnoreCase("PDF.js") || OpenWith.equalsIgnoreCase("HTML")) {
                         resource.setThumbnailUrl(getIconType((String) document.getProperty("openWith")));
-                    }else{
+                    } else {
                         resource.setThumbnailUrl(getIconType("-"));
                     }
-                    Log.d("MyCouch", "Found resource : Making "+(String) document.getProperty("openWith"));
-                    resourceList.set(resButtonId,resource);
+                    Log.d("MyCouch", "Found resource : Making " + (String) document.getProperty("openWith"));
+                    resourceList.set(resButtonId, resource);
                 }
             }
 
@@ -902,18 +961,19 @@ public class FullscreenActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-    public void dbDiagnosticCheck(){
+
+    public void dbDiagnosticCheck() {
         try {
             Database database = manager.getDatabase("resources");
             database.getAllDocs(new QueryOptions());
             Query queryAllDocs = database.createAllDocumentsQuery();
             QueryEnumerator queryEnumerator = queryAllDocs.run();
-            for (Iterator<QueryRow> it = queryEnumerator; it.hasNext();) {
+            for (Iterator<QueryRow> it = queryEnumerator; it.hasNext(); ) {
                 QueryRow row = it.next();
                 Document document = row.getDocument();
                 Revision revision = document.getCurrentRevision();
-                Log.d("MyCouch", document.getId() + " : " +  revision.getAttachments().size());
-                for(int cnt=0; cnt<=resourceIdList.length;cnt++) {
+                Log.d("MyCouch", document.getId() + " : " + revision.getAttachments().size());
+                for (int cnt = 0; cnt <= resourceIdList.length; cnt++) {
                     if (document.getId().equalsIgnoreCase(resourceIdList[cnt])) {
                         libraryButtons[cnt].setTextColor(getResources().getColor(R.color.ole_white));
                         Resource resource = resourceList.get(cnt);
@@ -939,10 +999,11 @@ public class FullscreenActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-    public int getIconType(String myresExt){
+
+    public int getIconType(String myresExt) {
 
         int img = R.drawable.web;
-        switch (myresExt){
+        switch (myresExt) {
             case "Flow Video Player":
                 img = R.drawable.video;
                 break;
@@ -964,6 +1025,7 @@ public class FullscreenActivity extends AppCompatActivity {
         }
         return img;
     }
+
     public void openDoc(String docId) {
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
@@ -972,11 +1034,11 @@ public class FullscreenActivity extends AppCompatActivity {
             String openwith = (String) res_doc.getProperty("openWith");
             String openResName = (String) res_doc.getProperty("title");
             openFromDiskDirectly = true;
-            updateActivityOpenedResources(openResName,docId);
-            Log.e("MYAPP", " member opening resource  = " + docId +" and Open with "+ openwith);
+            updateActivityOpenedResources(openResName, docId);
+            Log.e("MYAPP", " member opening resource  = " + docId + " and Open with " + openwith);
             List<String> attmentNames = res_doc.getCurrentRevision().getAttachmentNames();
 /////HTML
-            if(openwith.equalsIgnoreCase("HTML")) {
+            if (openwith.equalsIgnoreCase("HTML")) {
                 indexFilePath = null;
                 if (attmentNames.size() > 1) {
                     for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
@@ -989,12 +1051,12 @@ public class FullscreenActivity extends AppCompatActivity {
                     openImage(docId, (String) attmentNames.get(0), getExtension(attmentNames.get(0)));
                 }
 ////PDF
-            }else if(openwith.equalsIgnoreCase("Just download")){
+            } else if (openwith.equalsIgnoreCase("Just download")) {
                 //// Todo work to get just download
-            }else if(openwith.equalsIgnoreCase("PDF.js")){
-                if(openFromDiskDirectly) {
-                    Log.e("MyCouch", " Command Video name -:  "+docId);
-                    String filenameOnly="";
+            } else if (openwith.equalsIgnoreCase("PDF.js")) {
+                if (openFromDiskDirectly) {
+                    Log.e("MyCouch", " Command Video name -:  " + docId);
+                    String filenameOnly = "";
                     String root = Environment.getExternalStorageDirectory().toString();
                     File myDir = new File(root + "/ole_temp");
                     for (File f : myDir.listFiles()) {
@@ -1002,18 +1064,18 @@ public class FullscreenActivity extends AppCompatActivity {
                             if (f.getName().indexOf(".") > 0) {
                                 filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
                             }
-                            Log.e("MyCouch", " File name -:  "+ f.getName() +" Filename only "+filenameOnly);
+                            Log.e("MyCouch", " File name -:  " + f.getName() + " Filename only " + filenameOnly);
                             if (filenameOnly.equalsIgnoreCase(docId)) {
-                                try{
+                                try {
                                     mDialog.dismiss();
                                     Intent intent = new Intent(Intent.ACTION_VIEW);
                                     intent.setPackage("com.adobe.reader");
                                     intent.setDataAndType(Uri.fromFile(f), "application/pdf");
                                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                     startActivity(intent);
-                                }catch(Exception err){
+                                } catch (Exception err) {
                                     myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
-                                    File dst = new File(myDir,"adobe_reader.apk");
+                                    File dst = new File(myDir, "adobe_reader.apk");
                                     Intent intent = new Intent(Intent.ACTION_VIEW);
                                     intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
                                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -1022,7 +1084,7 @@ public class FullscreenActivity extends AppCompatActivity {
                             }
                         }
                     }
-                }else {
+                } else {
                     if (attmentNames.size() > 0) {
                         for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
                             openPDF(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
@@ -1031,10 +1093,10 @@ public class FullscreenActivity extends AppCompatActivity {
                     }
                 }
 ////MP3
-            }else if(openwith.equalsIgnoreCase("MP3")){
-                if(openFromDiskDirectly) {
-                    Log.e("MyCouch", " Command Video name -:  "+docId);
-                    String filenameOnly="";
+            } else if (openwith.equalsIgnoreCase("MP3")) {
+                if (openFromDiskDirectly) {
+                    Log.e("MyCouch", " Command Video name -:  " + docId);
+                    String filenameOnly = "";
                     String root = Environment.getExternalStorageDirectory().toString();
                     File myDir = new File(root + "/ole_temp");
                     for (File f : myDir.listFiles()) {
@@ -1042,7 +1104,7 @@ public class FullscreenActivity extends AppCompatActivity {
                             if (f.getName().indexOf(".") > 0) {
                                 filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
                             }
-                            Log.e("MyCouch", " File name -:  "+ f.getName() +" Filename only "+filenameOnly);
+                            Log.e("MyCouch", " File name -:  " + f.getName() + " Filename only " + filenameOnly);
                             if (filenameOnly.equalsIgnoreCase(docId)) {
                                 mDialog.dismiss();
                                 intent = new Intent();
@@ -1054,7 +1116,7 @@ public class FullscreenActivity extends AppCompatActivity {
                             }
                         }
                     }
-                }else {
+                } else {
                     if (attmentNames.size() > 0) {
                         for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
                             openAudioVideo(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
@@ -1063,10 +1125,10 @@ public class FullscreenActivity extends AppCompatActivity {
                     }
                 }
 /// BELL READER
-            }else if(openwith.equalsIgnoreCase("Bell-Reader")){
-                if(openFromDiskDirectly) {
-                    Log.e("MyCouch", " Command Video name -:  "+docId);
-                    String filenameOnly="";
+            } else if (openwith.equalsIgnoreCase("Bell-Reader")) {
+                if (openFromDiskDirectly) {
+                    Log.e("MyCouch", " Command Video name -:  " + docId);
+                    String filenameOnly = "";
                     String root = Environment.getExternalStorageDirectory().toString();
                     File myDir = new File(root + "/ole_temp");
                     for (File f : myDir.listFiles()) {
@@ -1074,18 +1136,18 @@ public class FullscreenActivity extends AppCompatActivity {
                             if (f.getName().indexOf(".") > 0) {
                                 filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
                             }
-                            Log.e("MyCouch", " File name -:  "+ f.getName() +" Filename only "+filenameOnly);
+                            Log.e("MyCouch", " File name -:  " + f.getName() + " Filename only " + filenameOnly);
                             if (filenameOnly.equalsIgnoreCase(docId)) {
-                                try{
+                                try {
                                     mDialog.dismiss();
                                     Intent intent = new Intent(Intent.ACTION_VIEW);
                                     intent.setPackage("com.adobe.reader");
                                     intent.setDataAndType(Uri.fromFile(f), "application/pdf");
                                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                     startActivity(intent);
-                                }catch(Exception err){
+                                } catch (Exception err) {
                                     myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
-                                    File dst = new File(myDir,"adobe_reader.apk");
+                                    File dst = new File(myDir, "adobe_reader.apk");
                                     Intent intent = new Intent(Intent.ACTION_VIEW);
                                     intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
                                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -1094,19 +1156,19 @@ public class FullscreenActivity extends AppCompatActivity {
                             }
                         }
                     }
-                }else{
-                        if (attmentNames.size() > 0) {
-                            for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
-                                openPDF(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
-                                break;
-                            }
+                } else {
+                    if (attmentNames.size() > 0) {
+                        for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                            openPDF(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
+                            break;
                         }
+                    }
                 }
-  /////VIDEO
-            }else if(openwith.equalsIgnoreCase("Flow Video Player")){
-                if(openFromDiskDirectly) {
-                    Log.e("MyCouch", " Command Video name -:  "+docId);
-                    String filenameOnly="";
+                /////VIDEO
+            } else if (openwith.equalsIgnoreCase("Flow Video Player")) {
+                if (openFromDiskDirectly) {
+                    Log.e("MyCouch", " Command Video name -:  " + docId);
+                    String filenameOnly = "";
                     String root = Environment.getExternalStorageDirectory().toString();
                     File myDir = new File(root + "/ole_temp");
                     for (File f : myDir.listFiles()) {
@@ -1114,7 +1176,7 @@ public class FullscreenActivity extends AppCompatActivity {
                             if (f.getName().indexOf(".") > 0) {
                                 filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
                             }
-                            Log.e("MyCouch", " File name -:  "+ f.getName() +" Filename only "+filenameOnly);
+                            Log.e("MyCouch", " File name -:  " + f.getName() + " Filename only " + filenameOnly);
                             if (filenameOnly.equalsIgnoreCase(docId)) {
                                 mDialog.dismiss();
                                 intent = new Intent();
@@ -1126,7 +1188,7 @@ public class FullscreenActivity extends AppCompatActivity {
                             }
                         }
                     }
-                }else{
+                } else {
                     if (attmentNames.size() > 0) {
                         for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
                             openAudioVideo(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
@@ -1135,17 +1197,17 @@ public class FullscreenActivity extends AppCompatActivity {
                     }
                 }
 
-            }else if(openwith.equalsIgnoreCase("BeLL Video Book Player")){
+            } else if (openwith.equalsIgnoreCase("BeLL Video Book Player")) {
                 if (attmentNames.size() > 0) {
                     for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
 
                     }
                 }
 /// Native Video
-            }else if(openwith.equalsIgnoreCase("Native Video")){
-                if(openFromDiskDirectly) {
-                    Log.e("MyCouch", " Command Video name -:  "+docId);
-                    String filenameOnly="";
+            } else if (openwith.equalsIgnoreCase("Native Video")) {
+                if (openFromDiskDirectly) {
+                    Log.e("MyCouch", " Command Video name -:  " + docId);
+                    String filenameOnly = "";
                     String root = Environment.getExternalStorageDirectory().toString();
                     File myDir = new File(root + "/ole_temp");
                     for (File f : myDir.listFiles()) {
@@ -1153,7 +1215,7 @@ public class FullscreenActivity extends AppCompatActivity {
                             if (f.getName().indexOf(".") > 0) {
                                 filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
                             }
-                            Log.e("MyCouch", " File name -:  "+ f.getName() +" Filename only "+filenameOnly);
+                            Log.e("MyCouch", " File name -:  " + f.getName() + " Filename only " + filenameOnly);
                             if (filenameOnly.equalsIgnoreCase(docId)) {
                                 mDialog.dismiss();
                                 intent = new Intent();
@@ -1165,7 +1227,7 @@ public class FullscreenActivity extends AppCompatActivity {
                             }
                         }
                     }
-                }else {
+                } else {
                     if (attmentNames.size() > 0) {
                         for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
                             openAudioVideo(docId, (String) attmentNames.get(cnt), getExtension(attmentNames.get(cnt)));
@@ -1176,25 +1238,26 @@ public class FullscreenActivity extends AppCompatActivity {
 
             }
         } catch (Exception Er) {
-            Log.d("MyCouch", "Opening resource error "+Er.getMessage());
+            Log.d("MyCouch", "Opening resource error " + Er.getMessage());
         }
     }
+
     public void openHTML(String index) {
-        final String mainFile =  index;
+        final String mainFile = index;
         try {
-            try{
+            try {
                 mDialog.dismiss();
                 ComponentName componentName = getPackageManager().getLaunchIntentForPackage("org.mozilla.firefox").getComponent();
                 Intent firefoxIntent = IntentCompat.makeRestartActivityTask(componentName);
-                firefoxIntent.setDataAndType(Uri.parse(mainFile),"text/html");
+                firefoxIntent.setDataAndType(Uri.parse(mainFile), "text/html");
                 startActivity(firefoxIntent);
 
                 //startActivity(intent);
-            }catch(Exception err){
+            } catch (Exception err) {
                 mDialog.dismiss();
                 Log.e("Error", err.getMessage());
                 File myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
-                File dst = new File(myDir,"firefox_49_0_multi_android.apk");
+                File dst = new File(myDir, "firefox_49_0_multi_android.apk");
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -1209,8 +1272,9 @@ public class FullscreenActivity extends AppCompatActivity {
         }
 
     }
+
     public void downloadHTMLContent(String docId, final String fileName) {
-        final String myfilename =  fileName;
+        final String myfilename = fileName;
         AndroidContext androidContext = new AndroidContext(context);
         Manager manager = null;
         try {
@@ -1218,25 +1282,25 @@ public class FullscreenActivity extends AppCompatActivity {
             Database res_Db = manager.getExistingDatabase("resources");
             Document res_doc = res_Db.getExistingDocument(docId);
             final Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment(fileName);
-            int lth= (int) fileAttachment.getLength();
-            try{
+            int lth = (int) fileAttachment.getLength();
+            try {
                 InputStream in = fileAttachment.getContent();
                 String root = Environment.getExternalStorageDirectory().toString();
-                File newDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2/"+docId);
-                if (!newDir.exists()){
+                File newDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2/" + docId);
+                if (!newDir.exists()) {
                     newDir.mkdirs();
                 }
 
-                File myDir = new File(root + "/ole_temp2/"+docId);
-                File dst = new File(myDir,fileAttachment.getName().replace(" ", ""));
-                String filepath[]= dst.toString().split("/");
+                File myDir = new File(root + "/ole_temp2/" + docId);
+                File dst = new File(myDir, fileAttachment.getName().replace(" ", ""));
+                String filepath[] = dst.toString().split("/");
                 int defaultLength = myDir.getPath().split("/").length;
-                String path= myDir.getPath();
+                String path = myDir.getPath();
                 //Log.e("tag", " Location  "+ dst.toString() + " Default :" + defaultLength + " fpath: "+filepath.length);
-                for(int cnt= defaultLength; cnt < (filepath.length-1);cnt++){
-                    path = path +"/"+ filepath[cnt];
+                for (int cnt = defaultLength; cnt < (filepath.length - 1); cnt++) {
+                    path = path + "/" + filepath[cnt];
                     myDir = new File(path);
-                    if (!myDir.exists()){
+                    if (!myDir.exists()) {
                         myDir.mkdirs();
                     }
                 }
@@ -1248,18 +1312,18 @@ public class FullscreenActivity extends AppCompatActivity {
                         out.write(buff, 0, len);
                     }
 
-                    Log.e("tag", " Saved "+ dst.toString()+" Original length: "+ lth );
+                    Log.e("tag", " Saved " + dst.toString() + " Original length: " + lth);
 
                     in.close();
                     out.close();
-                    if(dst.getName().equalsIgnoreCase("index.html") && (filepath.length - defaultLength)==1 ){
+                    if (dst.getName().equalsIgnoreCase("index.html") && (filepath.length - defaultLength) == 1) {
                         indexFilePath = dst.toString();
                     }
 
-                }catch(Exception err){
-                    Log.e("tag", " Saving "+ err.getMessage());
+                } catch (Exception err) {
+                    Log.e("tag", " Saving " + err.getMessage());
                 }
-            }catch(Exception err){
+            } catch (Exception err) {
                 err.printStackTrace();
             }
         } catch (Exception Er) {
@@ -1267,8 +1331,9 @@ public class FullscreenActivity extends AppCompatActivity {
 
         }
     }
+
     public void openImage(String docId, final String fileName, String player) {
-        final String myfilename =  fileName;
+        final String myfilename = fileName;
         AndroidContext androidContext = new AndroidContext(context);
         Manager manager = null;
         try {
@@ -1276,15 +1341,15 @@ public class FullscreenActivity extends AppCompatActivity {
             Database res_Db = manager.getExistingDatabase("resources");
             Document res_doc = res_Db.getExistingDocument(docId);
             final Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment(fileName);
-            try{
+            try {
                 File src = new File(fileAttachment.getContentURL().getPath());
                 InputStream in = new FileInputStream(src);
                 String root = Environment.getExternalStorageDirectory().toString();
                 File myDir = new File(root + "/ole_temp");
-                if (!myDir.exists()){
+                if (!myDir.exists()) {
                     myDir.mkdirs();
                 }
-                File dst = new File(myDir,fileAttachment.getName().replace(" ", ""));
+                File dst = new File(myDir, fileAttachment.getName().replace(" ", ""));
                 try {
                     FileOutputStream out = new FileOutputStream(dst);
                     byte[] buff = new byte[1024];
@@ -1294,8 +1359,8 @@ public class FullscreenActivity extends AppCompatActivity {
                     }
                     in.close();
                     out.close();
-                    Log.e("tag", " Copied PDF "+ dst.toString());
-                }catch(Exception err){
+                    Log.e("tag", " Copied PDF " + dst.toString());
+                } catch (Exception err) {
                     err.printStackTrace();
                     mDialog.dismiss();
                     alertDialogOkay("Couldn't open resource try again");
@@ -1306,7 +1371,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 intent.setDataAndType(Uri.fromFile(dst), "image/*");
                 //Log.e("tag", " URL Path "+ Uri.fromFile(dst).getPath());;
                 startActivity(intent);
-            }catch(Exception err){
+            } catch (Exception err) {
 
                 mDialog.dismiss();
                 alertDialogOkay("Couldn't open resource try again");
@@ -1319,6 +1384,7 @@ public class FullscreenActivity extends AppCompatActivity {
         }
 
     }
+
     public static void mkDirs(File root, List<String> dirs, int depth) {
         if (depth == 0) return;
         for (String s : dirs) {
@@ -1327,8 +1393,9 @@ public class FullscreenActivity extends AppCompatActivity {
             mkDirs(subdir, dirs, depth - 1);
         }
     }
+
     public void openPDF(String docId, final String fileName, String player) {
-        final String myfilename =  fileName;
+        final String myfilename = fileName;
         AndroidContext androidContext = new AndroidContext(context);
         Manager manager = null;
         try {
@@ -1342,15 +1409,15 @@ public class FullscreenActivity extends AppCompatActivity {
             alertDialog.setMessage("Select which application you wish to open document with");
             alertDialog.setButton(android.app.AlertDialog.BUTTON_POSITIVE, "Adobe PDF Reader", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
-                    try{
+                    try {
                         File src = new File(fileAttachment.getContentURL().getPath());
                         InputStream in = new FileInputStream(src);
                         String root = Environment.getExternalStorageDirectory().toString();
                         File myDir = new File(root + "/ole_temp");
-                        if (!myDir.exists()){
+                        if (!myDir.exists()) {
                             myDir.mkdirs();
                         }
-                        File dst = new File(myDir,fileAttachment.getName().replace(" ", ""));
+                        File dst = new File(myDir, fileAttachment.getName().replace(" ", ""));
                         try {
                             FileOutputStream out = new FileOutputStream(dst);
                             byte[] buff = new byte[1024];
@@ -1360,8 +1427,8 @@ public class FullscreenActivity extends AppCompatActivity {
                             }
                             in.close();
                             out.close();
-                            Log.e("tag", " Copied PDF "+ dst.toString());
-                        }catch(Exception err){
+                            Log.e("tag", " Copied PDF " + dst.toString());
+                        } catch (Exception err) {
                             err.printStackTrace();
                             mDialog.dismiss();
                             alertDialogOkay("Couldn't open resource try again");
@@ -1374,29 +1441,30 @@ public class FullscreenActivity extends AppCompatActivity {
                         startActivity(intent);
 
 
-                    }catch(Exception err){
+                    } catch (Exception err) {
                         File myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
-                        File dst = new File(myDir,"adobe_reader.apk");
+                        File dst = new File(myDir, "adobe_reader.apk");
                         Intent intent = new Intent(Intent.ACTION_VIEW);
                         intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(intent);
                     }
 
-                } });
+                }
+            });
 
             alertDialog.setButton(android.app.AlertDialog.BUTTON_NEGATIVE, "In-App PDF Viewer", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
 
-                    try{
+                    try {
                         File src = new File(fileAttachment.getContentURL().getPath());
                         InputStream in = new FileInputStream(src);
                         String root = Environment.getExternalStorageDirectory().toString();
                         File myDir = new File(root + "/ole_temp");
-                        if (!myDir.exists()){
+                        if (!myDir.exists()) {
                             myDir.mkdirs();
                         }
-                        File dst = new File(myDir,fileAttachment.getName().replace(" ", ""));
+                        File dst = new File(myDir, fileAttachment.getName().replace(" ", ""));
                         try {
                             FileOutputStream out = new FileOutputStream(dst);
                             byte[] buff = new byte[1024];
@@ -1406,8 +1474,8 @@ public class FullscreenActivity extends AppCompatActivity {
                             }
                             in.close();
                             out.close();
-                            Log.e("tag", " Copied PDF "+ dst.toString());
-                        }catch(Exception err){
+                            Log.e("tag", " Copied PDF " + dst.toString());
+                        } catch (Exception err) {
                             err.printStackTrace();
                             mDialog.dismiss();
                             alertDialogOkay("Couldn't open resource try again");
@@ -1415,21 +1483,23 @@ public class FullscreenActivity extends AppCompatActivity {
 
                         mDialog.dismiss();
                         Intent intent = new Intent(FullscreenActivity.this, MyPdfViewerActivity.class);
-                        Log.e("tag", " URL Path "+ Uri.fromFile(dst).getPath());
+                        Log.e("tag", " URL Path " + Uri.fromFile(dst).getPath());
                         intent.putExtra(net.sf.andpdf.pdfviewer.PdfViewerActivity.EXTRA_PDFFILENAME, Uri.fromFile(dst).getPath());
                         startActivity(intent);
 
 
-                    }catch(Exception err){
+                    } catch (Exception err) {
                         mDialog.dismiss();
                         alertDialogOkay("Couldn't open resource try again");
                     }
-                }});
+                }
+            });
             alertDialog.setButton(android.app.AlertDialog.BUTTON_NEUTRAL, "Cancel", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
 
 
-                }});
+                }
+            });
             alertDialog.show();
 
         } catch (Exception Er) {
@@ -1438,67 +1508,69 @@ public class FullscreenActivity extends AppCompatActivity {
         }
 
     }
-    public void openAudioVideo(String docId,String fileName, String player) {
 
-            AndroidContext androidContext = new AndroidContext(context);
-            Manager manager = null;
-            try {
+    public void openAudioVideo(String docId, String fileName, String player) {
 
-                    manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                    Database res_Db = manager.getExistingDatabase("resources");
-                    Document res_doc = res_Db.getExistingDocument(docId);
-                    Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment(fileName);
-                    File src = new File(fileAttachment.getContentURL().getPath());
-                    String root = Environment.getExternalStorageDirectory().toString();
-                    File myDir = new File(root + "/ole_temp");
-                    deleteDirectory(myDir);
-                    myDir.mkdirs();
-                    String diskFileName = fileAttachment.getName();
-                    diskFileName = diskFileName.replace(" ", "");
-                    File dst = new File(myDir, diskFileName);
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        try {
 
-                    InputStream in = new FileInputStream(src);
-                    OutputStream out = new FileOutputStream(dst);
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database res_Db = manager.getExistingDatabase("resources");
+            Document res_doc = res_Db.getExistingDocument(docId);
+            Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment(fileName);
+            File src = new File(fileAttachment.getContentURL().getPath());
+            String root = Environment.getExternalStorageDirectory().toString();
+            File myDir = new File(root + "/ole_temp");
+            deleteDirectory(myDir);
+            myDir.mkdirs();
+            String diskFileName = fileAttachment.getName();
+            diskFileName = diskFileName.replace(" ", "");
+            File dst = new File(myDir, diskFileName);
 
-                    // Transfer bytes from in to out
-                    byte[] buf = new byte[1024];
-                    int len;
-                    while ((len = in.read(buf)) > 0) {
-                        out.write(buf, 0, len);
-                    }
-                    in.close();
-                    out.close();
-                    dst.setReadable(true);
-                    String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(dst).toString());
-                    String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-                    intent = new Intent();
-                    intent.setAction(Intent.ACTION_VIEW);
-                    Log.e("tag", "- " + mimetype + " - ");
+            InputStream in = new FileInputStream(src);
+            OutputStream out = new FileOutputStream(dst);
 
-                    if (mimetype == "audio/mpeg") {
-                        mDialog.dismiss();
-                        intent.setDataAndType(Uri.fromFile(dst), mimetype);
-                        this.startActivity(intent);
-                    } else {
-                        try {
-                            mDialog.dismiss();
-                            intent.setDataAndType(Uri.fromFile(dst), mimetype);
-                            this.startActivity(intent);
-                        } catch (Exception Er) {
-                            Log.e("tag", Er.getMessage());
-                            mDialog.dismiss();
-                            alertDialogOkay("Couldn't open resource try again");
-                        }
-                    }
-            } catch (Exception Er) {
-                Log.e("tag", Er.getMessage());
-                mDialog.dismiss();
-                alertDialogOkay("Couldn't open resource try again");
+            // Transfer bytes from in to out
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
             }
+            in.close();
+            out.close();
+            dst.setReadable(true);
+            String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(dst).toString());
+            String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+            intent = new Intent();
+            intent.setAction(Intent.ACTION_VIEW);
+            Log.e("tag", "- " + mimetype + " - ");
+
+            if (mimetype == "audio/mpeg") {
+                mDialog.dismiss();
+                intent.setDataAndType(Uri.fromFile(dst), mimetype);
+                this.startActivity(intent);
+            } else {
+                try {
+                    mDialog.dismiss();
+                    intent.setDataAndType(Uri.fromFile(dst), mimetype);
+                    this.startActivity(intent);
+                } catch (Exception Er) {
+                    Log.e("tag", Er.getMessage());
+                    mDialog.dismiss();
+                    alertDialogOkay("Couldn't open resource try again");
+                }
+            }
+        } catch (Exception Er) {
+            Log.e("tag", Er.getMessage());
+            mDialog.dismiss();
+            alertDialogOkay("Couldn't open resource try again");
+        }
 
     }
+
     public String getExtension(final String filename) {
-        if (filename == null){
+        if (filename == null) {
             return null;
         }
         final String afterLastSlash = filename.substring(filename.lastIndexOf('/') + 1);
@@ -1506,18 +1578,19 @@ public class FullscreenActivity extends AppCompatActivity {
         final int dotIndex = afterLastSlash.indexOf('.', afterLastBackslash);
         return (dotIndex == -1) ? "" : afterLastSlash.substring(dotIndex + 1);
     }
-    public boolean updateActivityOpenedResources(String resource_name,String resourceid){
+
+    public boolean updateActivityOpenedResources(String resource_name, String resourceid) {
         AndroidContext androidContext = new AndroidContext(this);
         Manager manager = null;
         Database activityLog;
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             activityLog = manager.getDatabase("activitylog");
-            WifiManager wm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+            WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
             String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
             Document retrievedDocument = activityLog.getDocument(m_WLANMAC);
             Map<String, Object> properties = retrievedDocument.getProperties();
-            if((ArrayList<String>) properties.get("female_opened")!= null){
+            if ((ArrayList<String>) properties.get("female_opened") != null) {
                 try {
                     ArrayList female_opened = (ArrayList<String>) properties.get("female_opened");
                     ArrayList male_opened = (ArrayList<String>) properties.get("male_opened");
@@ -1542,11 +1615,11 @@ public class FullscreenActivity extends AppCompatActivity {
                     retrievedDocument.putProperties(newProperties);
                     Log.e("MyCouch", "Saved resource open in local Activity Log ");
                     return true;
-                }catch(Exception err){
-                    Log.e("MyCouch", "Option 1 Failed "+err.getMessage());
+                } catch (Exception err) {
+                    Log.e("MyCouch", "Option 1 Failed " + err.getMessage());
                     return false;
                 }
-            }else{
+            } else {
                 try {
                     Log.e("MyCouch", "Option 2");
                     Document newdocument = activityLog.getDocument(m_WLANMAC);
@@ -1572,7 +1645,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     newdocument.putProperties(newProperties);
                     Log.e("MyCouch", "Saved resource open in local Activity Log ");
                     return true;
-                }catch(Exception er) {
+                } catch (Exception er) {
                     Log.e("MyCouch", "Option 2 Failed" + er.getMessage());
                     return false;
                 }
@@ -1608,22 +1681,23 @@ public class FullscreenActivity extends AppCompatActivity {
                     return false;
                 }
             */
-        }catch(Exception err){
-            Log.e("MyCouch", "Updating Activity Log : " +err.getMessage());
+        } catch (Exception err) {
+            Log.e("MyCouch", "Updating Activity Log : " + err.getMessage());
             return false;
         }
     }
-    public boolean updateActivityRatingResources(float rate,String resourceid){
+
+    public boolean updateActivityRatingResources(float rate, String resourceid) {
         AndroidContext androidContext = new AndroidContext(this);
         Manager manager = null;
         Database activityLog;
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             activityLog = manager.getDatabase("activitylog");
-            WifiManager wm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+            WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
             String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
             Document retrievedDocument = activityLog.getDocument(m_WLANMAC);
-            if(retrievedDocument != null) {
+            if (retrievedDocument != null) {
                 Map<String, Object> properties = retrievedDocument.getProperties();
                 try {
                     ArrayList female_rating = (ArrayList<String>) properties.get("female_rating");
@@ -1654,8 +1728,8 @@ public class FullscreenActivity extends AppCompatActivity {
                     retrievedDocument.putProperties(newProperties);
                     Log.e("MyCouch", "Saved resource rating in local Activity Log ");
                     return true;
-                }catch(Exception err){
-                    Log.e("MyCouch", "Option Rating 1 Failed "+err.getMessage());
+                } catch (Exception err) {
+                    Log.e("MyCouch", "Option Rating 1 Failed " + err.getMessage());
                     try {
                         Log.e("MyCouch", "Option 2");
                         Map<String, Object> newProperties = new HashMap<String, Object>();
@@ -1686,13 +1760,12 @@ public class FullscreenActivity extends AppCompatActivity {
                         retrievedDocument.putProperties(newProperties);
                         Log.e("MyCouch", "Saved resource rating in local Activity Log ");
                         return true;
-                    }catch(Exception er) {
+                    } catch (Exception er) {
                         Log.e("MyCouch", "Option Rating 2 Failed" + er.getMessage());
                         return false;
                     }
                 }
-            }
-            else {
+            } else {
                 try {
                     Log.e("MyCouch", "Option Rating 1b");
                     Map<String, Object> newProperties = new HashMap<String, Object>();
@@ -1723,21 +1796,22 @@ public class FullscreenActivity extends AppCompatActivity {
                     retrievedDocument.putProperties(newProperties);
                     Log.e("MyCouch", "Saved resource rating in local Activity Log ");
                     return true;
-                }catch(Exception err){
-                    Log.e("MyCouch", "Option Rating 1b Failed : " +err.getMessage());
+                } catch (Exception err) {
+                    Log.e("MyCouch", "Option Rating 1b Failed : " + err.getMessage());
                     return false;
                 }
             }
-        }catch(Exception err){
-            Log.e("MyCouch", "Updating Activity Rating Log : " +err.getMessage());
+        } catch (Exception err) {
+            Log.e("MyCouch", "Updating Activity Rating Log : " + err.getMessage());
             return false;
         }
     }
+
     public boolean deleteDirectory(File path) {
-        if(path.exists()) {
+        if (path.exists()) {
             if (path.isDirectory()) {
                 File[] files = path.listFiles();
-                for (int i=0; i<files.length; i++) {
+                for (int i = 0; i < files.length; i++) {
                     deleteDirectory(files[i]);
                 }
             }
@@ -1746,9 +1820,10 @@ public class FullscreenActivity extends AppCompatActivity {
 
         return false;
     }
-    public void animateLayoutBars(){
 
-    /////////  Layout Slide in Animation from bottom to up
+    public void animateLayoutBars() {
+
+        /////////  Layout Slide in Animation from bottom to up
         final LinearLayout libraryLayout = (LinearLayout) findViewById(R.id.layoutMasterLibrary);
         libraryLayout.setVisibility(View.INVISIBLE);
         final TranslateAnimation translateAnimationLibrary = new TranslateAnimation(-1000, 0, 0, 0);
@@ -1786,6 +1861,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 coursesLayout.setVisibility(View.VISIBLE);
 
             }
+
             @Override
             public void onAnimationEnd(Animation animation) {
 
@@ -1807,7 +1883,6 @@ public class FullscreenActivity extends AppCompatActivity {
             @Override
             public void onAnimationStart(Animation animation) {
                 MeetupLayout.setVisibility(View.VISIBLE);
-
 
 
             }
@@ -1853,9 +1928,9 @@ public class FullscreenActivity extends AppCompatActivity {
         TutorsLayout.startAnimation(translateAnimationTutors);
 
 
-
     }
-    public void toggleTopUserInfo(){
+
+    public void toggleTopUserInfo() {
         final LinearLayout userInfoLayout = (LinearLayout) findViewById(R.id.layoutUserInfo);
         //userInfoLayout.setVisibility(View.INVISIBLE);
 
@@ -1871,7 +1946,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
             @Override
             public void onAnimationEnd(Animation animation) {
-                userInfoDisplayed=true;
+                userInfoDisplayed = true;
                 //userInfoLayout.setVisibility(View.INVISIBLE);
             }
 
@@ -1889,11 +1964,13 @@ public class FullscreenActivity extends AppCompatActivity {
             public void onAnimationStart(Animation animation) {
                 userInfoLayout.setVisibility(View.VISIBLE);
             }
+
             @Override
             public void onAnimationEnd(Animation animation) {
-                userInfoDisplayed=false;
+                userInfoDisplayed = false;
                 //userInfoLayout.setVisibility(View.INVISIBLE);
             }
+
             @Override
             public void onAnimationRepeat(Animation animation) {
 
@@ -1901,36 +1978,35 @@ public class FullscreenActivity extends AppCompatActivity {
         });
 
 
-
-
-
         ImageView imgProfileImage = (ImageView) findViewById(R.id.imageProfilePics);
         imgProfileImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(!userInfoDisplayed){
+                if (!userInfoDisplayed) {
                     userInfoLayout.startAnimation(translateShowUserInfo);
-                }else{
+                } else {
                     userInfoLayout.startAnimation(translateHideUserInfo);
                 }
             }
         });
     }
-    public void updateUI(){
+
+    public void updateUI() {
         TextView lblName = (TextView) findViewById(R.id.lblName);
-        lblName.setText(" "+sys_userfirstname +" "+sys_userlastname);
+        lblName.setText(" " + sys_userfirstname + " " + sys_userlastname);
         TextView lblVisits = (TextView) findViewById(R.id.lblVisits);
-        if(sys_uservisits==""){
+        if (sys_uservisits == "") {
             //// Todo change word 'Visits' to be read from languages
-            lblVisits.setText(""+sys_uservisits_Int + " Visits");
-        }else{
-            lblVisits.setText(""+sys_uservisits + " Visits");
+            lblVisits.setText("" + sys_uservisits_Int + " Visits");
+        } else {
+            lblVisits.setText("" + sys_uservisits + " Visits");
         }
         TextView lblServerName = (TextView) findViewById(R.id.lbl_SeverName);
-        lblServerName.setText(""+sys_servername.toUpperCase());
+        lblServerName.setText("" + sys_servername.toUpperCase());
 
     }
-    public void alertDialogOkay(String Message){
+
+    public void alertDialogOkay(String Message) {
         AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
         builder1.setMessage(Message);
         builder1.setCancelable(true);
@@ -1943,28 +2019,29 @@ public class FullscreenActivity extends AppCompatActivity {
         AlertDialog alert11 = builder1.create();
         alert11.show();
     }
-    public void downloadOneResourceToDisk(){
+
+    public void downloadOneResourceToDisk() {
         try {
             URI uri = URI.create(sys_oldSyncServerURL);
             String url_Scheme = uri.getScheme();
             String url_Host = uri.getHost();
             int url_Port = uri.getPort();
             String url_user = null, url_pwd = null;
-            if(sys_oldSyncServerURL.contains("@")){
+            if (sys_oldSyncServerURL.contains("@")) {
                 String[] userinfo = uri.getUserInfo().split(":");
                 url_user = userinfo[0];
                 url_pwd = userinfo[1];
             }
 
             CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
-            Log.e("MyCouch","Here Now");
-            if(dbClient.contains(OneByOneResID)){
+            Log.e("MyCouch", "Here Now");
+            if (dbClient.contains(OneByOneResID)) {
                 /// Handle with Json
-                JsonObject jsonObject = dbClient.find(JsonObject.class,OneByOneResID);
+                JsonObject jsonObject = dbClient.find(JsonObject.class, OneByOneResID);
                 JsonObject jsonAttachments = jsonObject.getAsJsonObject("_attachments");
                 String openWith = (String) jsonObject.get("openWith").getAsString();
                 Log.e("MyCouch", "Open With -- " + openWith);
-                if(!openWith.equalsIgnoreCase("HTML")) {
+                if (!openWith.equalsIgnoreCase("HTML")) {
                     JSONObject _attachments = new JSONObject(jsonAttachments.toString());
                     Iterator<String> keys = _attachments.keys();
                     if (keys.hasNext()) {
@@ -1977,7 +2054,7 @@ public class FullscreenActivity extends AppCompatActivity {
                         //createResourceDoc(OneByOneResID, jsonObject.get("title").getAsString(), jsonObject.get("openWith").getAsString());
                         //downloadWithDownloadManagerSingleFile(sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey, diskFileName);
                     }
-                }else {
+                } else {
                     Log.e("MyCouch", "-- HTML NOT PART OF DOWNLOADS ");
                     htmlResourceList.add(OneByOneResID);
                     if (allhtmlDownload < htmlResourceList.size()) {
@@ -1992,20 +2069,19 @@ public class FullscreenActivity extends AppCompatActivity {
                             repl.addChangeListener(new Replication.ChangeListener() {
                                 @Override
                                 public void changed(Replication.ChangeEvent event) {
-                                    Log.e("MyCouch", "Current Status "+repl.getStatus());
-                                    if(repl.isRunning()){
-                                        if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_ACTIVE")) {
+                                    Log.e("MyCouch", "Current Status " + repl.getStatus());
+                                    if (repl.isRunning()) {
+                                        if (repl.getStatus().toString().equalsIgnoreCase("REPLICATION_ACTIVE")) {
                                             Log.e("MyCouch", " " + event.getChangeCount());
                                             Log.e("MyCouch", " Document Count " + database.getDocumentCount());
-                                            mDialog.setMessage("Downloading HTML resources now .. "+ database.getDocumentCount() +"/"+ htmlResourceList.size());
-                                        }else if(repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")){
+                                            mDialog.setMessage("Downloading HTML resources now .. " + database.getDocumentCount() + "/" + htmlResourceList.size());
+                                        } else if (repl.getStatus().toString().equalsIgnoreCase("REPLICATION_STOPPED")) {
                                             mDialog.dismiss();
                                             alertDialogOkay("Download Completed");
-                                        }
-                                        else{
+                                        } else {
                                             mDialog.setMessage("Data transfer error. Check connection to server.");
                                         }
-                                    }else {
+                                    } else {
                                         Log.e("MyCouch", "Document Count Last " + database.getDocumentCount());
                                         mDialog.dismiss();
                                         // dbDiagnosticCheck();
@@ -2023,11 +2099,12 @@ public class FullscreenActivity extends AppCompatActivity {
                 }
             }
         } catch (Exception e) {
-            Log.e("MyCouch","Download this resource error "+ e.getMessage());
+            Log.e("MyCouch", "Download this resource error " + e.getMessage());
             mDialog.dismiss();
             alertDialogOkay("Error downloading file, check connection and try again");
         }
     }
+
     /// Todo Review Code and test class
     class downloadSpecificResourceToDisk extends AsyncTask<String, Void, Boolean> {
         @Override
@@ -2038,20 +2115,20 @@ public class FullscreenActivity extends AppCompatActivity {
                 String url_Host = uri.getHost();
                 int url_Port = uri.getPort();
                 String url_user = null, url_pwd = null;
-                if(sys_oldSyncServerURL.contains("@")){
+                if (sys_oldSyncServerURL.contains("@")) {
                     String[] userinfo = uri.getUserInfo().split(":");
                     url_user = userinfo[0];
                     url_pwd = userinfo[1];
                 }
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
-                if(dbClient.contains(OneByOneResID)){
+                if (dbClient.contains(OneByOneResID)) {
                     /// Handle with Json
-                    JsonObject jsonObject = dbClient.find(JsonObject.class,OneByOneResID);
+                    JsonObject jsonObject = dbClient.find(JsonObject.class, OneByOneResID);
                     JsonObject jsonAttachments = jsonObject.getAsJsonObject("_attachments");
                     final String openWith = (String) jsonObject.get("openWith").getAsString();
-                    final String title =  jsonObject.get("title").getAsString();
+                    final String title = jsonObject.get("title").getAsString();
                     Log.e("MyCouch", "Open With -- " + openWith);
-                    if(!openWith.equalsIgnoreCase("HTML")) {
+                    if (!openWith.equalsIgnoreCase("HTML")) {
                         JSONObject _attachments = new JSONObject(jsonAttachments.toString());
                         Iterator<String> keys = _attachments.keys();
                         if (keys.hasNext()) {
@@ -2067,8 +2144,9 @@ public class FullscreenActivity extends AppCompatActivity {
                                     downloadWithDownloadManagerSingleFile(sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey, diskFileName);
                                     createResourceDoc(OneByOneResID, title, openWith);
                                 }
-                            });}
-                    }else {
+                            });
+                        }
+                    } else {
                         Log.e("MyCouch", "-- HTML NOT PART OF DOWNLOADS ");
                         htmlResourceList.add(OneByOneResID);
                         if (allhtmlDownload < htmlResourceList.size()) {
@@ -2085,7 +2163,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     }
                 }
             } catch (Exception e) {
-                Log.e("MyCouch","Download this resource error "+ e.getMessage());
+                Log.e("MyCouch", "Download this resource error " + e.getMessage());
                 mDialog.dismiss();
                 alertDialogOkay("Error downloading file, check connection and try again");
                 return null;
@@ -2093,7 +2171,8 @@ public class FullscreenActivity extends AppCompatActivity {
             return null;
         }
     }
-    public void callSuncOneHTMLResource(){
+
+    public void callSuncOneHTMLResource() {
         SyncSingleHTMLResource ssHTML = new SyncSingleHTMLResource();
         ssHTML.execute();
     }
@@ -2107,20 +2186,20 @@ public class FullscreenActivity extends AppCompatActivity {
                 String url_Host = uri.getHost();
                 int url_Port = uri.getPort();
                 String url_user = null, url_pwd = null;
-                if(sys_oldSyncServerURL.contains("@")){
+                if (sys_oldSyncServerURL.contains("@")) {
                     String[] userinfo = uri.getUserInfo().split(":");
                     url_user = userinfo[0];
                     url_pwd = userinfo[1];
                 }
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
-                if(dbClient.contains(resourceIdList[allresDownload])){
+                if (dbClient.contains(resourceIdList[allresDownload])) {
                     /// Handle with Json
-                    JsonObject jsonObject = dbClient.find(JsonObject.class,resourceIdList[allresDownload]);
+                    JsonObject jsonObject = dbClient.find(JsonObject.class, resourceIdList[allresDownload]);
                     JsonObject jsonAttachments = jsonObject.getAsJsonObject("_attachments");
                     final String openWith = (String) jsonObject.get("openWith").getAsString();
-                    final String title =  jsonObject.get("title").getAsString();
+                    final String title = jsonObject.get("title").getAsString();
                     Log.e("MyCouch", "Open With -- " + openWith);
-                    if(!openWith.equalsIgnoreCase("HTML")) {
+                    if (!openWith.equalsIgnoreCase("HTML")) {
                         JSONObject _attachments = new JSONObject(jsonAttachments.toString());
                         Iterator<String> keys = _attachments.keys();
                         if (keys.hasNext()) {
@@ -2136,13 +2215,14 @@ public class FullscreenActivity extends AppCompatActivity {
                                     downloadWithDownloadManagerSingleFile(sys_oldSyncServerURL + "/resources/" + resourceIdList[allresDownload] + "/" + encodedkey, diskFileName);
                                     createResourceDoc(resourceIdList[allresDownload], title, openWith);
                                 }
-                            });}
-                    }else {
+                            });
+                        }
+                    } else {
                         Log.e("MyCouch", "-- HTML NOT PART OF DOWNLOADS ");
                         htmlResourceList.add(resourceIdList[allresDownload]);
-                        if(allresDownload<libraryButtons.length) {
+                        if (allresDownload < libraryButtons.length) {
                             allresDownload++;
-                            if(resourceTitleList[allresDownload]!=null) {
+                            if (resourceTitleList[allresDownload] != null) {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
@@ -2150,15 +2230,15 @@ public class FullscreenActivity extends AppCompatActivity {
                                         new downloadAllResourceToDisk().execute();
                                     }
                                 });
-                            }else{
-                                if(allhtmlDownload<htmlResourceList.size()) {
+                            } else {
+                                if (allhtmlDownload < htmlResourceList.size()) {
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
                                             callSuncOneHTMLResource();
                                         }
                                     });
-                                }else{
+                                } else {
                                     mDialog.dismiss();
                                     alertDialogOkay("Download Completed");
                                 }
@@ -2167,7 +2247,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     }
                 }
             } catch (Exception e) {
-                Log.e("MyCouch","Download this resource error "+ e.getMessage());
+                Log.e("MyCouch", "Download this resource error " + e.getMessage());
                 mDialog.dismiss();
                 alertDialogOkay("Error downloading file, check connection and try again");
                 return null;
@@ -2236,45 +2316,45 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     }
 
-    public void downloadWithDownloadManager(String fileURL, String FileName){
+    public void downloadWithDownloadManager(String fileURL, String FileName) {
         String url = fileURL;
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-        request.setDescription(resourceIdList[allresDownload]+"-"+resourceTitleList[allresDownload]);
+        request.setDescription(resourceIdList[allresDownload] + "-" + resourceTitleList[allresDownload]);
         request.setTitle(resourceTitleList[allresDownload]);
 // in order for this if to run, you must use the android 3.2 to compile your app
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             request.allowScanningByMediaScanner();
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
         }
-        Log.e("MyCouch", " Destination is "+FileName);
-        request.setDestinationInExternalPublicDir("ole_temp",FileName);
+        Log.e("MyCouch", " Destination is " + FileName);
+        request.setDestinationInExternalPublicDir("ole_temp", FileName);
 
 // get download service and enqueue file
-        mDialog.setMessage("Downloading  \" "+resourceTitleList[allresDownload]+" \" . please wait...");
+        mDialog.setMessage("Downloading  \" " + resourceTitleList[allresDownload] + " \" . please wait...");
         downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
         enqueue = downloadManager.enqueue(request);
     }
 
-    public void downloadWithDownloadManagerSingleFile(String fileURL, String FileName){
+    public void downloadWithDownloadManagerSingleFile(String fileURL, String FileName) {
         String url = fileURL;
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-        request.setDescription(clicked_rs_ID +"-"+ clicked_rs_title);
+        request.setDescription(clicked_rs_ID + "-" + clicked_rs_title);
         request.setTitle(clicked_rs_title);
 // in order for this if to run, you must use the android 3.2 to compile your app
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             request.allowScanningByMediaScanner();
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
         }
-        Log.e("MyCouch", " Destination is "+FileName);
-        request.setDestinationInExternalPublicDir("ole_temp",FileName);
+        Log.e("MyCouch", " Destination is " + FileName);
+        request.setDestinationInExternalPublicDir("ole_temp", FileName);
 
 // get download service and enqueue file
-        mDialog.setMessage("Downloading  \" "+clicked_rs_title+" \" . please wait...");
+        mDialog.setMessage("Downloading  \" " + clicked_rs_title + " \" . please wait...");
         downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
         enqueue = downloadManager.enqueue(request);
     }
 
-    public void createResourceDoc(String manualResId,String manualResTitle, String manualResopenWith){
+    public void createResourceDoc(String manualResId, String manualResTitle, String manualResopenWith) {
         Database database = null;
         try {
             database = manager.getDatabase("resources");
@@ -2282,7 +2362,7 @@ public class FullscreenActivity extends AppCompatActivity {
             properties.put("title", manualResTitle);
             properties.put("openWith", manualResopenWith);
             properties.put("localfile", "yes");
-           // properties.put("resourceType", manualResType);
+            // properties.put("resourceType", manualResType);
             Document document = database.getDocument(manualResId);
             try {
                 document.putProperties(properties);
@@ -2295,19 +2375,19 @@ public class FullscreenActivity extends AppCompatActivity {
 
     }
 
-    public void rateResourceDialog(String resourceId, String title){
+    public void rateResourceDialog(String resourceId, String title) {
         // custom dialog
         final String resourceID = resourceId;
         final Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.rate_resource_dialog);
-        dialog.setTitle("Add Feedback For \n" );
+        dialog.setTitle("Add Feedback For \n");
 
         final TextView txtResTitle = (TextView) dialog.findViewById(R.id.txtResTitle);
         txtResTitle.setText(title);
         final EditText txtComment = (EditText) dialog.findViewById(R.id.editTextComment);
         final RatingBar ratingBar = (RatingBar) dialog.findViewById(R.id.ratingBar);
         ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
-            public void onRatingChanged(RatingBar ratingBar, float rating,boolean fromUser) {
+            public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
 
             }
         });
@@ -2315,14 +2395,14 @@ public class FullscreenActivity extends AppCompatActivity {
         dialogButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                saveRating((int) ratingBar.getRating(),String.valueOf(txtComment.getText()),resourceID);
+                saveRating((int) ratingBar.getRating(), String.valueOf(txtComment.getText()), resourceID);
                 dialog.dismiss();
             }
         });
         dialog.show();
     }
 
-    public void saveRating(int rate,String comment,String resourceId){
+    public void saveRating(int rate, String comment, String resourceId) {
         AndroidContext androidContext = new AndroidContext(context);
         Manager manager = null;
         Database resourceRating;
@@ -2333,11 +2413,11 @@ public class FullscreenActivity extends AppCompatActivity {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             resourceRating = manager.getDatabase("resourcerating");
             Document retrievedDocument = resourceRating.getExistingDocument(resourceId);
-            if(retrievedDocument != null) {
+            if (retrievedDocument != null) {
                 Map<String, Object> properties = retrievedDocument.getProperties();
-                if(properties.containsKey("sum")){
-                    doc_rating = (int) properties.get("sum") ;
-                    doc_timesRated  = (int) properties.get("timesRated") ;
+                if (properties.containsKey("sum")) {
+                    doc_rating = (int) properties.get("sum");
+                    doc_timesRated = (int) properties.get("timesRated");
                     commentList = (ArrayList<String>) properties.get("comments");
                     commentList.add(comment);
                     Map<String, Object> newProperties = new HashMap<String, Object>();
@@ -2347,10 +2427,9 @@ public class FullscreenActivity extends AppCompatActivity {
                     newProperties.put("comments", commentList);
                     retrievedDocument.putProperties(newProperties);
                     updateActivityRatingResources(rate, resourceId);
-                    Toast.makeText(context,String.valueOf(rate),Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, String.valueOf(rate), Toast.LENGTH_SHORT).show();
                 }
-            }
-            else{
+            } else {
                 Document newdocument = resourceRating.getDocument(resourceId);
                 Map<String, Object> newProperties = new HashMap<String, Object>();
                 newProperties.put("sum", rate);
@@ -2358,21 +2437,103 @@ public class FullscreenActivity extends AppCompatActivity {
                 commentList.add(comment);
                 newProperties.put("comments", commentList);
                 newdocument.putProperties(newProperties);
- /// todo check updating resource to see it works
+                /// todo check updating resource to see it works
                 updateActivityRatingResources(rate, resourceId);
-                Toast.makeText(context,String.valueOf(rate),Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, String.valueOf(rate), Toast.LENGTH_SHORT).show();
             }
-        }catch(Exception err){
-            Log.e("MyCouch", "ERR : " +err.getMessage());
+        } catch (Exception err) {
+            Log.e("MyCouch", "ERR : " + err.getMessage());
         }
     }
 
-    public void checkResourceOpened(){
-        if(openedResource) {
-            rateResourceDialog(openedResourceId,openedResourceTitle);
-            openedResource=false;
+    public void checkResourceOpened() {
+        if (openedResource) {
+            rateResourceDialog(openedResourceId, openedResourceTitle);
+            openedResource = false;
         }
     }
 
+    class checkServerConnection extends AsyncTask<String, Void, String> {
+        private Exception exception;
+        protected String doInBackground(String... urls) {
+            runOnUiThread(new Runnable() {
+                public void run()
+                {
+                    final Fuel ful = new Fuel();
+            final ProgressDialog connectionDialog = new ProgressDialog(context);
+            connectionDialog.setMessage("Checking Connection. Please wait ..");
+            connectionDialog.setCancelable(false);
+            connectionDialog.show();
+            ful.get(sys_oldSyncServerURL + "/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+                @Override
+                public void success(Request request, Response response, String s) {
+                    try {
+                        List<String> myList = new ArrayList<String>();
+                        myList.clear();
+                        myList = Arrays.asList(s.split(","));
+                        Log.e("MyCouch", "-- " + myList.size());
+                        if (myList.size() < 8) {
+                            alertDialogOkay("Check WiFi connection and try again");
+                            connectionDialog.dismiss();
+                        } else {
+                            //alertDialogOkay("Connected to server");
+                            connectionDialog.dismiss();
+                            final ProgressDialog progressDialog = ProgressDialog.show(FullscreenActivity.this, "Please wait ...", "Syncing", false);
+                            //////////////////////////////
+                            URL url = new URL(sys_oldSyncServerURL+"/shelf");
+                            database = manager.getDatabase("shelf");
+                            final Replication pull = database.createPullReplication(url);
+                            final Replication push = database.createPushReplication(url);
+                            pull.setContinuous(false);
+                            push.setContinuous(false);
+                            pull.addChangeListener(new Replication.ChangeListener() {
+                                @Override
+                                public void changed(Replication.ChangeEvent event) {
+                                    boolean active = (pull.getStatus() == Replication.ReplicationStatus.REPLICATION_ACTIVE) ||
+                                            (push.getStatus() == Replication.ReplicationStatus.REPLICATION_ACTIVE);
+                                    if (!active) {
+                                        progressDialog.dismiss();
+                                        runOnUiThread(new Runnable() {
+                                            public void run() {
+                                                alertDialogOkay("Tablet Updated Successfully. Logout and Login again to see changes");
+                                            }
+                                        });
+                                    } else {
+                                        double total = push.getCompletedChangesCount() + pull.getCompletedChangesCount();
+                                        progressDialog.setMax((int) total);
+                                        progressDialog.setProgress(push.getChangesCount() + pull.getChangesCount());
+                                    }
+                                }
+                            });
+                            pull.start();
+                            push.start();
 
+
+
+                            /////////////////////////
+                        }
+
+                    } catch (Exception e) {
+                        connectionDialog.dismiss();
+                        alertDialogOkay("Device couldn't reach server. Check and try again");
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void failure(Request request, Response response, FuelError fuelError) {
+                    connectionDialog.dismiss();
+                    alertDialogOkay("Device couldn't reach server. Check and try again");
+                    Log.e("MyCouch", " " + fuelError);
+                }
+            });
+                }
+            });
+            return "";
+        }
+        protected void onPostExecute(String data) {
+            // TODO: check this.exception
+            // TODO: do something with the feed
+        }
+    }
 }

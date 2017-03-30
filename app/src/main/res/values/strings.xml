@@ -103,4 +103,5 @@
     <string name="single_down_json_dis">JSON Replication Disabled</string>
     <string name="single_down_file_streaming">FILE STREAMING DISABLED</string>
     <string name="single_down_file_streaming_dis">FILE STRAMING ENABLED</string>
+    <string name="check_updates">Update</string>
 </resources>

@@ -8,8 +8,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.PersistableBundle;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -67,7 +70,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
+import android.content.Context;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.util.Log;
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
@@ -106,7 +115,10 @@ public class FullscreenLogin extends AppCompatActivity {
     Replication pullReplication;
     Button dialogSyncButton,btnFeedback;
     Boolean wipeClean =false;
+    JobScheduler mJobScheduler;
+    private static final String TAG = "LoginActivity";
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,8 +128,6 @@ public class FullscreenLogin extends AppCompatActivity {
         actionBar.hide();
         androidContext = new AndroidContext(this);
         // Todo - : Decide on either to clear resource database and file storage anytime user syncs or rather keep old resources only if user doesn't change server url
-        /////////////////////////////////////
-        // Set up the login form.
         mUsername = (EditText) mContentView.findViewById(R.id.txtUsername);
         mPasswordView = (EditText) findViewById(R.id.txtPassword);
         Button SignInButton = (Button) findViewById(R.id.btnSignIn);
@@ -168,6 +178,7 @@ public class FullscreenLogin extends AppCompatActivity {
                             Log.e("MyCouch", "-- " + myList.size());
                             if (myList.size() < 8) {
                                 alertDialogOkay("Check WiFi connection and try again");
+                                feedbackDialog.dismiss();
                             } else {
                                 sendfeedbackToServer(feedbackDialog);
                             }
@@ -684,7 +695,7 @@ public class FullscreenLogin extends AppCompatActivity {
         // Restore preferences
         settings = getSharedPreferences(PREFS_NAME, 0);
         sys_username = settings.getString("pf_username","");
-        sys_oldSyncServerURL = settings.getString("pf_sysncUrl","");
+        sys_oldSyncServerURL = settings.getString("pf_sysncUrl","http://");
         sys_lastSyncDate = settings.getString("pf_lastSyncDate","");
         sys_password = settings.getString("pf_password","");
         sys_usercouchId = settings.getString("pf_usercouchId","");
@@ -710,6 +721,28 @@ public class FullscreenLogin extends AppCompatActivity {
 
         }catch(Exception err){
             Log.e("MYAPP", " Error creating  sys_membersWithResource");
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public void startServiceCommand(){
+        try{
+            ////////// Requires API 21+ ///////////////////
+            Log.i(TAG, "Creating Service: ");
+            mJobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
+            mJobScheduler.cancelAll();
+            JobInfo.Builder builder = new JobInfo.Builder(1, new ComponentName(getPackageName(), ServerSearchService.class.getName()));
+            builder.setPeriodic(3000);
+            PersistableBundle extras = new PersistableBundle();
+            extras.putString("serverUrl",sys_oldSyncServerURL);
+            builder.setExtras(extras);
+            builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
+            if (mJobScheduler.schedule(builder.build()) <= 0) {
+                Log.e(TAG, "onCreate: Some error while scheduling the job");
+            }
+        }catch(Exception err){
+            mJobScheduler.cancelAll();
+            Log.e("MYAPP", " Creating Service error "+err.getMessage());
         }
     }
     public void syncNotifier(){
@@ -1403,7 +1436,6 @@ public class FullscreenLogin extends AppCompatActivity {
             }
         });*/
     }
-
     class GetServerDate extends AsyncTask<String, Void, String> {
         private Exception exception;
         private String cls_dbName;
@@ -1431,7 +1463,7 @@ public class FullscreenLogin extends AppCompatActivity {
                     String[] userinfo = uri.getUserInfo().split(":");
                     url_user = userinfo[0];
                     url_pwd = userinfo[1];
-                    Log.e("MyCouch", "Doesnt contain @");
+                    Log.e("MyCouch", "Contain @");
                 }
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid(getdbName(), true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
 //// Todo Decide either use design document in apps or not
