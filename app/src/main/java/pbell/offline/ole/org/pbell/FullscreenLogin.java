@@ -16,6 +16,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.EditText;
 
@@ -102,7 +104,8 @@ public class FullscreenLogin extends AppCompatActivity {
     AndroidContext androidContext;
     Database database;
     Replication pullReplication;
-    Button dialogSyncButton;
+    Button dialogSyncButton,btnFeedback;
+    Boolean wipeClean =false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,120 +148,173 @@ public class FullscreenLogin extends AppCompatActivity {
         copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
         copyAPK(R.raw.firefox_49_0_multi_android, "firefox_49_0_multi_android.apk");
 
-        Button btnFeedback = (Button) findViewById(R.id.btnFeedback);
+
+        btnFeedback = (Button) findViewById(R.id.btnFeedback);
         btnFeedback.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Database resourceRating, activitylog, visits;
-                try {
-                    Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                    resourceRating = manager.getDatabase("resourcerating");
-                    Query orderedQuery = chViews.ReadResourceRatingByIdView(resourceRating).createQuery();
-                    orderedQuery.setDescending(true);
-                    QueryEnumerator results = orderedQuery.run();
-                    for (Iterator<QueryRow> it = results; it.hasNext(); ) {
-                        QueryRow row = it.next();
-                        String docId = (String) row.getValue();
-                        Document doc = resourceRating.getExistingDocument(docId);
-                        Map<String, Object> properties = doc.getProperties();
-                        int sum = ((int) properties.get("sum"));
-                        int timesRated = ((Integer) properties.get("timesRated"));
-                        // Update server resources with new ratings
-                        UpdateResourceDocument nwUpdateResDoc = new UpdateResourceDocument();
-                        nwUpdateResDoc.setResourceId(docId);
-                        nwUpdateResDoc.setSum(sum);
-                        nwUpdateResDoc.setTimesRated(timesRated);
-                        nwUpdateResDoc.execute("");
-                    }
-                    Database dbResources = manager.getDatabase("resourcerating");
-                    dbResources.delete();
-                } catch (Exception err) {
-                    Log.e("MyCouch", "reading resource rating error " + err);
-                }
+                final Fuel ful = new Fuel();
+                final ProgressDialog feedbackDialog = new ProgressDialog(context);
+                feedbackDialog.setMessage("Sending feedback data. Please wait ..");
+                feedbackDialog.setCancelable(false);
+                feedbackDialog.show();
+                ful.get(sys_oldSyncServerURL + "/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+                    @Override
+                    public void success(Request request, Response response, String s) {
+                        try {
+                            List<String> myList = new ArrayList<String>();
+                            myList.clear();
+                            myList = Arrays.asList(s.split(","));
+                            Log.e("MyCouch", "-- " + myList.size());
+                            if (myList.size() < 8) {
+                                alertDialogOkay("Check WiFi connection and try again");
+                            } else {
+                                sendfeedbackToServer(feedbackDialog);
+                            }
 
-
-                try {
-                    Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                    visits = manager.getDatabase("visits");
-                    Query orderedQuery = chViews.ReadMemberVisitsId(visits).createQuery();
-                    orderedQuery.setDescending(true);
-                    QueryEnumerator results = orderedQuery.run();
-                    for (Iterator<QueryRow> it = results; it.hasNext(); ) {
-                        QueryRow row = it.next();
-                        String docId = (String) row.getValue();
-                        Document doc = visits.getExistingDocument(docId);
-                        Map<String, Object> properties = doc.getProperties();
-                        int numOfVisits = ((Integer) properties.get("noOfVisits"));
-                        Log.e("MyCouch", "Number Of visits for "+docId+" is " + numOfVisits );
-                        // Update server members with visits
-                        UpdateMemberVisitsDocument nwUpdateMemberVisits = new UpdateMemberVisitsDocument();
-                        nwUpdateMemberVisits.setMemberId(docId);
-                        nwUpdateMemberVisits.setSumVisits(numOfVisits);
-                        nwUpdateMemberVisits.execute("");
-                    }
-                    Database dbResources = manager.getDatabase("visits");
-                    dbResources.delete();
-                } catch (Exception err) {
-                    Log.e("MyCouch", "reading visits error " + err);
-                }
-
-
-
-                // Get server date for activitylog update
-                GetServerDate gtSvDt = new GetServerDate();
-                gtSvDt.setdbName("activitylog");
-                gtSvDt.setView("date_now");
-                gtSvDt.execute("");
-
-                //// Read activitylog database details
-                try {
-                    Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                    activitylog = manager.getDatabase("activitylog");
-                    WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-                    String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
-                    Document doc = activitylog.getExistingDocument(m_WLANMAC);
-                    Map<String, Object> properties = doc.getProperties();
-                    // Update server resources with new ratings
-                    UpdateActivityLogDatabase nwActivityLog = new UpdateActivityLogDatabase();
-                    if(properties.get("female_visits")!=null){
-                        nwActivityLog.set_female_visits(((Integer) properties.get("female_visits")));
-                    }else{
-                        nwActivityLog.set_female_visits(0);
-                    }
-                    if(properties.get("male_visits")!=null){
-                        nwActivityLog.set_male_visits(((Integer) properties.get("male_visits")));
-                    }else{
-                        nwActivityLog.set_male_visits(0);
+                        } catch (Exception e) {
+                            feedbackDialog.dismiss();
+                            alertDialogOkay("Device couldn't reach server. Check and try again");
+                            e.printStackTrace();
+                        }
                     }
 
-                    nwActivityLog.set_female_opened((ArrayList) properties.get("female_opened"));
-                    nwActivityLog.set_female_rating(((ArrayList) properties.get("female_rating")));
-                    nwActivityLog.set_female_timesRated(((ArrayList) properties.get("female_timesRated")));
-                    nwActivityLog.set_male_opened(((ArrayList) properties.get("male_opened")));
-                    nwActivityLog.set_male_rating(((ArrayList) properties.get("male_rating")));
-                    nwActivityLog.set_male_timesRated(((ArrayList) properties.get("male_timesRated")));
-                    nwActivityLog.set_resources_names(((ArrayList) properties.get("resources_names")));
-                    nwActivityLog.set_resources_opened(((ArrayList) properties.get("resources_opened")));
-                    nwActivityLog.set_resourcesIds(((ArrayList) properties.get("resourcesIds")));
-                    nwActivityLog.execute("");
-                    //Log.e("MyCouch", "reading log "+je);
-                } catch (Exception err) {
-                    Log.e("MyCouch", "reading activity log error " + err);
-                }
-
+                    @Override
+                    public void failure(Request request, Response response, FuelError fuelError) {
+                        feedbackDialog.dismiss();
+                        alertDialogOkay("Device couldn't reach server. Check and try again");
+                        Log.e("MyCouch", " " + fuelError);
+                    }
+                });
             }
         });
     }
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateUI();
+    }
+     public void sendfeedbackToServer(ProgressDialog feedbackDialog){
+         try {
+             Database resourceRating, activitylog, visits;
+             try {
+                 // Get server date for activitylog update
+                 GetServerDate gtSvDt = new GetServerDate();
+                 gtSvDt.setdbName("activitylog");
+                 gtSvDt.setView("date_now");
+                 gtSvDt.execute("");
+             } catch (Exception err) {
+                 feedbackDialog.dismiss();
+                 alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+                 Log.e("MyCouch", "Getting date from server" + err);
+             }
 
+             try {
+                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                 resourceRating = manager.getDatabase("resourcerating");
+                 Query orderedQuery = chViews.ReadResourceRatingByIdView(resourceRating).createQuery();
+                 orderedQuery.setDescending(true);
+                 QueryEnumerator results = orderedQuery.run();
+                 for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                     QueryRow row = it.next();
+                     String docId = (String) row.getValue();
+                     Document doc = resourceRating.getExistingDocument(docId);
+                     Map<String, Object> properties = doc.getProperties();
+                     int sum = ((int) properties.get("sum"));
+                     int timesRated = ((Integer) properties.get("timesRated"));
+                     // Update server resources with new ratings
+                     UpdateResourceDocument nwUpdateResDoc = new UpdateResourceDocument();
+                     nwUpdateResDoc.setResourceId(docId);
+                     nwUpdateResDoc.setSum(sum);
+                     nwUpdateResDoc.setTimesRated(timesRated);
+                     nwUpdateResDoc.execute("");
+                 }
+                 Database dbResources = manager.getDatabase("resourcerating");
+                 dbResources.delete();
+             } catch (Exception err) {
+                 feedbackDialog.dismiss();
+                 alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+                 Log.e("MyCouch", "reading resource rating error " + err);
+             }
+             try {
+                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                 visits = manager.getDatabase("visits");
+                 Query orderedQuery = chViews.ReadMemberVisitsId(visits).createQuery();
+                 orderedQuery.setDescending(true);
+                 QueryEnumerator results = orderedQuery.run();
+                 for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                     QueryRow row = it.next();
+                     String docId = (String) row.getValue();
+                     Document doc = visits.getExistingDocument(docId);
+                     Map<String, Object> properties = doc.getProperties();
+                     int numOfVisits = ((Integer) properties.get("noOfVisits"));
+                     Log.e("MyCouch", "Number Of visits for " + docId + " is " + numOfVisits);
+                     // Update server members with visits
+                     UpdateMemberVisitsDocument nwUpdateMemberVisits = new UpdateMemberVisitsDocument();
+                     nwUpdateMemberVisits.setMemberId(docId);
+                     nwUpdateMemberVisits.setSumVisits(numOfVisits);
+                     nwUpdateMemberVisits.execute("");
+                 }
+                 Database dbResources = manager.getDatabase("visits");
+                 dbResources.delete();
+             } catch (Exception err) {
+                 feedbackDialog.dismiss();
+                 alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+                 Log.e("MyCouch", "reading visits error " + err);
+             }
+             //// Read activitylog database details
+             try {
+                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                 activitylog = manager.getDatabase("activitylog");
+                 WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+                 String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+                 Document doc = activitylog.getExistingDocument(m_WLANMAC);
+                 Map<String, Object> properties = doc.getProperties();
+                 // Update server resources with new ratings
+                 UpdateActivityLogDatabase nwActivityLog = new UpdateActivityLogDatabase();
+                 if (properties.get("female_visits") != null) {
+                     nwActivityLog.set_female_visits(((Integer) properties.get("female_visits")));
+                 } else {
+                     nwActivityLog.set_female_visits(0);
+                 }
+                 if (properties.get("male_visits") != null) {
+                     nwActivityLog.set_male_visits(((Integer) properties.get("male_visits")));
+                 } else {
+                     nwActivityLog.set_male_visits(0);
+                 }
+
+                 nwActivityLog.set_female_opened((ArrayList) properties.get("female_opened"));
+                 nwActivityLog.set_female_rating(((ArrayList) properties.get("female_rating")));
+                 nwActivityLog.set_female_timesRated(((ArrayList) properties.get("female_timesRated")));
+                 nwActivityLog.set_male_opened(((ArrayList) properties.get("male_opened")));
+                 nwActivityLog.set_male_rating(((ArrayList) properties.get("male_rating")));
+                 nwActivityLog.set_male_timesRated(((ArrayList) properties.get("male_timesRated")));
+                 nwActivityLog.set_resources_names(((ArrayList) properties.get("resources_names")));
+                 nwActivityLog.set_resources_opened(((ArrayList) properties.get("resources_opened")));
+                 nwActivityLog.set_resourcesIds(((ArrayList) properties.get("resourcesIds")));
+                 nwActivityLog.execute("");
+                 feedbackDialog.dismiss();
+                 updateUI();
+             } catch (Exception err) {
+                 updateUI();
+                 feedbackDialog.dismiss();
+                 alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+                 Log.e("MyCouch", "reading activity log error " + err);
+             }
+         } catch (Exception err) {
+             updateUI();
+             feedbackDialog.dismiss();
+             alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+             Log.e("MyCouch", "Error sending feedback activity log error " + err);
+         }
+     }
     ////////
     private void TestConnectionToServer(String textURL) {
         mDialog = new ProgressDialog(context);
         mDialog.setMessage("Please wait. Connecting to server...");
         mDialog.setCancelable(false);
         mDialog.show();
-
         final Fuel ful = new Fuel();
-
         ful.get(textURL + "/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
             @Override
             public void success(Request request, Response response, String s) {
@@ -280,19 +336,15 @@ public class FullscreenLogin extends AppCompatActivity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
             }
-
             @Override
             public void failure(Request request, Response response, FuelError fuelError) {
                 mDialog.dismiss();
                 alertDialogOkay("Device couldn't reach server. Check and try again");
                 dialogSyncButton.setVisibility(View.INVISIBLE);
                 Log.e("MyCouch", " " + fuelError);
-
             }
         });
-
     }
 
     @Override
@@ -535,6 +587,19 @@ public class FullscreenLogin extends AppCompatActivity {
             }
         });
 
+        CheckBox chBox = (CheckBox) dialog.findViewById(R.id.chWipeClean);
+        chBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    wipeClean =true;
+                }else{
+                    wipeClean=false;
+                }
+                Log.e("MYAPP", " Wipe clean is now " + isChecked);
+            }
+        });
+
         ////
        // sys_singlefilestreamdownload =settings.getBoolean("pf_singlefilestreamdownload",true);
        /// sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload",true);
@@ -686,12 +751,25 @@ public class FullscreenLogin extends AppCompatActivity {
         ///// End creating design Document
     }
     public void emptyAllDbs() {
-        for (int cnt = 0; cnt < databaseList.length; cnt++) {
+        if(wipeClean) {
+
+            for (int cnt = 0; cnt < databaseList.length; cnt++) {
+                try {
+                    Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                    Database dbResources = manager.getDatabase(databaseList[cnt]);
+                    dbResources.delete();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
             try {
                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                Database dbResources = manager.getDatabase(databaseList[cnt]);
+                Database dbResources = manager.getDatabase("resources");
                 dbResources.delete();
-
+            }catch(Exception err){
+                err.printStackTrace();
+            }
+            try{
                 String root = Environment.getExternalStorageDirectory().toString();
                 File myDir = new File(root + "/ole_temp");
                 String[] flist = myDir.list();
@@ -705,8 +783,8 @@ public class FullscreenLogin extends AppCompatActivity {
                         temp.delete();
                     }
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+            }catch (Exception err){
+                Log.e("MYAPP", " Deleting materials from ole_tem directory ");
             }
         }
     }
@@ -827,9 +905,6 @@ public class FullscreenLogin extends AppCompatActivity {
                     url_user = userinfo[0];
                     url_pwd = userinfo[1];
                 }
-                //if (uri.getUserInfo() != null) {
-                //
-                //}
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid(getDbName(), true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
                 if(!dbClient.contains(URLEncoder.encode(getDocNameId(), "UTF-8"))){
                     JsonObject json = new JsonObject();
@@ -1286,6 +1361,8 @@ public class FullscreenLogin extends AppCompatActivity {
                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                 Database activitylog = manager.getDatabase("activitylog");
                 activitylog.delete();
+                btnFeedback.setTextColor(getResources().getColor(R.color.ole_white));
+                btnFeedback.setEnabled(false);
                 //WifiManager wm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
                 //String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
                 //Document doc = activitylog.getExistingDocument(m_WLANMAC);
@@ -1295,8 +1372,25 @@ public class FullscreenLogin extends AppCompatActivity {
             }
         }
     }
-    private void updateUI(final FuelError error, final String result) {
-        runOnUiThread(new Runnable() {
+    private void updateUI() {
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database activitylog = manager.getDatabase("activitylog");
+            WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+            String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+            Document doc = activitylog.getDocument(m_WLANMAC);
+            ///Map<String, Object> properties = doc.getProperties();
+            if (doc.getProperties() != null) {
+                btnFeedback.setTextColor(getResources().getColor(R.color.ole_yellow));
+                btnFeedback.setEnabled(true);
+            } else {
+                btnFeedback.setTextColor(getResources().getColor(R.color.ole_white));
+                btnFeedback.setEnabled(false);
+            }
+        }catch(Exception err){
+
+        }
+        /*runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 if (error == null) {
@@ -1307,7 +1401,7 @@ public class FullscreenLogin extends AppCompatActivity {
                     ///resultText.setText(resultText.getText() + error.getException().getMessage());
                 }
             }
-        });
+        });*/
     }
 
     class GetServerDate extends AsyncTask<String, Void, String> {
@@ -1339,9 +1433,6 @@ public class FullscreenLogin extends AppCompatActivity {
                     url_pwd = userinfo[1];
                     Log.e("MyCouch", "Doesnt contain @");
                 }
-                //if (uri.getUserInfo() != null) {
-                //
-                //}
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid(getdbName(), true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
 //// Todo Decide either use design document in apps or not
                 org.lightcouch.View view= dbClient.view("bell/date_now").includeDocs(true);
