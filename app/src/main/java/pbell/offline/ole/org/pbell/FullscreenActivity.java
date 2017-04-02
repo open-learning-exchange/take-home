@@ -106,7 +106,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public static final String PREFS_NAME = "MyPrefsFile";
     SharedPreferences settings;
-
+    private static final String TAG = "MYAPP";
     String sys_oldSyncServerURL, sys_username, sys_lastSyncDate,
             sys_password, sys_usercouchId, sys_userfirstname, sys_userlastname,
             sys_usergender, sys_uservisits, sys_servername, sys_serverversion = "";
@@ -291,6 +291,102 @@ public class FullscreenActivity extends AppCompatActivity {
 
         sd_Slidin = MediaPlayer.create(this, R.raw.wave);
 
+        Button btnCourses = (Button) findViewById(R.id.btnCourses);
+        btnCourses.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final Fuel ful = new Fuel();
+                final WifiManager wifiManager = (WifiManager) FullscreenActivity.this.getSystemService(Context.WIFI_SERVICE);
+                mDialog = new ProgressDialog(context);
+                mDialog.setMessage("Opening Courses please wait...");
+                mDialog.setCancelable(true);
+                mDialog.show();
+                if(wifiManager.isWifiEnabled()) {
+                    ful.get(sys_oldSyncServerURL + "/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+                        @Override
+                        public void success(Request request, Response response, String s) {
+                            try {
+                                List<String> myList = new ArrayList<String>();
+                                myList.clear();
+                                myList = Arrays.asList(s.split(","));
+                                Log.e("MyCouch", "-- " + myList.size());
+                                if (myList.size() < 8) {
+                                    mDialog.dismiss();
+                                    alertDialogOkay("You need to turn on Wi-Fi and connect to server to use this function");
+                                } else {
+                                    openServerPage("/apps/_design/bell/MyApp/index.html#courses");
+                                }
+                            } catch (Exception e) {
+                                mDialog.dismiss();
+                                alertDialogOkay("You need to turn on your Wi-Fi and connect to the server to use this function");
+                                Log.e(TAG, "Device couldn't reach server. Error");
+                                e.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void failure(Request request, Response response, FuelError fuelError) {
+                            mDialog.dismiss();
+                            alertDialogOkay("You need to turn on your Wi-Fi and connect to the server to use this function");
+                            Log.e(TAG, "Device couldn't reach server. Check and try again");
+                            Log.e(TAG, " " + fuelError);
+                        }
+                    });
+                }else{
+                    mDialog.dismiss();
+                    alertDialogOkay("You need to turn on Wi-Fi and connect to server to use this function");
+                }
+            }
+        });
+
+        Button btnMeetups = (Button) findViewById(R.id.btnMeetups);
+        btnMeetups.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final Fuel ful = new Fuel();
+                final WifiManager wifiManager = (WifiManager) FullscreenActivity.this.getSystemService(Context.WIFI_SERVICE);
+                mDialog = new ProgressDialog(context);
+                mDialog.setMessage("Opening Meetups please wait...");
+                mDialog.setCancelable(true);
+                mDialog.show();
+                if(wifiManager.isWifiEnabled()) {
+                    ful.get(sys_oldSyncServerURL + "/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+                        @Override
+                        public void success(Request request, Response response, String s) {
+                            try {
+                                List<String> myList = new ArrayList<String>();
+                                myList.clear();
+                                myList = Arrays.asList(s.split(","));
+                                Log.e("MyCouch", "-- " + myList.size());
+                                if (myList.size() < 8) {
+                                    mDialog.dismiss();
+                                    alertDialogOkay("You need to turn on Wi-Fi and connect to server to use this function");
+                                } else {
+                                    openServerPage("/apps/_design/bell/MyApp/index.html#meetups");
+                                }
+                            } catch (Exception e) {
+                                mDialog.dismiss();
+                                alertDialogOkay("You need to turn on your Wi-Fi and connect to the server to use this function");
+                                Log.e(TAG, "Device couldn't reach server. Error");
+                                e.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void failure(Request request, Response response, FuelError fuelError) {
+                            mDialog.dismiss();
+                            alertDialogOkay("You need to turn on your Wi-Fi and connect to the server to use this function");
+                            Log.e(TAG, "Device couldn't reach server. Check and try again");
+                            Log.e(TAG, " " + fuelError);
+                        }
+                    });
+                }else{
+                    mDialog.dismiss();
+                    alertDialogOkay("You need to turn on Wi-Fi and connect to server to use this function");
+                }
+            }
+        });
+
         Button btnLogout = (Button) findViewById(R.id.btnLogout);
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -299,11 +395,51 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         });
 
-        Button btnMyLibrary = (Button) findViewById(R.id.btnLibrary);
-        btnMyLibrary.setOnClickListener(new View.OnClickListener() {
+        Button btnLibrary = (Button) findViewById(R.id.btnLibrary);
+        btnLibrary.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                populateLibraryDialogList();
+                final Fuel ful = new Fuel();
+                final WifiManager wifiManager = (WifiManager) FullscreenActivity.this.getSystemService(Context.WIFI_SERVICE);
+                mDialog = new ProgressDialog(context);
+                mDialog.setMessage("Opening library please wait...");
+                mDialog.setCancelable(true);
+                mDialog.show();
+                if(wifiManager.isWifiEnabled()) {
+                    ful.get(sys_oldSyncServerURL + "/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+                        @Override
+                        public void success(Request request, Response response, String s) {
+                            try {
+                                List<String> myList = new ArrayList<String>();
+                                myList.clear();
+                                myList = Arrays.asList(s.split(","));
+                                Log.e("MyCouch", "-- " + myList.size());
+                                if (myList.size() < 8) {
+                                    mDialog.dismiss();
+                                    populateLibraryDialogList();
+                                } else {
+                                    openServerPage("/apps/_design/bell/MyApp/index.html#resources");
+                                }
+                            } catch (Exception e) {
+                                mDialog.dismiss();
+                                populateLibraryDialogList();
+                                Log.e(TAG, "Device couldn't reach server. Error");
+                                e.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void failure(Request request, Response response, FuelError fuelError) {
+                            mDialog.dismiss();
+                            populateLibraryDialogList();
+                            Log.e(TAG, "Device couldn't reach server. Check and try again");
+                            Log.e(TAG, " " + fuelError);
+                        }
+                    });
+                }else{
+                    mDialog.dismiss();
+                    populateLibraryDialogList();
+                }
             }
         });
 
@@ -321,6 +457,54 @@ public class FullscreenActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 populateLibraryDialogList();
+            }
+        });
+
+        TextView lblmycoursesProgress = (TextView) findViewById(R.id.lblmycourses);
+        lblmycoursesProgress.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final Fuel ful = new Fuel();
+                final WifiManager wifiManager = (WifiManager) FullscreenActivity.this.getSystemService(Context.WIFI_SERVICE);
+                mDialog = new ProgressDialog(context);
+                mDialog.setMessage("Opening Course Progress please wait...");
+                mDialog.setCancelable(true);
+                mDialog.show();
+                if(wifiManager.isWifiEnabled()) {
+                    ful.get(sys_oldSyncServerURL + "/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+                        @Override
+                        public void success(Request request, Response response, String s) {
+                            try {
+                                List<String> myList = new ArrayList<String>();
+                                myList.clear();
+                                myList = Arrays.asList(s.split(","));
+                                Log.e("MyCouch", "-- " + myList.size());
+                                if (myList.size() < 8) {
+                                    mDialog.dismiss();
+                                    alertDialogOkay("You need to turn on Wi-Fi and connect to server to use this function");
+                                } else {
+                                    openServerPage("/apps/_design/bell/MyApp/index.html#courses/barchart");
+                                }
+                            } catch (Exception e) {
+                                mDialog.dismiss();
+                                alertDialogOkay("You need to turn on Wi-Fi and connect to server to use this function");
+                                Log.e(TAG, "Device couldn't reach server. Error");
+                                e.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void failure(Request request, Response response, FuelError fuelError) {
+                            mDialog.dismiss();
+                            populateLibraryDialogList();
+                            Log.e(TAG, "Device couldn't reach server. Check and try again");
+                            Log.e(TAG, " " + fuelError);
+                        }
+                    });
+                }else{
+                    mDialog.dismiss();
+                    alertDialogOkay("You need to turn on Wi-Fi and connect to server to use this function");
+                }
             }
         });
     }
@@ -2452,7 +2636,6 @@ public class FullscreenActivity extends AppCompatActivity {
             openedResource = false;
         }
     }
-
     class checkServerConnection extends AsyncTask<String, Void, String> {
         private Exception exception;
         protected String doInBackground(String... urls) {
@@ -2460,73 +2643,66 @@ public class FullscreenActivity extends AppCompatActivity {
                 public void run()
                 {
                     final Fuel ful = new Fuel();
-            final ProgressDialog connectionDialog = new ProgressDialog(context);
-            connectionDialog.setMessage("Checking Connection. Please wait ..");
-            connectionDialog.setCancelable(false);
-            connectionDialog.show();
-            ful.get(sys_oldSyncServerURL + "/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
-                @Override
-                public void success(Request request, Response response, String s) {
-                    try {
-                        List<String> myList = new ArrayList<String>();
-                        myList.clear();
-                        myList = Arrays.asList(s.split(","));
-                        Log.e("MyCouch", "-- " + myList.size());
-                        if (myList.size() < 8) {
-                            alertDialogOkay("Check WiFi connection and try again");
-                            connectionDialog.dismiss();
-                        } else {
-                            //alertDialogOkay("Connected to server");
-                            connectionDialog.dismiss();
-                            final ProgressDialog progressDialog = ProgressDialog.show(FullscreenActivity.this, "Please wait ...", "Syncing", false);
-                            //////////////////////////////
-                            URL url = new URL(sys_oldSyncServerURL+"/shelf");
-                            database = manager.getDatabase("shelf");
-                            final Replication pull = database.createPullReplication(url);
-                            final Replication push = database.createPushReplication(url);
-                            pull.setContinuous(false);
-                            push.setContinuous(false);
-                            pull.addChangeListener(new Replication.ChangeListener() {
-                                @Override
-                                public void changed(Replication.ChangeEvent event) {
-                                    boolean active = (pull.getStatus() == Replication.ReplicationStatus.REPLICATION_ACTIVE) ||
-                                            (push.getStatus() == Replication.ReplicationStatus.REPLICATION_ACTIVE);
-                                    if (!active) {
-                                        progressDialog.dismiss();
-                                        runOnUiThread(new Runnable() {
-                                            public void run() {
-                                                alertDialogOkay("Tablet Updated Successfully. Logout and Login again to see changes");
+                    final ProgressDialog connectionDialog = new ProgressDialog(context);
+                    connectionDialog.setMessage("Checking Connection. Please wait ..");
+                    connectionDialog.setCancelable(false);
+                    connectionDialog.show();
+                    ful.get(sys_oldSyncServerURL + "/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+                        @Override
+                        public void success(Request request, Response response, String s) {
+                            try {
+                                List<String> myList = new ArrayList<String>();
+                                myList.clear();
+                                myList = Arrays.asList(s.split(","));
+                                Log.e("MyCouch", "-- " + myList.size());
+                                if (myList.size() < 8) {
+                                    alertDialogOkay("Check WiFi connection and try again");
+                                    connectionDialog.dismiss();
+                                } else {
+                                    connectionDialog.dismiss();
+                                    final ProgressDialog progressDialog = ProgressDialog.show(FullscreenActivity.this, "Please wait ...", "Syncing", false);
+                                    //////////////////////////////
+                                    URL url = new URL(sys_oldSyncServerURL+"/shelf");
+                                    database = manager.getDatabase("shelf");
+                                    final Replication pull = database.createPullReplication(url);
+                                    final Replication push = database.createPushReplication(url);
+                                    pull.setContinuous(false);
+                                    push.setContinuous(false);
+                                    pull.addChangeListener(new Replication.ChangeListener() {
+                                        @Override
+                                        public void changed(Replication.ChangeEvent event) {
+                                            boolean active = (pull.getStatus() == Replication.ReplicationStatus.REPLICATION_ACTIVE) ||
+                                                    (push.getStatus() == Replication.ReplicationStatus.REPLICATION_ACTIVE);
+                                            if (!active) {
+                                                progressDialog.dismiss();
+                                                runOnUiThread(new Runnable() {
+                                                    public void run() {
+                                                        alertDialogOkay("Tablet Updated Successfully. Logout and Login again to see changes");
+                                                    }
+                                                });
+                                            } else {
+                                                double total = push.getCompletedChangesCount() + pull.getCompletedChangesCount();
+                                                progressDialog.setMax((int) total);
+                                                progressDialog.setProgress(push.getChangesCount() + pull.getChangesCount());
                                             }
-                                        });
-                                    } else {
-                                        double total = push.getCompletedChangesCount() + pull.getCompletedChangesCount();
-                                        progressDialog.setMax((int) total);
-                                        progressDialog.setProgress(push.getChangesCount() + pull.getChangesCount());
-                                    }
+                                        }
+                                    });
+                                    pull.start();
+                                    push.start();
                                 }
-                            });
-                            pull.start();
-                            push.start();
-
-
-
-                            /////////////////////////
+                            } catch (Exception e) {
+                                connectionDialog.dismiss();
+                                alertDialogOkay("Device couldn't reach server. Check and try again");
+                                e.printStackTrace();
+                            }
                         }
-
-                    } catch (Exception e) {
-                        connectionDialog.dismiss();
-                        alertDialogOkay("Device couldn't reach server. Check and try again");
-                        e.printStackTrace();
-                    }
-                }
-
-                @Override
-                public void failure(Request request, Response response, FuelError fuelError) {
-                    connectionDialog.dismiss();
-                    alertDialogOkay("Device couldn't reach server. Check and try again");
-                    Log.e("MyCouch", " " + fuelError);
-                }
-            });
+                        @Override
+                        public void failure(Request request, Response response, FuelError fuelError) {
+                            connectionDialog.dismiss();
+                            alertDialogOkay("Device couldn't reach server. Check and try again");
+                            Log.e("MyCouch", " " + fuelError);
+                        }
+                    });
                 }
             });
             return "";
@@ -2534,6 +2710,44 @@ public class FullscreenActivity extends AppCompatActivity {
         protected void onPostExecute(String data) {
             // TODO: check this.exception
             // TODO: do something with the feed
+        }
+    }
+
+    public void openServerPage(String pageUrl){
+        URI uri = URI.create(sys_oldSyncServerURL);
+        String url_Scheme = uri.getScheme();
+        String url_Host = uri.getHost();
+        int url_Port = uri.getPort();
+        String url_user = null, url_pwd = null;
+        if(sys_oldSyncServerURL.contains("@")){
+            String[] userinfo = uri.getUserInfo().split(":");
+            url_user = userinfo[0];
+            url_pwd = userinfo[1];
+        }
+        final String mainFile = url_Scheme+"://"+url_Host+":"+url_Port+""+ pageUrl;
+        Log.e("Error", mainFile+" --- URL");
+
+        try {
+            try {
+                mDialog.dismiss();
+                ComponentName componentName = getPackageManager().getLaunchIntentForPackage("org.mozilla.firefox").getComponent();
+                Intent firefoxIntent = IntentCompat.makeRestartActivityTask(componentName);
+                firefoxIntent.setDataAndType(Uri.parse(mainFile), "text/html");
+                startActivity(firefoxIntent);
+            } catch (Exception err) {
+                mDialog.dismiss();
+                File myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
+                File dst = new File(myDir, "firefox_49_0_multi_android.apk");
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            }
+        } catch (Exception Er) {
+            mDialog.dismiss();
+            Er.printStackTrace();
+            alertDialogOkay("Couldn't open page try again");
+
         }
     }
 }

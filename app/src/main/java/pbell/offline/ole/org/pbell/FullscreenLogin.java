@@ -115,7 +115,7 @@ public class FullscreenLogin extends AppCompatActivity {
     Replication pullReplication;
     Button dialogSyncButton,btnFeedback;
     Boolean wipeClean =false;
-    JobScheduler mJobScheduler;
+    Intent serviceIntent;
     private static final String TAG = "LoginActivity";
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -158,6 +158,7 @@ public class FullscreenLogin extends AppCompatActivity {
         copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
         copyAPK(R.raw.firefox_49_0_multi_android, "firefox_49_0_multi_android.apk");
 
+        startServiceCommand();
 
         btnFeedback = (Button) findViewById(R.id.btnFeedback);
         btnFeedback.setOnClickListener(new View.OnClickListener() {
@@ -205,7 +206,7 @@ public class FullscreenLogin extends AppCompatActivity {
         super.onResume();
         updateUI();
     }
-     public void sendfeedbackToServer(ProgressDialog feedbackDialog){
+    public void sendfeedbackToServer(ProgressDialog feedbackDialog){
          try {
              Database resourceRating, activitylog, visits;
              try {
@@ -722,26 +723,20 @@ public class FullscreenLogin extends AppCompatActivity {
         }catch(Exception err){
             Log.e("MYAPP", " Error creating  sys_membersWithResource");
         }
+        try{
+            serviceIntent = new Intent(context,ServerSearchService.class);
+            context.stopService(serviceIntent);
+        }catch(Exception error) {
+            Log.e("MYAPP", " Creating Service error "+error.getMessage());
+        }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void startServiceCommand(){
         try{
-            ////////// Requires API 21+ ///////////////////
-            Log.i(TAG, "Creating Service: ");
-            mJobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
-            mJobScheduler.cancelAll();
-            JobInfo.Builder builder = new JobInfo.Builder(1, new ComponentName(getPackageName(), ServerSearchService.class.getName()));
-            builder.setPeriodic(3000);
-            PersistableBundle extras = new PersistableBundle();
-            extras.putString("serverUrl",sys_oldSyncServerURL);
-            builder.setExtras(extras);
-            builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
-            if (mJobScheduler.schedule(builder.build()) <= 0) {
-                Log.e(TAG, "onCreate: Some error while scheduling the job");
-            }
+            serviceIntent = new Intent(context,ServerSearchService.class);
+            serviceIntent.putExtra("serverUrl", sys_oldSyncServerURL);
+            context.startService(serviceIntent);
         }catch(Exception err){
-            mJobScheduler.cancelAll();
             Log.e("MYAPP", " Creating Service error "+err.getMessage());
         }
     }

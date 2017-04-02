@@ -1,13 +1,34 @@
 package pbell.offline.ole.org.pbell;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.app.Service;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.PixelFormat;
+import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.os.Handler;
+import android.os.IBinder;
 import android.os.PersistableBundle;
+import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.NotificationCompat;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.WindowManager;
+import android.widget.LinearLayout;
+import android.widget.Toast;
 
+import com.couchbase.lite.Database;
+import com.couchbase.lite.Manager;
+import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.replicator.Replication;
 import com.github.kittinunf.fuel.Fuel;
 import com.github.kittinunf.fuel.core.FuelError;
@@ -24,91 +45,147 @@ import java.util.Set;
  * Created by leonardmensah on 30/03/2017.
  */
 
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class ServerSearchService extends JobService {
-    private static final String TAG = "ServerSearchService";
+public class ServerSearchService extends Service {
+    private static final String TAG = "MYAPP";
     private Fuel ful = new Fuel();
-    public static final String PREFS_NAME = "MyPrefsFile";
-    SharedPreferences settings;
 
-    String sys_oldSyncServerURL, sys_username, sys_lastSyncDate,
-            sys_password, sys_usercouchId, sys_userfirstname, sys_userlastname,
-            sys_usergender, sys_uservisits, sys_servername, sys_serverversion = "";
-    Boolean sys_singlefilestreamdownload, sys_multiplefilestreamdownload;
-    int sys_uservisits_Int = 0;
-    Object[] sys_membersWithResource;
+    String sys_oldSyncServerURL;
+    public Context context = this;
+    public Handler handler = null;
+    public static Runnable runnable = null;
 
+    private static final int NOTIFICATION = 1;
+    public static final String CLOSE_ACTION = "close";
+    @Nullable
+    private NotificationManager mNotificationManager = null;
+    private final NotificationCompat.Builder mNotificationBuilder = new NotificationCompat.Builder(this);
+
+    @Nullable
     @Override
-    public boolean onStartJob(JobParameters params) {
-        //restorePref();
-        /*PersistableBundle pb =params.getExtras();
-        sys_oldSyncServerURL = pb.getPersistableBundle("serverUrl").toString();
-        Log.e("MyCouch", "Joe title " + params.getJobId());
-        ful.get(sys_oldSyncServerURL + "/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
-            @Override
-            public void success(Request request, Response response, String s) {
-                try {
-                    List<String> myList = new ArrayList<String>();
-                    myList.clear();
-                    myList = Arrays.asList(s.split(","));
-                    Log.e("MyCouch", "-- " + myList.size());
-                    if (myList.size() < 8) {
-                        //alertDialogOkay("Check WiFi connection and try again");
-                        //connectionDialog.dismiss();
-                    } else {
-                        //alertDialogOkay("Connected to server");
-                        //connectionDialog.dismiss();
-                        /////////////////////////
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+    @Override
+    public void onCreate() {
+        Toast.makeText(this, "Service created!", Toast.LENGTH_LONG).show();
+        handler = new Handler();
+        runnable = new Runnable() {
+            public void run() {
+                Log.e(TAG, " Service is still running");
+                final WifiManager wifiManager = (WifiManager) ServerSearchService.this.getSystemService(Context.WIFI_SERVICE);
+                if(wifiManager.isWifiEnabled()) {
+                    if(!sys_oldSyncServerURL.equalsIgnoreCase("http://")) {
+                        final Fuel ful = new Fuel();
+                        ful.get(sys_oldSyncServerURL + "/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+                            @Override
+                            public void success(Request request, Response response, String s) {
+                                try {
+                                    List<String> myList = new ArrayList<String>();
+                                    myList.clear();
+                                    myList = Arrays.asList(s.split(","));
+                                    Log.e("MyCouch", "-- " + myList.size());
+                                    if (myList.size() < 8) {
+                                        showNotificationMessage("Failed connection","Connection to "+sys_oldSyncServerURL +" failed. Check Wi-Fi");
+                                        Log.e(TAG, "Check WiFi connection and try again");
+                                    } else {
+                                        showNotificationMessage("Connected","Planet connected successfully.");
+                                        Log.e(TAG, "Connected to server");
+                                        //alertDialogOkay("Connected to server");
+                                        //connectionDialog.dismiss();
+                                        // final ProgressDialog progressDialog = ProgressDialog.show(FullscreenActivity.this, "Please wait ...", "Syncing", false);
+                                        //////////////////////////////
+                                URL url = new URL(sys_oldSyncServerURL+"/shelf");
+                                AndroidContext androidContext = new AndroidContext(context);
+                                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                                Database database = manager.getDatabase("shelf");
+                                final Replication pull = database.createPullReplication(url);
+                                final Replication push = database.createPushReplication(url);
+                                pull.setContinuous(false);
+                                push.setContinuous(false);
+                                pull.addChangeListener(new Replication.ChangeListener() {
+                                    @Override
+                                    public void changed(Replication.ChangeEvent event) {
+                                        boolean active = (pull.getStatus() == Replication.ReplicationStatus.REPLICATION_ACTIVE) ||
+                                                (push.getStatus() == Replication.ReplicationStatus.REPLICATION_ACTIVE);
+                                        if (!active) {
+                                            //progressDialog.dismiss();
+                                            //runOnUiThread(new Runnable() {
+                                            //    public void run() {
+                                            //        alertDialogOkay("Tablet Updated Successfully. Logout and Login again to see changes");
+                                            //    }
+                                            //});
+                                        } else {
+                                            double total = push.getCompletedChangesCount() + pull.getCompletedChangesCount();
+                                            ///showNotificationMessage("Updating device",(push.getChangesCount() + pull.getChangesCount()) + " / "+(int) total);
+                                        }
+                                    }
+                                });
+                                pull.start();
+                                push.start();
+
+                                        /////////////////////////
+                                    }
+
+                                } catch (Exception e) {
+                                    showNotificationMessage("Failed connection","Connection to "+sys_oldSyncServerURL +" failed. Check Wi-Fi");
+                                    Log.e(TAG, "Device couldn't reach server. Error");
+                                    e.printStackTrace();
+                                }
+                            }
+
+                            @Override
+                            public void failure(Request request, Response response, FuelError fuelError) {
+                                showNotificationMessage("Failed connection","Connection to "+sys_oldSyncServerURL +" failed. Check Wi-Fi");
+                                Log.e(TAG, "Device couldn't reach server. Check and try again");
+                                Log.e(TAG, " " + fuelError);
+                            }
+                        });
                     }
-
-                } catch (Exception e) {
-                    //connectionDialog.dismiss();
-                    //alertDialogOkay("Device couldn't reach server. Check and try again");
-                    e.printStackTrace();
+                }else{
+                    showNotificationMessage("Failed connection","You can not receive data from Planet ("+sys_oldSyncServerURL +") " +
+                            "because Wi-Fi is OFF. Turn Wi-Fi on when you want to update Take-Home");
                 }
+                handler.postDelayed(runnable, 10000);
             }
+        };
 
-            @Override
-            public void failure(Request request, Response response, FuelError fuelError) {
-                //connectionDialog.dismiss();
-                //alertDialogOkay("Device couldn't reach server. Check and try again");
-                Log.e("MyCouch", " " + fuelError);
-            }
-        });*/
-        Log.i(TAG, "onStartJob:");
-        return false;
+        handler.postDelayed(runnable, 60000);
     }
 
     @Override
-    public boolean onStopJob(JobParameters params) {
-        Log.i(TAG, "onStopJob:");
-        return false;
+    public void onDestroy() {
+        handler.removeCallbacks(runnable);
+        Log.e(TAG, " Service stopped");
     }
-    public void restorePref() {
-        // Restore preferences
-        settings = getSharedPreferences(PREFS_NAME, 0);
-        sys_username = settings.getString("pf_username", "");
-        sys_oldSyncServerURL = settings.getString("pf_sysncUrl", "");
-        sys_lastSyncDate = settings.getString("pf_lastSyncDate", "");
-        sys_password = settings.getString("pf_password", "");
-        sys_usercouchId = settings.getString("pf_usercouchId", "");
-        sys_userfirstname = settings.getString("pf_userfirstname", "");
-        sys_userlastname = settings.getString("pf_userlastname", "");
-        sys_usergender = settings.getString("pf_usergender", "");
-        sys_uservisits = settings.getString("pf_uservisits", "");
-        ;
-        sys_uservisits_Int = settings.getInt("pf_uservisits_Int", 0);
-        sys_singlefilestreamdownload = settings.getBoolean("pf_singlefilestreamdownload", true);
-        sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload", true);
-        sys_servername = settings.getString("pf_server_name", " ");
-        sys_serverversion = settings.getString("pf_server_version", " ");
-        Set<String> mwr = settings.getStringSet("membersWithResource", null);
-        try {
-            sys_membersWithResource = mwr.toArray();
-            Log.e("MYAPP", " membersWithResource  = " + sys_membersWithResource.length);
 
-        } catch (Exception err) {
-            Log.e("MYAPP", " Error creating  sys_membersWithResource");
+    @Override
+    public int onStartCommand (Intent intent, int flags, int startId) {
+        sys_oldSyncServerURL = intent.getStringExtra("serverUrl");
+        setupNotifications();
+        return START_STICKY;
+    }
+
+    private void setupNotifications() {
+        if (mNotificationManager == null) {
+            mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        }
+        //PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+        ///////PendingIntent pendingCloseIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP).setAction(CLOSE_ACTION), 0);
+        //.setContentIntent(pendingIntent)
+        //.addAction(android.R.drawable.ic_menu_close_clear_cancel, "OK",null)
+        mNotificationBuilder
+                .setSmallIcon(R.drawable.ic_stat_ole_logo_trans_web)
+                .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setContentTitle(getText(R.string.app_name)+" Planet Connection Status")
+                .setWhen(System.currentTimeMillis())
+                .setOngoing(true);
+    }
+
+    private void showNotificationMessage(String sticker, String message) {
+        mNotificationBuilder.setTicker(sticker).setContentText(message);
+        if (mNotificationManager != null) {
+            mNotificationManager.notify(NOTIFICATION, mNotificationBuilder.build());
         }
     }
 }
