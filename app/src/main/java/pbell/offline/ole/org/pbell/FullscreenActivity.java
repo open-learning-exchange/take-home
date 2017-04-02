@@ -594,7 +594,6 @@ public class FullscreenActivity extends AppCompatActivity {
                         new checkServerConnection().execute("");
             }
         });
-
     }
 
     public String curdate() {
@@ -2203,15 +2202,14 @@ public class FullscreenActivity extends AppCompatActivity {
         AlertDialog alert11 = builder1.create();
         alert11.show();
     }
-
-    public void downloadOneResourceToDisk() {
+  public void downloadOneResourceToDisk() {
         try {
             URI uri = URI.create(sys_oldSyncServerURL);
             String url_Scheme = uri.getScheme();
             String url_Host = uri.getHost();
             int url_Port = uri.getPort();
             String url_user = null, url_pwd = null;
-            if (sys_oldSyncServerURL.contains("@")) {
+            if(sys_oldSyncServerURL.contains("@")){
                 String[] userinfo = uri.getUserInfo().split(":");
                 url_user = userinfo[0];
                 url_pwd = userinfo[1];
@@ -2288,7 +2286,6 @@ public class FullscreenActivity extends AppCompatActivity {
             alertDialogOkay("Error downloading file, check connection and try again");
         }
     }
-
     /// Todo Review Code and test class
     class downloadSpecificResourceToDisk extends AsyncTask<String, Void, Boolean> {
         @Override
@@ -2299,13 +2296,13 @@ public class FullscreenActivity extends AppCompatActivity {
                 String url_Host = uri.getHost();
                 int url_Port = uri.getPort();
                 String url_user = null, url_pwd = null;
-                if (sys_oldSyncServerURL.contains("@")) {
+                if(sys_oldSyncServerURL.contains("@")){
                     String[] userinfo = uri.getUserInfo().split(":");
                     url_user = userinfo[0];
                     url_pwd = userinfo[1];
                 }
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
-                if (dbClient.contains(OneByOneResID)) {
+                  if (dbClient.contains(OneByOneResID)) {
                     /// Handle with Json
                     JsonObject jsonObject = dbClient.find(JsonObject.class, OneByOneResID);
                     JsonObject jsonAttachments = jsonObject.getAsJsonObject("_attachments");
@@ -2328,9 +2325,8 @@ public class FullscreenActivity extends AppCompatActivity {
                                     downloadWithDownloadManagerSingleFile(sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey, diskFileName);
                                     createResourceDoc(OneByOneResID, title, openWith);
                                 }
-                            });
-                        }
-                    } else {
+                            });}
+                    }else {
                         Log.e("MyCouch", "-- HTML NOT PART OF DOWNLOADS ");
                         htmlResourceList.add(OneByOneResID);
                         if (allhtmlDownload < htmlResourceList.size()) {
@@ -2347,7 +2343,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     }
                 }
             } catch (Exception e) {
-                Log.e("MyCouch", "Download this resource error " + e.getMessage());
+                Log.e("MyCouch","Download this resource error "+ e.getMessage());
                 mDialog.dismiss();
                 alertDialogOkay("Error downloading file, check connection and try again");
                 return null;
@@ -2355,7 +2351,86 @@ public class FullscreenActivity extends AppCompatActivity {
             return null;
         }
     }
+    public void callSuncOneHTMLResource(){
+        SyncSingleHTMLResource ssHTML = new SyncSingleHTMLResource();
+        ssHTML.execute();
+    }
 
+    class downloadAllResourceToDisk extends AsyncTask<String, Void, Boolean> {
+        @Override
+        protected Boolean doInBackground(String... params) {
+            try {
+                URI uri = URI.create(sys_oldSyncServerURL);
+                String url_Scheme = uri.getScheme();
+                String url_Host = uri.getHost();
+                int url_Port = uri.getPort();
+                String url_user = null, url_pwd = null;
+                if(sys_oldSyncServerURL.contains("@")){
+                    String[] userinfo = uri.getUserInfo().split(":");
+                    url_user = userinfo[0];
+                    url_pwd = userinfo[1];
+                }
+                CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+                if(dbClient.contains(resourceIdList[allresDownload])){
+                    /// Handle with Json
+                    JsonObject jsonObject = dbClient.find(JsonObject.class,resourceIdList[allresDownload]);
+                    JsonObject jsonAttachments = jsonObject.getAsJsonObject("_attachments");
+                    final String openWith = (String) jsonObject.get("openWith").getAsString();
+                    final String title =  jsonObject.get("title").getAsString();
+                    Log.e("MyCouch", "Open With -- " + openWith);
+                    if(!openWith.equalsIgnoreCase("HTML")) {
+                        JSONObject _attachments = new JSONObject(jsonAttachments.toString());
+                        Iterator<String> keys = _attachments.keys();
+                        if (keys.hasNext()) {
+                            String key = (String) keys.next();
+                            Log.e("MyCouch", "-- " + key);
+                            final String encodedkey = URLEncoder.encode(key, "utf-8");
+                            File file = new File(encodedkey);
+                            String extension = encodedkey.substring(encodedkey.lastIndexOf("."));
+                            final String diskFileName = resourceIdList[allresDownload] + extension;
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    downloadWithDownloadManagerSingleFile(sys_oldSyncServerURL + "/resources/" + resourceIdList[allresDownload] + "/" + encodedkey, diskFileName);
+                                    createResourceDoc(resourceIdList[allresDownload], title, openWith);
+                                }
+                            });}
+                    }else {
+                        Log.e("MyCouch", "-- HTML NOT PART OF DOWNLOADS ");
+                        htmlResourceList.add(resourceIdList[allresDownload]);
+                        if(allresDownload<libraryButtons.length) {
+                            allresDownload++;
+                            if(resourceTitleList[allresDownload]!=null) {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mDialog.setMessage("Download please wait ...");
+                                        new downloadAllResourceToDisk().execute();
+                                    }
+                                });
+                            }else{
+                                if(allhtmlDownload<htmlResourceList.size()) {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            callSuncOneHTMLResource();
+                                        }
+                                    });
+                                }else{
+                                    mDialog.dismiss();
+                                    alertDialogOkay("Download Completed");
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                Log.e("MyCouch", "Download this resource error " + e.getMessage());
+                mDialog.dismiss();
+                alertDialogOkay("Error downloading file, check connection and try again");
+                return null;
+            }
+            return null;
     public void callSuncOneHTMLResource() {
         SyncSingleHTMLResource ssHTML = new SyncSingleHTMLResource();
         ssHTML.execute();
@@ -2437,7 +2512,6 @@ public class FullscreenActivity extends AppCompatActivity {
                 return null;
             }
             return null;
-
             /*
             Fuel ful = new Fuel();
             ful.get(sys_oldSyncServerURL+"/resources/" + resourceIdList[allresDownload]).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
