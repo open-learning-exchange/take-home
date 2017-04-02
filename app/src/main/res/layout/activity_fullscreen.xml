@@ -85,7 +85,7 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:animateLayoutChanges="true"
-                    android:layout_weight="1"></LinearLayout>
+                    android:layout_weight="0.5"></LinearLayout>
 
                 <Button
                     android:id="@+id/btnSetting"
@@ -95,8 +95,14 @@
                     android:layout_weight="1.5"
                     android:textAllCaps="false"
                     android:textColor="@color/ole_white"
-                    android:text="@string/txtSettings"
+                    android:text="@string/check_updates"
                     android:textSize="@dimen/title" />
+                <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:animateLayoutChanges="true"
+                android:layout_weight="0.5"></LinearLayout>
                 <Button
                     android:id="@+id/btnLogout"
                     android:background="@null"
@@ -363,7 +369,7 @@
                         android:text="@string/bbtext_Courses"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:id="@+id/textView11"
+                        android:id="@+id/lblmycourses"
                         android:layout_weight="1"
                         android:textAlignment="center"
                         tools:textStyle="bold"

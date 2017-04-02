@@ -8,8 +8,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.PersistableBundle;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -67,7 +70,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
+import android.content.Context;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.util.Log;
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
@@ -106,7 +115,10 @@ public class FullscreenLogin extends AppCompatActivity {
     Replication pullReplication;
     Button dialogSyncButton,btnFeedback;
     Boolean wipeClean =false;
+    Intent serviceIntent;
+    private static final String TAG = "LoginActivity";
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,8 +128,6 @@ public class FullscreenLogin extends AppCompatActivity {
         actionBar.hide();
         androidContext = new AndroidContext(this);
         // Todo - : Decide on either to clear resource database and file storage anytime user syncs or rather keep old resources only if user doesn't change server url
-        /////////////////////////////////////
-        // Set up the login form.
         mUsername = (EditText) mContentView.findViewById(R.id.txtUsername);
         mPasswordView = (EditText) findViewById(R.id.txtPassword);
         Button SignInButton = (Button) findViewById(R.id.btnSignIn);
@@ -147,8 +157,7 @@ public class FullscreenLogin extends AppCompatActivity {
         restorePref();
         copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
         copyAPK(R.raw.firefox_49_0_multi_android, "firefox_49_0_multi_android.apk");
-
-
+        startServiceCommand();
         btnFeedback = (Button) findViewById(R.id.btnFeedback);
         btnFeedback.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -168,6 +177,7 @@ public class FullscreenLogin extends AppCompatActivity {
                             Log.e("MyCouch", "-- " + myList.size());
                             if (myList.size() < 8) {
                                 alertDialogOkay("Check WiFi connection and try again");
+                                feedbackDialog.dismiss();
                             } else {
                                 sendfeedbackToServer(feedbackDialog);
                             }
@@ -192,7 +202,7 @@ public class FullscreenLogin extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        updateUI();
+        updateUI()
     }
      public void sendfeedbackToServer(ProgressDialog feedbackDialog){
          try {
@@ -208,7 +218,6 @@ public class FullscreenLogin extends AppCompatActivity {
                  alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
                  Log.e("MyCouch", "Getting date from server" + err);
              }
-
              try {
                  Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                  resourceRating = manager.getDatabase("resourcerating");
@@ -283,6 +292,79 @@ public class FullscreenLogin extends AppCompatActivity {
                      nwActivityLog.set_male_visits(0);
                  }
 
+             try {
+                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                 resourceRating = manager.getDatabase("resourcerating");
+                 Query orderedQuery = chViews.ReadResourceRatingByIdView(resourceRating).createQuery();
+                 orderedQuery.setDescending(true);
+                 QueryEnumerator results = orderedQuery.run();
+                 for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                     QueryRow row = it.next();
+                     String docId = (String) row.getValue();
+                     Document doc = resourceRating.getExistingDocument(docId);
+                     Map<String, Object> properties = doc.getProperties();
+                     int sum = ((int) properties.get("sum"));
+                     int timesRated = ((Integer) properties.get("timesRated"));
+                     // Update server resources with new ratings
+                     UpdateResourceDocument nwUpdateResDoc = new UpdateResourceDocument();
+                     nwUpdateResDoc.setResourceId(docId);
+                     nwUpdateResDoc.setSum(sum);
+                     nwUpdateResDoc.setTimesRated(timesRated);
+                     nwUpdateResDoc.execute("");
+                 }
+                 Database dbResources = manager.getDatabase("resourcerating");
+                 dbResources.delete();
+             } catch (Exception err) {
+                 feedbackDialog.dismiss();
+                 alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+                 Log.e("MyCouch", "reading resource rating error " + err);
+             }
+             try {
+                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                 visits = manager.getDatabase("visits");
+                 Query orderedQuery = chViews.ReadMemberVisitsId(visits).createQuery();
+                 orderedQuery.setDescending(true);
+                 QueryEnumerator results = orderedQuery.run();
+                 for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                     QueryRow row = it.next();
+                     String docId = (String) row.getValue();
+                     Document doc = visits.getExistingDocument(docId);
+                     Map<String, Object> properties = doc.getProperties();
+                     int numOfVisits = ((Integer) properties.get("noOfVisits"));
+                     Log.e("MyCouch", "Number Of visits for " + docId + " is " + numOfVisits);
+                     // Update server members with visits
+                     UpdateMemberVisitsDocument nwUpdateMemberVisits = new UpdateMemberVisitsDocument();
+                     nwUpdateMemberVisits.setMemberId(docId);
+                     nwUpdateMemberVisits.setSumVisits(numOfVisits);
+                     nwUpdateMemberVisits.execute("");
+                 }
+                 Database dbResources = manager.getDatabase("visits");
+                 dbResources.delete();
+             } catch (Exception err) {
+                 feedbackDialog.dismiss();
+                 alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+                 Log.e("MyCouch", "reading visits error " + err);
+             }
+             //// Read activitylog database details
+             try {
+                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                 activitylog = manager.getDatabase("activitylog");
+                 WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+                 String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+                 Document doc = activitylog.getExistingDocument(m_WLANMAC);
+                 Map<String, Object> properties = doc.getProperties();
+                 // Update server resources with new ratings
+                 UpdateActivityLogDatabase nwActivityLog = new UpdateActivityLogDatabase();
+                 if (properties.get("female_visits") != null) {
+                     nwActivityLog.set_female_visits(((Integer) properties.get("female_visits")));
+                 } else {
+                     nwActivityLog.set_female_visits(0);
+                 }
+                 if (properties.get("male_visits") != null) {
+                     nwActivityLog.set_male_visits(((Integer) properties.get("male_visits")));
+                 } else {
+                     nwActivityLog.set_male_visits(0);
+                 }
                  nwActivityLog.set_female_opened((ArrayList) properties.get("female_opened"));
                  nwActivityLog.set_female_rating(((ArrayList) properties.get("female_rating")));
                  nwActivityLog.set_female_timesRated(((ArrayList) properties.get("female_timesRated")));
@@ -684,7 +766,7 @@ public class FullscreenLogin extends AppCompatActivity {
         // Restore preferences
         settings = getSharedPreferences(PREFS_NAME, 0);
         sys_username = settings.getString("pf_username","");
-        sys_oldSyncServerURL = settings.getString("pf_sysncUrl","");
+        sys_oldSyncServerURL = settings.getString("pf_sysncUrl","http://");
         sys_lastSyncDate = settings.getString("pf_lastSyncDate","");
         sys_password = settings.getString("pf_password","");
         sys_usercouchId = settings.getString("pf_usercouchId","");
@@ -710,6 +792,22 @@ public class FullscreenLogin extends AppCompatActivity {
 
         }catch(Exception err){
             Log.e("MYAPP", " Error creating  sys_membersWithResource");
+        }
+        try{
+            serviceIntent = new Intent(context,ServerSearchService.class);
+            context.stopService(serviceIntent);
+        }catch(Exception error) {
+            Log.e("MYAPP", " Creating Service error "+error.getMessage());
+        }
+    }
+
+    public void startServiceCommand(){
+        try{
+            serviceIntent = new Intent(context,ServerSearchService.class);
+            serviceIntent.putExtra("serverUrl", sys_oldSyncServerURL);
+            context.startService(serviceIntent);
+        }catch(Exception err){
+            Log.e("MYAPP", " Creating Service error "+err.getMessage());
         }
     }
     public void syncNotifier(){
@@ -1403,7 +1501,6 @@ public class FullscreenLogin extends AppCompatActivity {
             }
         });*/
     }
-
     class GetServerDate extends AsyncTask<String, Void, String> {
         private Exception exception;
         private String cls_dbName;
@@ -1431,7 +1528,7 @@ public class FullscreenLogin extends AppCompatActivity {
                     String[] userinfo = uri.getUserInfo().split(":");
                     url_user = userinfo[0];
                     url_pwd = userinfo[1];
-                    Log.e("MyCouch", "Doesnt contain @");
+                    Log.e("MyCouch", "Contain @");
                 }
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid(getdbName(), true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
 //// Todo Decide either use design document in apps or not
