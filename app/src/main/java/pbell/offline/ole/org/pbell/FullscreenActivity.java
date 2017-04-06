@@ -1691,9 +1691,7 @@ public class FullscreenActivity extends AppCompatActivity {
         }
 
     }
-
     public void openAudioVideo(String docId, String fileName, String player) {
-
         AndroidContext androidContext = new AndroidContext(context);
         Manager manager = null;
         try {
@@ -2202,7 +2200,6 @@ public class FullscreenActivity extends AppCompatActivity {
         AlertDialog alert11 = builder1.create();
         alert11.show();
     }
-
     public void downloadOneResourceToDisk() {
         try {
             URI uri = URI.create(sys_oldSyncServerURL);
@@ -2444,8 +2441,6 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     }
     */
-
-
     class downloadAllResourceToDisk extends AsyncTask<String, Void, Boolean> {
         @Override
         protected Boolean doInBackground(String... params) {
@@ -2810,7 +2805,6 @@ public class FullscreenActivity extends AppCompatActivity {
         }
         final String mainFile = url_Scheme+"://"+url_Host+":"+url_Port+""+ pageUrl;
         Log.e("Error", mainFile+" --- URL");
-
         try {
             try {
                 mDialog.dismiss();
@@ -2831,7 +2825,6 @@ public class FullscreenActivity extends AppCompatActivity {
             mDialog.dismiss();
             Er.printStackTrace();
             alertDialogOkay("Couldn't open page try again");
-
         }
     }
 }
