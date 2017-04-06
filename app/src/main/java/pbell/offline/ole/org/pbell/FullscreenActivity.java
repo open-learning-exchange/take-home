@@ -301,7 +301,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 mDialog.setMessage("Opening Courses please wait...");
                 mDialog.setCancelable(true);
                 mDialog.show();
-                if(wifiManager.isWifiEnabled()) {
+                if (wifiManager.isWifiEnabled()) {
                     ful.get(sys_oldSyncServerURL + "/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
                         @Override
                         public void success(Request request, Response response, String s) {
@@ -332,7 +332,7 @@ public class FullscreenActivity extends AppCompatActivity {
                             Log.e(TAG, " " + fuelError);
                         }
                     });
-                }else{
+                } else {
                     mDialog.dismiss();
                     alertDialogOkay("You need to turn on Wi-Fi and connect to server to use this function");
                 }
@@ -349,7 +349,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 mDialog.setMessage("Opening Meetups please wait...");
                 mDialog.setCancelable(true);
                 mDialog.show();
-                if(wifiManager.isWifiEnabled()) {
+                if (wifiManager.isWifiEnabled()) {
                     ful.get(sys_oldSyncServerURL + "/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
                         @Override
                         public void success(Request request, Response response, String s) {
@@ -380,7 +380,7 @@ public class FullscreenActivity extends AppCompatActivity {
                             Log.e(TAG, " " + fuelError);
                         }
                     });
-                }else{
+                } else {
                     mDialog.dismiss();
                     alertDialogOkay("You need to turn on Wi-Fi and connect to server to use this function");
                 }
@@ -405,7 +405,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 mDialog.setMessage("Opening library please wait...");
                 mDialog.setCancelable(true);
                 mDialog.show();
-                if(wifiManager.isWifiEnabled()) {
+                if (wifiManager.isWifiEnabled()) {
                     ful.get(sys_oldSyncServerURL + "/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
                         @Override
                         public void success(Request request, Response response, String s) {
@@ -436,7 +436,7 @@ public class FullscreenActivity extends AppCompatActivity {
                             Log.e(TAG, " " + fuelError);
                         }
                     });
-                }else{
+                } else {
                     mDialog.dismiss();
                     populateLibraryDialogList();
                 }
@@ -470,7 +470,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 mDialog.setMessage("Opening Course Progress please wait...");
                 mDialog.setCancelable(true);
                 mDialog.show();
-                if(wifiManager.isWifiEnabled()) {
+                if (wifiManager.isWifiEnabled()) {
                     ful.get(sys_oldSyncServerURL + "/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
                         @Override
                         public void success(Request request, Response response, String s) {
@@ -501,7 +501,7 @@ public class FullscreenActivity extends AppCompatActivity {
                             Log.e(TAG, " " + fuelError);
                         }
                     });
-                }else{
+                } else {
                     mDialog.dismiss();
                     alertDialogOkay("You need to turn on Wi-Fi and connect to server to use this function");
                 }
@@ -591,7 +591,7 @@ public class FullscreenActivity extends AppCompatActivity {
         btnCheck4Updates.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                        new checkServerConnection().execute("");
+                new checkServerConnection().execute("");
             }
         });
     }
@@ -971,8 +971,8 @@ public class FullscreenActivity extends AppCompatActivity {
                 repl = database.createPullReplication(remote);
                 repl.setContinuous(false);
 //// Todo Decide either use design document in app or not
-                repl.setFilter("bell/by_resource");
-                //repl.setFilter("apps/by_resource");
+//                repl.setFilter("bell/by_resource");
+                repl.setFilter("apps/by_resource");
                 Map<String, Object> map = new HashMap<String, Object>();
                 map.put("_id", OneByOneResID);
                 repl.setFilterParams(map);
@@ -1779,8 +1779,8 @@ public class FullscreenActivity extends AppCompatActivity {
                     ArrayList male_opened = (ArrayList<String>) properties.get("male_opened");
                     ArrayList resources_names = (ArrayList<String>) properties.get("resources_names");
                     ArrayList resources_opened = (ArrayList<String>) properties.get("resources_opened");
-                    Log.e("MyCouch", "Option 1");
-                    if (sys_usergender.toLowerCase() == "female") {
+                    Log.e("MyCouch", "Option 1 "+ sys_usergender.toLowerCase());
+                    if (sys_usergender.toLowerCase().equalsIgnoreCase("female")) {
                         female_opened.add(1);
                         male_opened.add(0);
                     } else {
@@ -1796,7 +1796,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     newProperties.put("resources_names", resources_names);
                     newProperties.put("resources_opened", resources_opened);
                     retrievedDocument.putProperties(newProperties);
-                    Log.e("MyCouch", "Saved resource open in local Activity Log ");
+                    Log.e("MyCouch", "Saved resource open in local Activity Log "+newProperties.toString());
                     return true;
                 } catch (Exception err) {
                     Log.e("MyCouch", "Option 1 Failed " + err.getMessage());
@@ -1804,7 +1804,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 }
             } else {
                 try {
-                    Log.e("MyCouch", "Option 2");
+                    Log.e("MyCouch", "Option 2 gender is "+ sys_usergender.toLowerCase());
                     Document newdocument = activityLog.getDocument(m_WLANMAC);
                     Map<String, Object> newProperties = new HashMap<String, Object>();
                     newProperties.putAll(retrievedDocument.getProperties());
@@ -1812,7 +1812,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     ArrayList male_opened = new ArrayList<String>();
                     ArrayList resources_names = new ArrayList<String>();
                     ArrayList resources_opened = new ArrayList<String>();
-                    if (sys_usergender.toLowerCase() == "female") {
+                    if (sys_usergender.toLowerCase().equalsIgnoreCase("female")) {
                         female_opened.add(1);
                         male_opened.add(0);
                     } else {
@@ -1826,7 +1826,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     newProperties.put("resources_names", resources_names);
                     newProperties.put("resources_opened", resources_opened);
                     newdocument.putProperties(newProperties);
-                    Log.e("MyCouch", "Saved resource open in local Activity Log ");
+                    Log.e("MyCouch", "Saved resource open in local Activity Log "+newProperties.toString());
                     return true;
                 } catch (Exception er) {
                     Log.e("MyCouch", "Option 2 Failed" + er.getMessage());
@@ -1843,7 +1843,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     ArrayList male_opened = new ArrayList<String>();
                     ArrayList resources_names = new ArrayList<String>();
                     ArrayList resources_opened = new ArrayList<String>();
-                    if (sys_usergender.toLowerCase() == "female") {
+                    if (sys_usergender.toLowerCase().equalsIgnoreCase("female")) {
                         female_opened.add(1);
                         male_opened.add(0);
                     } else {
@@ -2202,14 +2202,15 @@ public class FullscreenActivity extends AppCompatActivity {
         AlertDialog alert11 = builder1.create();
         alert11.show();
     }
-  public void downloadOneResourceToDisk() {
+
+    public void downloadOneResourceToDisk() {
         try {
             URI uri = URI.create(sys_oldSyncServerURL);
             String url_Scheme = uri.getScheme();
             String url_Host = uri.getHost();
             int url_Port = uri.getPort();
             String url_user = null, url_pwd = null;
-            if(sys_oldSyncServerURL.contains("@")){
+            if (sys_oldSyncServerURL.contains("@")) {
                 String[] userinfo = uri.getUserInfo().split(":");
                 url_user = userinfo[0];
                 url_pwd = userinfo[1];
@@ -2286,6 +2287,7 @@ public class FullscreenActivity extends AppCompatActivity {
             alertDialogOkay("Error downloading file, check connection and try again");
         }
     }
+
     /// Todo Review Code and test class
     class downloadSpecificResourceToDisk extends AsyncTask<String, Void, Boolean> {
         @Override
@@ -2296,13 +2298,13 @@ public class FullscreenActivity extends AppCompatActivity {
                 String url_Host = uri.getHost();
                 int url_Port = uri.getPort();
                 String url_user = null, url_pwd = null;
-                if(sys_oldSyncServerURL.contains("@")){
+                if (sys_oldSyncServerURL.contains("@")) {
                     String[] userinfo = uri.getUserInfo().split(":");
                     url_user = userinfo[0];
                     url_pwd = userinfo[1];
                 }
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
-                  if (dbClient.contains(OneByOneResID)) {
+                if (dbClient.contains(OneByOneResID)) {
                     /// Handle with Json
                     JsonObject jsonObject = dbClient.find(JsonObject.class, OneByOneResID);
                     JsonObject jsonAttachments = jsonObject.getAsJsonObject("_attachments");
@@ -2325,8 +2327,9 @@ public class FullscreenActivity extends AppCompatActivity {
                                     downloadWithDownloadManagerSingleFile(sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey, diskFileName);
                                     createResourceDoc(OneByOneResID, title, openWith);
                                 }
-                            });}
-                    }else {
+                            });
+                        }
+                    } else {
                         Log.e("MyCouch", "-- HTML NOT PART OF DOWNLOADS ");
                         htmlResourceList.add(OneByOneResID);
                         if (allhtmlDownload < htmlResourceList.size()) {
@@ -2343,7 +2346,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     }
                 }
             } catch (Exception e) {
-                Log.e("MyCouch","Download this resource error "+ e.getMessage());
+                Log.e("MyCouch", "Download this resource error " + e.getMessage());
                 mDialog.dismiss();
                 alertDialogOkay("Error downloading file, check connection and try again");
                 return null;
@@ -2351,11 +2354,12 @@ public class FullscreenActivity extends AppCompatActivity {
             return null;
         }
     }
-    public void callSuncOneHTMLResource(){
+
+    public void callSuncOneHTMLResource() {
         SyncSingleHTMLResource ssHTML = new SyncSingleHTMLResource();
         ssHTML.execute();
     }
-
+/*
     class downloadAllResourceToDisk extends AsyncTask<String, Void, Boolean> {
         @Override
         protected Boolean doInBackground(String... params) {
@@ -2365,20 +2369,20 @@ public class FullscreenActivity extends AppCompatActivity {
                 String url_Host = uri.getHost();
                 int url_Port = uri.getPort();
                 String url_user = null, url_pwd = null;
-                if(sys_oldSyncServerURL.contains("@")){
+                if (sys_oldSyncServerURL.contains("@")) {
                     String[] userinfo = uri.getUserInfo().split(":");
                     url_user = userinfo[0];
                     url_pwd = userinfo[1];
                 }
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
-                if(dbClient.contains(resourceIdList[allresDownload])){
+                if (dbClient.contains(resourceIdList[allresDownload])) {
                     /// Handle with Json
-                    JsonObject jsonObject = dbClient.find(JsonObject.class,resourceIdList[allresDownload]);
+                    JsonObject jsonObject = dbClient.find(JsonObject.class, resourceIdList[allresDownload]);
                     JsonObject jsonAttachments = jsonObject.getAsJsonObject("_attachments");
                     final String openWith = (String) jsonObject.get("openWith").getAsString();
-                    final String title =  jsonObject.get("title").getAsString();
+                    final String title = jsonObject.get("title").getAsString();
                     Log.e("MyCouch", "Open With -- " + openWith);
-                    if(!openWith.equalsIgnoreCase("HTML")) {
+                    if (!openWith.equalsIgnoreCase("HTML")) {
                         JSONObject _attachments = new JSONObject(jsonAttachments.toString());
                         Iterator<String> keys = _attachments.keys();
                         if (keys.hasNext()) {
@@ -2394,13 +2398,14 @@ public class FullscreenActivity extends AppCompatActivity {
                                     downloadWithDownloadManagerSingleFile(sys_oldSyncServerURL + "/resources/" + resourceIdList[allresDownload] + "/" + encodedkey, diskFileName);
                                     createResourceDoc(resourceIdList[allresDownload], title, openWith);
                                 }
-                            });}
-                    }else {
+                            });
+                        }
+                    } else {
                         Log.e("MyCouch", "-- HTML NOT PART OF DOWNLOADS ");
                         htmlResourceList.add(resourceIdList[allresDownload]);
-                        if(allresDownload<libraryButtons.length) {
+                        if (allresDownload < libraryButtons.length) {
                             allresDownload++;
-                            if(resourceTitleList[allresDownload]!=null) {
+                            if (resourceTitleList[allresDownload] != null) {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
@@ -2408,15 +2413,15 @@ public class FullscreenActivity extends AppCompatActivity {
                                         new downloadAllResourceToDisk().execute();
                                     }
                                 });
-                            }else{
-                                if(allhtmlDownload<htmlResourceList.size()) {
+                            } else {
+                                if (allhtmlDownload < htmlResourceList.size()) {
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
                                             callSuncOneHTMLResource();
                                         }
                                     });
-                                }else{
+                                } else {
                                     mDialog.dismiss();
                                     alertDialogOkay("Download Completed");
                                 }
@@ -2431,10 +2436,15 @@ public class FullscreenActivity extends AppCompatActivity {
                 return null;
             }
             return null;
-    public void callSuncOneHTMLResource() {
-        SyncSingleHTMLResource ssHTML = new SyncSingleHTMLResource();
-        ssHTML.execute();
+        }
+
+        public void callSuncOneHTMLResource() {
+            SyncSingleHTMLResource ssHTML = new SyncSingleHTMLResource();
+            ssHTML.execute();
+        }
     }
+    */
+
 
     class downloadAllResourceToDisk extends AsyncTask<String, Void, Boolean> {
         @Override

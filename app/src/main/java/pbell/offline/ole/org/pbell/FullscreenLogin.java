@@ -202,7 +202,7 @@ public class FullscreenLogin extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        updateUI()
+        updateUI();
     }
      public void sendfeedbackToServer(ProgressDialog feedbackDialog){
          try {
@@ -292,79 +292,6 @@ public class FullscreenLogin extends AppCompatActivity {
                      nwActivityLog.set_male_visits(0);
                  }
 
-             try {
-                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                 resourceRating = manager.getDatabase("resourcerating");
-                 Query orderedQuery = chViews.ReadResourceRatingByIdView(resourceRating).createQuery();
-                 orderedQuery.setDescending(true);
-                 QueryEnumerator results = orderedQuery.run();
-                 for (Iterator<QueryRow> it = results; it.hasNext(); ) {
-                     QueryRow row = it.next();
-                     String docId = (String) row.getValue();
-                     Document doc = resourceRating.getExistingDocument(docId);
-                     Map<String, Object> properties = doc.getProperties();
-                     int sum = ((int) properties.get("sum"));
-                     int timesRated = ((Integer) properties.get("timesRated"));
-                     // Update server resources with new ratings
-                     UpdateResourceDocument nwUpdateResDoc = new UpdateResourceDocument();
-                     nwUpdateResDoc.setResourceId(docId);
-                     nwUpdateResDoc.setSum(sum);
-                     nwUpdateResDoc.setTimesRated(timesRated);
-                     nwUpdateResDoc.execute("");
-                 }
-                 Database dbResources = manager.getDatabase("resourcerating");
-                 dbResources.delete();
-             } catch (Exception err) {
-                 feedbackDialog.dismiss();
-                 alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-                 Log.e("MyCouch", "reading resource rating error " + err);
-             }
-             try {
-                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                 visits = manager.getDatabase("visits");
-                 Query orderedQuery = chViews.ReadMemberVisitsId(visits).createQuery();
-                 orderedQuery.setDescending(true);
-                 QueryEnumerator results = orderedQuery.run();
-                 for (Iterator<QueryRow> it = results; it.hasNext(); ) {
-                     QueryRow row = it.next();
-                     String docId = (String) row.getValue();
-                     Document doc = visits.getExistingDocument(docId);
-                     Map<String, Object> properties = doc.getProperties();
-                     int numOfVisits = ((Integer) properties.get("noOfVisits"));
-                     Log.e("MyCouch", "Number Of visits for " + docId + " is " + numOfVisits);
-                     // Update server members with visits
-                     UpdateMemberVisitsDocument nwUpdateMemberVisits = new UpdateMemberVisitsDocument();
-                     nwUpdateMemberVisits.setMemberId(docId);
-                     nwUpdateMemberVisits.setSumVisits(numOfVisits);
-                     nwUpdateMemberVisits.execute("");
-                 }
-                 Database dbResources = manager.getDatabase("visits");
-                 dbResources.delete();
-             } catch (Exception err) {
-                 feedbackDialog.dismiss();
-                 alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-                 Log.e("MyCouch", "reading visits error " + err);
-             }
-             //// Read activitylog database details
-             try {
-                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                 activitylog = manager.getDatabase("activitylog");
-                 WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-                 String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
-                 Document doc = activitylog.getExistingDocument(m_WLANMAC);
-                 Map<String, Object> properties = doc.getProperties();
-                 // Update server resources with new ratings
-                 UpdateActivityLogDatabase nwActivityLog = new UpdateActivityLogDatabase();
-                 if (properties.get("female_visits") != null) {
-                     nwActivityLog.set_female_visits(((Integer) properties.get("female_visits")));
-                 } else {
-                     nwActivityLog.set_female_visits(0);
-                 }
-                 if (properties.get("male_visits") != null) {
-                     nwActivityLog.set_male_visits(((Integer) properties.get("male_visits")));
-                 } else {
-                     nwActivityLog.set_male_visits(0);
-                 }
                  nwActivityLog.set_female_opened((ArrayList) properties.get("female_opened"));
                  nwActivityLog.set_female_rating(((ArrayList) properties.get("female_rating")));
                  nwActivityLog.set_female_timesRated(((ArrayList) properties.get("female_timesRated")));
@@ -683,8 +610,8 @@ public class FullscreenLogin extends AppCompatActivity {
         });
 
         ////
-       // sys_singlefilestreamdownload =settings.getBoolean("pf_singlefilestreamdownload",true);
-       /// sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload",true);
+        sys_singlefilestreamdownload =settings.getBoolean("pf_singlefilestreamdownload",true);
+        sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload",true);
 
         dialogSyncButton = (Button) dialog.findViewById(R.id.btnNewSaveSyncURL);
         dialogSyncButton.setOnClickListener(new View.OnClickListener() {
@@ -814,7 +741,7 @@ public class FullscreenLogin extends AppCompatActivity {
         emptyAllDbs();
         try{
 /// Todo Decide either use design document in apps or not
-            /*JsonObject filterContent = new JsonObject();
+            JsonObject filterContent = new JsonObject();
             filterContent.addProperty("by_resource","function(doc, req){return doc._id === req.query._id;}");
             RunCreateDocTask newRunCreateFilterTask = new RunCreateDocTask();
             newRunCreateFilterTask.setDbName("resources");
@@ -823,12 +750,12 @@ public class FullscreenLogin extends AppCompatActivity {
             newRunCreateFilterTask.setCategory("filters");
             newRunCreateFilterTask.setViewContent(filterContent);
             newRunCreateFilterTask.execute("");
-            */
+
         }catch(Exception err){
             Log.e("MYAPP", err.getMessage());
         }
         try{
-            /*
+
             JsonObject viewContent = new JsonObject();
             viewContent.addProperty("map","function() { var now = new Date().toLocaleDateString(); " +
                     "var output = JSON.parse(JSON.stringify(now)); emit(output, output); }");
@@ -841,7 +768,7 @@ public class FullscreenLogin extends AppCompatActivity {
             newRunCreateViewTask.setCategory("views");
             newRunCreateViewTask.setViewContent(dateViewContent);
             newRunCreateViewTask.execute("");
-            */
+
         }catch(Exception err){
             Log.e("MYAPP", err.getMessage());
         }
@@ -1532,8 +1459,8 @@ public class FullscreenLogin extends AppCompatActivity {
                 }
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid(getdbName(), true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
 //// Todo Decide either use design document in apps or not
-                org.lightcouch.View view= dbClient.view("bell/date_now").includeDocs(true);
-///                org.lightcouch.View view= dbClient.view("apps/date_now").includeDocs(true);
+//                org.lightcouch.View view= dbClient.view("bell/date_now").includeDocs(true);
+                org.lightcouch.View view= dbClient.view("apps/date_now").includeDocs(true);
                 List<Map> results = view.reduce(false).includeDocs(false).query(Map.class);
                 if (results.size() != 0) {
                     Serverdate = (String) results.get(0).get("value");
