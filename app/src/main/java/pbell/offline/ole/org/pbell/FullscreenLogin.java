@@ -202,11 +202,10 @@ public class FullscreenLogin extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        updateUI()
+        updateUI();
     }
      public void sendfeedbackToServer(ProgressDialog feedbackDialog){
-         try {
-             Database resourceRating, activitylog, visits;
+         Database resourceRating, activitylog, visits;
              try {
                  // Get server date for activitylog update
                  GetServerDate gtSvDt = new GetServerDate();
@@ -291,104 +290,105 @@ public class FullscreenLogin extends AppCompatActivity {
                  } else {
                      nwActivityLog.set_male_visits(0);
                  }
+             } catch (Exception err) {
+                 feedbackDialog.dismiss();
+                 alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+                 Log.e("MyCouch", "reading activity log " + err);
+             }
 
-             try {
-                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                 resourceRating = manager.getDatabase("resourcerating");
-                 Query orderedQuery = chViews.ReadResourceRatingByIdView(resourceRating).createQuery();
-                 orderedQuery.setDescending(true);
-                 QueryEnumerator results = orderedQuery.run();
-                 for (Iterator<QueryRow> it = results; it.hasNext(); ) {
-                     QueryRow row = it.next();
-                     String docId = (String) row.getValue();
-                     Document doc = resourceRating.getExistingDocument(docId);
+                 try {
+                     Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                     resourceRating = manager.getDatabase("resourcerating");
+                     Query orderedQuery = chViews.ReadResourceRatingByIdView(resourceRating).createQuery();
+                     orderedQuery.setDescending(true);
+                     QueryEnumerator results = orderedQuery.run();
+                     for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                         QueryRow row = it.next();
+                         String docId = (String) row.getValue();
+                         Document doc = resourceRating.getExistingDocument(docId);
+                         Map<String, Object> properties = doc.getProperties();
+                         int sum = ((int) properties.get("sum"));
+                         int timesRated = ((Integer) properties.get("timesRated"));
+                         // Update server resources with new ratings
+                         UpdateResourceDocument nwUpdateResDoc = new UpdateResourceDocument();
+                         nwUpdateResDoc.setResourceId(docId);
+                         nwUpdateResDoc.setSum(sum);
+                         nwUpdateResDoc.setTimesRated(timesRated);
+                         nwUpdateResDoc.execute("");
+                     }
+                     Database dbResources = manager.getDatabase("resourcerating");
+                     dbResources.delete();
+                 } catch (Exception err) {
+                     feedbackDialog.dismiss();
+                     alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+                     Log.e("MyCouch", "reading resource rating error " + err);
+                 }
+                 try {
+                     Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                     visits = manager.getDatabase("visits");
+                     Query orderedQuery = chViews.ReadMemberVisitsId(visits).createQuery();
+                     orderedQuery.setDescending(true);
+                     QueryEnumerator results = orderedQuery.run();
+                     for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                         QueryRow row = it.next();
+                         String docId = (String) row.getValue();
+                         Document doc = visits.getExistingDocument(docId);
+                         Map<String, Object> properties = doc.getProperties();
+                         int numOfVisits = ((Integer) properties.get("noOfVisits"));
+                         Log.e("MyCouch", "Number Of visits for " + docId + " is " + numOfVisits);
+                         // Update server members with visits
+                         UpdateMemberVisitsDocument nwUpdateMemberVisits = new UpdateMemberVisitsDocument();
+                         nwUpdateMemberVisits.setMemberId(docId);
+                         nwUpdateMemberVisits.setSumVisits(numOfVisits);
+                         nwUpdateMemberVisits.execute("");
+                     }
+                     Database dbResources = manager.getDatabase("visits");
+                     dbResources.delete();
+                 } catch (Exception err) {
+                     feedbackDialog.dismiss();
+                     alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+                     Log.e("MyCouch", "reading visits error " + err);
+                 }
+                 //// Read activitylog database details
+                 try {
+                     Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                     activitylog = manager.getDatabase("activitylog");
+                     WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+                     String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+                     Document doc = activitylog.getExistingDocument(m_WLANMAC);
                      Map<String, Object> properties = doc.getProperties();
-                     int sum = ((int) properties.get("sum"));
-                     int timesRated = ((Integer) properties.get("timesRated"));
                      // Update server resources with new ratings
-                     UpdateResourceDocument nwUpdateResDoc = new UpdateResourceDocument();
-                     nwUpdateResDoc.setResourceId(docId);
-                     nwUpdateResDoc.setSum(sum);
-                     nwUpdateResDoc.setTimesRated(timesRated);
-                     nwUpdateResDoc.execute("");
+                     UpdateActivityLogDatabase nwActivityLog = new UpdateActivityLogDatabase();
+                     if (properties.get("female_visits") != null) {
+                         nwActivityLog.set_female_visits(((Integer) properties.get("female_visits")));
+                     } else {
+                         nwActivityLog.set_female_visits(0);
+                     }
+                     if (properties.get("male_visits") != null) {
+                         nwActivityLog.set_male_visits(((Integer) properties.get("male_visits")));
+                     } else {
+                         nwActivityLog.set_male_visits(0);
+                     }
+                     nwActivityLog.set_female_opened((ArrayList) properties.get("female_opened"));
+                     nwActivityLog.set_female_rating(((ArrayList) properties.get("female_rating")));
+                     nwActivityLog.set_female_timesRated(((ArrayList) properties.get("female_timesRated")));
+                     nwActivityLog.set_male_opened(((ArrayList) properties.get("male_opened")));
+                     nwActivityLog.set_male_rating(((ArrayList) properties.get("male_rating")));
+                     nwActivityLog.set_male_timesRated(((ArrayList) properties.get("male_timesRated")));
+                     nwActivityLog.set_resources_names(((ArrayList) properties.get("resources_names")));
+                     nwActivityLog.set_resources_opened(((ArrayList) properties.get("resources_opened")));
+                     nwActivityLog.set_resourcesIds(((ArrayList) properties.get("resourcesIds")));
+                     nwActivityLog.execute("");
+                     feedbackDialog.dismiss();
+                     updateUI();
+                 } catch (Exception err) {
+                     updateUI();
+                     feedbackDialog.dismiss();
+                     alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+                     Log.e("MyCouch", "reading activity log error " + err);
                  }
-                 Database dbResources = manager.getDatabase("resourcerating");
-                 dbResources.delete();
-             } catch (Exception err) {
-                 feedbackDialog.dismiss();
-                 alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-                 Log.e("MyCouch", "reading resource rating error " + err);
-             }
-             try {
-                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                 visits = manager.getDatabase("visits");
-                 Query orderedQuery = chViews.ReadMemberVisitsId(visits).createQuery();
-                 orderedQuery.setDescending(true);
-                 QueryEnumerator results = orderedQuery.run();
-                 for (Iterator<QueryRow> it = results; it.hasNext(); ) {
-                     QueryRow row = it.next();
-                     String docId = (String) row.getValue();
-                     Document doc = visits.getExistingDocument(docId);
-                     Map<String, Object> properties = doc.getProperties();
-                     int numOfVisits = ((Integer) properties.get("noOfVisits"));
-                     Log.e("MyCouch", "Number Of visits for " + docId + " is " + numOfVisits);
-                     // Update server members with visits
-                     UpdateMemberVisitsDocument nwUpdateMemberVisits = new UpdateMemberVisitsDocument();
-                     nwUpdateMemberVisits.setMemberId(docId);
-                     nwUpdateMemberVisits.setSumVisits(numOfVisits);
-                     nwUpdateMemberVisits.execute("");
-                 }
-                 Database dbResources = manager.getDatabase("visits");
-                 dbResources.delete();
-             } catch (Exception err) {
-                 feedbackDialog.dismiss();
-                 alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-                 Log.e("MyCouch", "reading visits error " + err);
-             }
-             //// Read activitylog database details
-             try {
-                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                 activitylog = manager.getDatabase("activitylog");
-                 WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-                 String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
-                 Document doc = activitylog.getExistingDocument(m_WLANMAC);
-                 Map<String, Object> properties = doc.getProperties();
-                 // Update server resources with new ratings
-                 UpdateActivityLogDatabase nwActivityLog = new UpdateActivityLogDatabase();
-                 if (properties.get("female_visits") != null) {
-                     nwActivityLog.set_female_visits(((Integer) properties.get("female_visits")));
-                 } else {
-                     nwActivityLog.set_female_visits(0);
-                 }
-                 if (properties.get("male_visits") != null) {
-                     nwActivityLog.set_male_visits(((Integer) properties.get("male_visits")));
-                 } else {
-                     nwActivityLog.set_male_visits(0);
-                 }
-                 nwActivityLog.set_female_opened((ArrayList) properties.get("female_opened"));
-                 nwActivityLog.set_female_rating(((ArrayList) properties.get("female_rating")));
-                 nwActivityLog.set_female_timesRated(((ArrayList) properties.get("female_timesRated")));
-                 nwActivityLog.set_male_opened(((ArrayList) properties.get("male_opened")));
-                 nwActivityLog.set_male_rating(((ArrayList) properties.get("male_rating")));
-                 nwActivityLog.set_male_timesRated(((ArrayList) properties.get("male_timesRated")));
-                 nwActivityLog.set_resources_names(((ArrayList) properties.get("resources_names")));
-                 nwActivityLog.set_resources_opened(((ArrayList) properties.get("resources_opened")));
-                 nwActivityLog.set_resourcesIds(((ArrayList) properties.get("resourcesIds")));
-                 nwActivityLog.execute("");
-                 feedbackDialog.dismiss();
-                 updateUI();
-             } catch (Exception err) {
-                 updateUI();
-                 feedbackDialog.dismiss();
-                 alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-                 Log.e("MyCouch", "reading activity log error " + err);
-             }
-         } catch (Exception err) {
-             updateUI();
-             feedbackDialog.dismiss();
-             alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-             Log.e("MyCouch", "Error sending feedback activity log error " + err);
-         }
+
+
      }
     ////////
     private void TestConnectionToServer(String textURL) {
