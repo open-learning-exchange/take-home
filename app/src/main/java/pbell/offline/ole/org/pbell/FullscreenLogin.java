@@ -683,8 +683,8 @@ public class FullscreenLogin extends AppCompatActivity {
         });
 
         ////
-       // sys_singlefilestreamdownload =settings.getBoolean("pf_singlefilestreamdownload",true);
-       /// sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload",true);
+        sys_singlefilestreamdownload =settings.getBoolean("pf_singlefilestreamdownload",true);
+        sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload",true);
 
         dialogSyncButton = (Button) dialog.findViewById(R.id.btnNewSaveSyncURL);
         dialogSyncButton.setOnClickListener(new View.OnClickListener() {
@@ -814,7 +814,7 @@ public class FullscreenLogin extends AppCompatActivity {
         emptyAllDbs();
         try{
 /// Todo Decide either use design document in apps or not
-            /*JsonObject filterContent = new JsonObject();
+            JsonObject filterContent = new JsonObject();
             filterContent.addProperty("by_resource","function(doc, req){return doc._id === req.query._id;}");
             RunCreateDocTask newRunCreateFilterTask = new RunCreateDocTask();
             newRunCreateFilterTask.setDbName("resources");
@@ -823,12 +823,12 @@ public class FullscreenLogin extends AppCompatActivity {
             newRunCreateFilterTask.setCategory("filters");
             newRunCreateFilterTask.setViewContent(filterContent);
             newRunCreateFilterTask.execute("");
-            */
+
         }catch(Exception err){
             Log.e("MYAPP", err.getMessage());
         }
         try{
-            /*
+
             JsonObject viewContent = new JsonObject();
             viewContent.addProperty("map","function() { var now = new Date().toLocaleDateString(); " +
                     "var output = JSON.parse(JSON.stringify(now)); emit(output, output); }");
@@ -841,7 +841,7 @@ public class FullscreenLogin extends AppCompatActivity {
             newRunCreateViewTask.setCategory("views");
             newRunCreateViewTask.setViewContent(dateViewContent);
             newRunCreateViewTask.execute("");
-            */
+
         }catch(Exception err){
             Log.e("MYAPP", err.getMessage());
         }
@@ -1532,8 +1532,8 @@ public class FullscreenLogin extends AppCompatActivity {
                 }
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid(getdbName(), true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
 //// Todo Decide either use design document in apps or not
-                org.lightcouch.View view= dbClient.view("bell/date_now").includeDocs(true);
-///                org.lightcouch.View view= dbClient.view("apps/date_now").includeDocs(true);
+//                org.lightcouch.View view= dbClient.view("bell/date_now").includeDocs(true);
+                org.lightcouch.View view= dbClient.view("apps/date_now").includeDocs(true);
                 List<Map> results = view.reduce(false).includeDocs(false).query(Map.class);
                 if (results.size() != 0) {
                     Serverdate = (String) results.get(0).get("value");
