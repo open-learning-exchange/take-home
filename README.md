@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/open-learning-exchange/take-home.png?label=ready&title=Ready)](https://waffle.io/open-learning-exchange/take-home)
 
 Getting started with "Android Take It Home" Bell application development.
 
