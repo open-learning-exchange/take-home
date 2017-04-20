@@ -11,6 +11,7 @@ import org.lightcouch.Attachment;
  */
 
 
+@SuppressWarnings("ALL")
 public class Obj_Holder {
 
     @SuppressWarnings("unused")

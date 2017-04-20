@@ -15,6 +15,7 @@ package pbell.offline.ole.org.pbell;
         import com.android.volley.toolbox.ImageLoader;
         import com.android.volley.toolbox.NetworkImageView;
 
+@SuppressWarnings("ALL")
 public class CustomListAdapter extends BaseAdapter {
     private Activity activity;
     private LayoutInflater inflater;

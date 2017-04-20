@@ -11,7 +11,6 @@
 
     <!-- Related to First Time Dialog -->
     <string name="fst_welcome">Take Home</string>
-    <string name="fst_aboutapp">My Library</string>
     <string name="fst_instruction">It appears your device hasn\'t yet been linked to the BeLL network.
         If you know your BeLL server\'s url, please enter it bellow or contact your coach / group leader for assistance</string>
     <string name="fst_syncurl">BeLL Server Url</string>
@@ -26,7 +25,6 @@
 
     <!-- Strings related to Fragment 0 / Achievements -->
     <string name="frg1_Visits">Visits</string>
-    <string name="frg1_LastVisitDate">Last Visit Date</string>
     <string name="frg1_OpenedRes">Opened Resources</string>
 
     <!-- Strings related to Change Sync URL -->
@@ -47,29 +45,20 @@
     <string name="prompt_password">Password (optional)</string>
     <string name="action_sign_in">Sign in</string>
     <string name="action_sign_in_short">Sign in</string>
-    <string name="error_invalid_email">This email address is invalid</string>
-    <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
     <string name="permission_rationale">"Contacts permissions are needed for providing email completions."
     </string>
-    <string name="troffy">Trophy</string>
     <string name="title_activity_sync_device">Sync Device</string>
     <string name="title_activity_new_sync">First Time Configuration</string>
     <string name="sync_NowPullOnly">Synchronize With Server</string>
     <string name="sync_CloseWindow">Close</string>
     <string name="sync_DownloadResPersons">Download Resources</string>
-    <string name="launch_course">Launch Course</string>
     <string name="open_course">Open Course</string>
     <string name="title_activity_course">Course</string>
 
-    <string name="title_activity__dashboard">_dashboard</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="bbtext_MyTutors">My Tutors</string>
 
-    <string name="title_activity_fullscreen">FullscreenActivity</string>
-    <string name="btn_home">My Home</string>
     <string name="bbtext_Home">My Home</string>
     <string name="txtLibrary">Library</string>
     <string name="txtCourses">Courses</string>
@@ -77,7 +66,6 @@
     <string name="txtLogout">Logout</string>
     <string name="txtSettings">Settings</string>
 
-    <string name="title_activity_fullscreen_login">FullscreenLogin</string>
     <string name="txtFeedback">Feedback</string>
     <string name="txtMember_Login">Member Login</string>
     <string name="txtWelcome">Welcome</string>
@@ -87,21 +75,14 @@
 
     <string name="title_activity_test">test</string>
     <string name="btnSetup">Setup</string>
-    <string name="txtDownloadUserInfo">Loading User Info</string>
-    <string name="txtDownloadingFrom">Downloading From</string>
-    <string name="txtfrom">FROM</string>
-    <string name="txtTo">TO</string>
 
-    <string name="title_activity_fullscreen9">FullscreenActivity9</string>
     <string name="fst_material_offline" >This material is not on this device (offline). Do you want to open it online or download into this device.</string>
     <string name="txtDownload">Download this</string>
     <string name="txtOpenOnline" >Open Online</string>
     <string name="txtDownladAll" >Download All</string>
     <string name="multi_download">Multiple material download</string>
     <string name="single_download">Single material download</string>
-    <string name="single_down_json">JSON Replication Enabled</string>
     <string name="single_down_json_dis">JSON Replication Disabled</string>
     <string name="single_down_file_streaming">FILE STREAMING DISABLED</string>
-    <string name="single_down_file_streaming_dis">FILE STRAMING ENABLED</string>
     <string name="check_updates">Update</string>
 </resources>

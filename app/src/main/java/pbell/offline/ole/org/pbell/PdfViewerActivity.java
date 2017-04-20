@@ -54,7 +54,7 @@ package pbell.offline.ole.org.pbell;
  * U:\Android\android-sdk-windows-1.5_r1\tools\adb push u:\Android\simple_T.pdf /data/test.pdf
  * @author ferenc.hechler
  */
-@SuppressWarnings("JavadocReference")
+@SuppressWarnings("ALL")
 public abstract class PdfViewerActivity extends Activity {
 
     private static final int STARTPAGE = 1;

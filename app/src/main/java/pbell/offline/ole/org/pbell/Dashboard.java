@@ -40,6 +40,7 @@ package pbell.offline.ole.org.pbell;
     import java.util.Date;
     import java.util.Set;
 
+@SuppressWarnings("ALL")
 public class Dashboard extends AppCompatActivity {
         private BottomBar mBottomBar;
         private TextView mMessageView;

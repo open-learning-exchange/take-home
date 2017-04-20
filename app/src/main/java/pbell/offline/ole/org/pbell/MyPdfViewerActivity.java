@@ -6,6 +6,7 @@ package pbell.offline.ole.org.pbell;
 import net.sf.andpdf.pdfviewer.PdfViewerActivity;
 import android.os.Bundle;
 
+@SuppressWarnings("ALL")
 public class MyPdfViewerActivity extends PdfViewerActivity {
 
     /** Called when the activity is first created. */

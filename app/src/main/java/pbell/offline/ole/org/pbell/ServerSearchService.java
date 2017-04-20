@@ -45,6 +45,7 @@ import java.util.Set;
  * Created by leonardmensah on 30/03/2017.
  */
 
+@SuppressWarnings("ALL")
 public class ServerSearchService extends Service {
     private static final String TAG = "MYAPP";
     private Fuel ful = new Fuel();

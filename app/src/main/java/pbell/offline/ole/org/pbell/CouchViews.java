@@ -12,6 +12,7 @@ import java.util.Map;
 /**
  * Created by leonardmensah on 23/05/16.
  */
+@SuppressWarnings("ALL")
 public class CouchViews {
     public View CreateLoginByIdView(Database db) {
         View LoginByIdView = db.getView("MembersByLoginID");

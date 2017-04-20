@@ -11,6 +11,7 @@ package pbell.offline.ole.org.pbell;
         import com.android.volley.toolbox.ImageLoader;
         import com.android.volley.toolbox.Volley;
 
+@SuppressWarnings("ALL")
 public class AppController extends Application {
 
     public static final String TAG = AppController.class.getSimpleName();

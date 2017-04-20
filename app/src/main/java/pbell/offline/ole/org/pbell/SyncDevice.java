@@ -53,6 +53,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+@SuppressWarnings("ALL")
 public class SyncDevice extends AppCompatActivity {
     public static final String PREFS_NAME = "MyPrefsFile";
     SharedPreferences settings;

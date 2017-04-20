@@ -81,6 +81,7 @@ import android.util.Log;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
+@SuppressWarnings("ALL")
 public class FullscreenLogin extends AppCompatActivity {
     private View mContentView;
     private static final int REQUEST_READ_CONTACTS = 0;

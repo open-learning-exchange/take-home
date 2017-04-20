@@ -20,6 +20,7 @@ import com.android.volley.toolbox.ImageLoader;
 
 import java.util.List;
 
+@SuppressWarnings("ALL")
 public class CourceListCustomAdapter extends BaseAdapter {
     private Activity activity;
     private LayoutInflater inflater;

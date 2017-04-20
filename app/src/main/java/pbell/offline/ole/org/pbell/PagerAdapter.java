@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
+@SuppressWarnings("ALL")
 public class PagerAdapter extends FragmentStatePagerAdapter {
     int mNumOfTabs;
 

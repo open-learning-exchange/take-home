@@ -51,6 +51,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+@SuppressWarnings("ALL")
 public class NewSync extends AppCompatActivity {
 
     public static final String PREFS_NAME = "MyPrefsFile";

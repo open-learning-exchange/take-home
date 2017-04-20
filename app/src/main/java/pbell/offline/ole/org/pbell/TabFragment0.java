@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+@SuppressWarnings("ALL")
 public class TabFragment0 extends Fragment {
     TextView lblWelcome,lblNoResouces,lblVisits;
     View rootView;
