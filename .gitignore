@@ -72,3 +72,5 @@ captures/
 # Keystore files
 *.jks
 
+app/src/main/java/pbell/offline/ole/org/pbell/FullscreenActivity.java
+app/src/main/java/pbell/offline/ole/org/pbell/FullscreenLogin.java

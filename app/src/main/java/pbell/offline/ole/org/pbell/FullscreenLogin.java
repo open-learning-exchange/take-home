@@ -355,6 +355,7 @@ public class FullscreenLogin extends AppCompatActivity {
                      activitylog = manager.getDatabase("activitylog");
                      WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
                      String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+
                      Document doc = activitylog.getExistingDocument(m_WLANMAC);
                      Map<String, Object> properties = doc.getProperties();
                      // Update server resources with new ratings
@@ -611,7 +612,8 @@ public class FullscreenLogin extends AppCompatActivity {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             activityLog = manager.getDatabase("activitylog");
             WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-            String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+            //String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+            String m_WLANMAC = "mymac";
             Document retrievedDocument = activityLog.getDocument(m_WLANMAC);
             if (retrievedDocument != null) {
                 if (retrievedDocument.getProperties() != null) {
