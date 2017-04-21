@@ -1768,7 +1768,8 @@ public class FullscreenActivity extends AppCompatActivity {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             activityLog = manager.getDatabase("activitylog");
             WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-            String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+            //String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+            String m_WLANMAC = "mymac";
             Document retrievedDocument = activityLog.getDocument(m_WLANMAC);
             Map<String, Object> properties = retrievedDocument.getProperties();
             if ((ArrayList<String>) properties.get("female_opened") != null) {
