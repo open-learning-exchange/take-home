@@ -11,6 +11,7 @@ import java.util.ArrayList;
 /**
  * Created by leonardmensah on 24/05/16.
  */
+@SuppressWarnings("ALL")
 public class Members extends BaseAdapter implements Filterable {
 
     String code = null;

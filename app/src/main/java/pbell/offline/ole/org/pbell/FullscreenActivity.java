@@ -99,6 +99,7 @@ import java.util.concurrent.CountDownLatch;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static pbell.offline.ole.org.pbell.R.id.ratingBar;
 
+@SuppressWarnings("ALL")
 public class FullscreenActivity extends AppCompatActivity {
 
     private View mContentView;

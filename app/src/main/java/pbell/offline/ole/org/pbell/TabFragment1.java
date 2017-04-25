@@ -77,6 +77,7 @@ import com.googlecode.mp4parser.authoring.tracks.AppendTrack;
 import com.googlecode.mp4parser.authoring.tracks.CroppedTrack;
 import com.googlecode.mp4parser.authoring.tracks.TextTrackImpl;
 
+@SuppressWarnings("ALL")
 public class TabFragment1 extends Fragment {
 
     ListView list;

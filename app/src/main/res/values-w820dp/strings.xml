@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="launch_course">Launch Course</string>
     <string name="open_course">Open Course</string>
 </resources>

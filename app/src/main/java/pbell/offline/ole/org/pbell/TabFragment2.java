@@ -63,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@SuppressWarnings("ALL")
 public class TabFragment2 extends Fragment {
 
         ListView list;

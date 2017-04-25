@@ -15,9 +15,6 @@
     <string name="bbtext_MyLibrary">میری لائبریری</string>
     <string name="error_field_required">اس کو پر کرنا ضروری ہے</string>
     <string name="error_incorrect_password">یہ پاس ورڈ غلط ہے</string>
-    <string name="error_invalid_email">یہ ای میل ایڈریس درست نہیں ہے</string>
-    <string name="error_invalid_password">یہ پاس ورڈ کافی چھوٹا ہے </string>
-    <string name="frg1_LastVisitDate">آخری آمد کی تاریخ</string>
     <string name="frg1_OpenedRes">پڑھیے وسائل</string>
     <string name="frg1_Visits">دوروں کی تعداد</string>
     <string name="permission_rationale">"رابطے کی اجازتیں ای میل تکمیلات فراہم کرنے کے لئے کی ضرورت ہے . " </string>
@@ -28,10 +25,7 @@
     <string name="syncURL_saveButton">تبدیلیاں محفوظ کرو</string>
     <string name="sync_Headen">سرور کے ساتھ ہم آہنگ کریں ڈیوائس </string>
     <string name="sync_LastSyncDate">آخری مطابقت پذیری کی تاریخ </string>
-    <string name="sync_Now">مطابقت پذیری کے عمل کا آغاز</string>
     <string name="title_activity_login">داخلہ</string>
     <string name="title_activity_sync_device">مطابقت پذیری ڈیوائس</string>
-    <string name="troffy">ٹرافی</string>
-    <string name="launch_course">Launch Course</string>
     <string name="open_course">Open Course</string>
 </resources>

@@ -6,6 +6,7 @@ package pbell.offline.ole.org.pbell;
 
 import org.lightcouch.Document;
 
+@SuppressWarnings("ALL")
 public class Bar extends Document {
     private String bar;
 

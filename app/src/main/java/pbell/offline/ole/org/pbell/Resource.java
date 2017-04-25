@@ -5,6 +5,7 @@ import java.util.ArrayList;
 /**
  * Created by leonardmensah on 01/06/16.
  */
+@SuppressWarnings("ALL")
 public class Resource {
     private String title;
     private int thumbnailUrl;

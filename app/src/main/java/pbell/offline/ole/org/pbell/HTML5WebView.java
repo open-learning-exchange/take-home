@@ -20,6 +20,7 @@ import android.widget.FrameLayout;
 /**
  * Created by leonardmensah on 06/06/16.
  */
+@SuppressWarnings("ALL")
 public class HTML5WebView extends WebView {
 
     private Context mContext;

@@ -64,6 +64,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@SuppressWarnings("ALL")
 public class MemberListDownloadRes extends AppCompatActivity {
 
     MyCustomAdapter dataAdapter = null;
