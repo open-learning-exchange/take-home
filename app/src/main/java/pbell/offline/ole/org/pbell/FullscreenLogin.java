@@ -82,6 +82,7 @@ import android.util.Log;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
+@SuppressWarnings("ALL")
 public class FullscreenLogin extends AppCompatActivity {
     private View mContentView;
     private static final int REQUEST_READ_CONTACTS = 0;
@@ -613,7 +614,13 @@ public class FullscreenLogin extends AppCompatActivity {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             activityLog = manager.getDatabase("activitylog");
             @SuppressLint("WifiManagerLeak") WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-            String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+            //This is for setting the MAC address if it is being run in a android emulator.
+            String m_WLANMAC;
+            m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+            if(m_WLANMAC == null) {
+                m_WLANMAC = "mymac";
+            }
+
             Document retrievedDocument = activityLog.getDocument(m_WLANMAC);
             if (retrievedDocument != null) {
                 if (retrievedDocument.getProperties() != null) {

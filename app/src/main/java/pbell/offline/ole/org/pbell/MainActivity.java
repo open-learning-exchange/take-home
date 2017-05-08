@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
 
+@SuppressWarnings("ALL")
 public class MainActivity extends AppCompatActivity {
 
     /**

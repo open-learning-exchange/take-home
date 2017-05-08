@@ -5,6 +5,7 @@ import java.util.ArrayList;
 /**
  * Created by leonardmensah on 21/07/16.
  */
+@SuppressWarnings("ALL")
 public class CourseList {
 
         private String title;

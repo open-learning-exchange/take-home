@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 
 import android.widget.TextView;
 
+@SuppressWarnings("ALL")
 public class Course extends AppCompatActivity {
 
     /**

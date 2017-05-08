@@ -23,6 +23,7 @@ import static android.widget.Toast.*;
 /**
  * Created by leonardmensah on 17/05/16.
  */
+@SuppressWarnings("ALL")
 public class MyLibraryArrayAdapter extends ArrayAdapter<String> {
     private final Context context;
     ///private final String[] values;

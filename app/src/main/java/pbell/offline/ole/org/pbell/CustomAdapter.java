@@ -19,6 +19,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 /********* Adapter class extends with BaseAdapter and implements with OnClickListener ************/
+@SuppressWarnings("ALL")
 public class CustomAdapter extends BaseAdapter implements View.OnClickListener {
 
     /*********** Declare Used Variables *********/

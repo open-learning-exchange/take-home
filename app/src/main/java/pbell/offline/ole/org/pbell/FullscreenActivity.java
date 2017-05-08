@@ -101,6 +101,7 @@ import java.util.concurrent.CountDownLatch;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static pbell.offline.ole.org.pbell.R.id.ratingBar;
 
+@SuppressWarnings("ALL")
 public class FullscreenActivity extends AppCompatActivity {
 
     private View mContentView;
@@ -1875,6 +1876,12 @@ public class FullscreenActivity extends AppCompatActivity {
             activityLog = manager.getDatabase("activitylog");
             @SuppressLint("WifiManagerLeak") WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
             String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+            //This is for setting the MAC address if it is being run in a android emulator.
+            String m_WLANMAC;
+            m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+            if(m_WLANMAC == null) {
+                m_WLANMAC = "mymac";
+            }
             Document retrievedDocument = activityLog.getDocument(m_WLANMAC);
             Map<String, Object> properties = retrievedDocument.getProperties();
             if ((ArrayList<String>) properties.get("female_opened") != null) {
