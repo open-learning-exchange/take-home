@@ -1875,7 +1875,6 @@ public class FullscreenActivity extends AppCompatActivity {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             activityLog = manager.getDatabase("activitylog");
             @SuppressLint("WifiManagerLeak") WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-            String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
             //This is for setting the MAC address if it is being run in a android emulator.
             String m_WLANMAC;
             m_WLANMAC = wm.getConnectionInfo().getMacAddress();
