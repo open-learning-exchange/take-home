@@ -1,5 +1,6 @@
 package pbell.offline.ole.org.pbell;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
@@ -71,6 +72,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lightcouch.CouchDbClientAndroid;
@@ -118,7 +120,7 @@ public class FullscreenActivity extends AppCompatActivity {
     boolean synchronizing = true;
     JSONObject jsonData;
     Database dbResources;
-    int syncCnt, resourceNo, allresDownload, allhtmlDownload = 0;
+    int syncCnt, resourceNo,courseNo, allresDownload, allhtmlDownload = 0;
     AndroidContext androidContext;
     Replication pull;
     Manager manager;
@@ -135,10 +137,9 @@ public class FullscreenActivity extends AppCompatActivity {
     String onlinecouchresource;
 
     CouchViews chViews = new CouchViews();
-    String resourceIdList[];
-    String resourceTitleList[];
-    int rsLstCnt = 0;
-    Button[] libraryButtons;
+    String resourceIdList[],resourceTitleList[],courseIdList[],courseTitleList[];
+    int rsLstCnt,csLstCnt = 0;
+    Button[] libraryButtons,courseButtons;
     Dialog dialog2;
     String OneByOneResID = "";
     int resButtonId;
@@ -158,6 +159,8 @@ public class FullscreenActivity extends AppCompatActivity {
 
     private List<Resource> resourceList = new ArrayList<Resource>();
     private List<String> resIDArrayList = new ArrayList<String>();
+    private List<Resource> courseList = new ArrayList<Resource>();
+    private List<String> courseIDArrayList = new ArrayList<String>();
     private ListView listView;
     private CustomListAdapter adapter;
     Boolean calbackStatus, syncALLInOneStarted = false;
@@ -268,6 +271,7 @@ public class FullscreenActivity extends AppCompatActivity {
         resourceList.clear();
         resIDArrayList.clear();
         LoadShelfResourceList();
+        LoadCourseList();
 
         ///Update user info
         updateUI();
@@ -297,7 +301,7 @@ public class FullscreenActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 final Fuel ful = new Fuel();
-                final WifiManager wifiManager = (WifiManager) FullscreenActivity.this.getSystemService(Context.WIFI_SERVICE);
+                @SuppressLint("WifiManagerLeak") final WifiManager wifiManager = (WifiManager) FullscreenActivity.this.getSystemService(Context.WIFI_SERVICE);
                 mDialog = new ProgressDialog(context);
                 mDialog.setMessage("Opening Courses please wait...");
                 mDialog.setCancelable(true);
@@ -345,7 +349,7 @@ public class FullscreenActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 final Fuel ful = new Fuel();
-                final WifiManager wifiManager = (WifiManager) FullscreenActivity.this.getSystemService(Context.WIFI_SERVICE);
+                @SuppressLint("WifiManagerLeak") final WifiManager wifiManager = (WifiManager) FullscreenActivity.this.getSystemService(Context.WIFI_SERVICE);
                 mDialog = new ProgressDialog(context);
                 mDialog.setMessage("Opening Meetups please wait...");
                 mDialog.setCancelable(true);
@@ -401,7 +405,7 @@ public class FullscreenActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 final Fuel ful = new Fuel();
-                final WifiManager wifiManager = (WifiManager) FullscreenActivity.this.getSystemService(Context.WIFI_SERVICE);
+                @SuppressLint("WifiManagerLeak") final WifiManager wifiManager = (WifiManager) FullscreenActivity.this.getSystemService(Context.WIFI_SERVICE);
                 mDialog = new ProgressDialog(context);
                 mDialog.setMessage("Opening library please wait...");
                 mDialog.setCancelable(true);
@@ -466,7 +470,7 @@ public class FullscreenActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 final Fuel ful = new Fuel();
-                final WifiManager wifiManager = (WifiManager) FullscreenActivity.this.getSystemService(Context.WIFI_SERVICE);
+                @SuppressLint("WifiManagerLeak") final WifiManager wifiManager = (WifiManager) FullscreenActivity.this.getSystemService(Context.WIFI_SERVICE);
                 mDialog = new ProgressDialog(context);
                 mDialog.setMessage("Opening Course Progress please wait...");
                 mDialog.setCancelable(true);
@@ -762,6 +766,108 @@ public class FullscreenActivity extends AppCompatActivity {
             db.close();
 
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void LoadCourseList() {
+        String memberId = sys_usercouchId;
+        try {
+            //maximus
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database db = manager.getExistingDatabase("courses");
+            ///Database resource_Db = manager.getDatabase("resources");
+            Query orderedQuery = chViews.ReadCourses(db).createQuery();
+            orderedQuery.setDescending(true);
+            QueryEnumerator results = orderedQuery.run();
+            courseIdList = new String[results.getCount()];
+            courseTitleList = new String[results.getCount()];
+            csLstCnt = 0;
+            String mycourseId="";
+            String mycourseTitile;
+            String mycourseForgndColor="#000000";
+            String mycourseBackgndColor="#FFFFFF";
+            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document doc = db.getExistingDocument(docId);
+                Map<String, Object> properties = doc.getProperties();
+                ArrayList courseMembers = (ArrayList) properties.get("members");
+                for (int cnt = 0; cnt < courseMembers.size(); cnt++) {
+                    if (memberId.equals(courseMembers.get(cnt).toString())) {
+                        mycourseTitile = ((String) properties.get("CourseTitle"));
+                        mycourseId = ((String) properties.get("_id"));
+                        mycourseForgndColor = ((String) properties.get("foregroundColor"));
+                        mycourseBackgndColor = ((String) properties.get("backgroundColor"));
+                        courseIdList[csLstCnt] = mycourseId;
+                        courseTitleList[csLstCnt] = mycourseTitile;
+                        courseIDArrayList.add(mycourseId);
+                    }
+                }
+
+                manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database coursestep_Db = manager.getExistingDatabase("coursestep");
+                orderedQuery = chViews.ReadCourseSteps(coursestep_Db).createQuery();
+                orderedQuery.setDescending(true);
+                results = orderedQuery.run();
+                for (Iterator<QueryRow> item = results; item.hasNext(); ) {
+                    row = item.next();
+                    docId = (String) row.getValue();
+                    doc = coursestep_Db.getExistingDocument(docId);
+                    Map<String, Object> coursestep_properties = doc.getProperties();
+                    if (mycourseId.equals((String) coursestep_properties.get("members"))) {
+                        ArrayList course_step_resourceId = (ArrayList) coursestep_properties.get("resourceId");
+                        ArrayList course_step_resourceTitles = (ArrayList) coursestep_properties.get("resourceId");
+                        String course_step_title = (String) coursestep_properties.get("title");
+                        String course_step_id = (String) coursestep_properties.get("_id");
+                        String course_step_descr = (String) coursestep_properties.get("description");
+                        int course_step_No = (Integer) coursestep_properties.get("step");
+                    }
+                }
+                csLstCnt++;
+                coursestep_Db.close();
+            }
+
+            LinearLayout row3 = (LinearLayout) findViewById(R.id.layholder_courses);
+            courseButtons = new Button[csLstCnt];
+            for (int ButtonCnt = 0; ButtonCnt < csLstCnt; ButtonCnt++) {
+                courseButtons[ButtonCnt] = new Button(this);
+                courseButtons[ButtonCnt].setText(courseTitleList[ButtonCnt]);
+                courseButtons[ButtonCnt].setId(ButtonCnt);
+                courseButtons[ButtonCnt].setBackgroundColor(Color.parseColor(mycourseBackgndColor));
+                courseButtons[ButtonCnt].setTextColor(Color.parseColor(mycourseForgndColor));
+                courseButtons[ButtonCnt].setAllCaps(false);
+                courseButtons[ButtonCnt].setPadding(10, 5, 10, 5);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                    libraryButtons[ButtonCnt].setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                }
+                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(170, MATCH_PARENT);
+                layoutParams.setMargins(1, 0, 1, 0); // left, top, right, bottom
+                GradientDrawable drawable = new GradientDrawable();
+                drawable.setShape(GradientDrawable.RECTANGLE);
+                drawable.setStroke(2, Color.WHITE);
+                drawable.setCornerRadius(2);
+                drawable.setColor(getResources().getColor(R.color.ole_black_blue));
+                courseButtons[ButtonCnt].setBackgroundDrawable(drawable);
+                courseButtons[ButtonCnt].setLayoutParams(layoutParams);
+                row3.addView(courseButtons[ButtonCnt]);
+                courseButtons[ButtonCnt].setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (courseButtons[view.getId()].getCurrentTextColor() == getResources().getColor(R.color.ole_yellow)) {
+                            /// MaterialClickDialog(false, courseTitleList[view.getId()], courseIdList[view.getId()], view.getId());
+                        } else {
+
+                        }
+                    }
+
+                });
+            }
+                //////////// Save list in Preferences
+            db.close();
+
+        } catch (Exception e) {
+            Log.d("MyCouch", "Error loading courses");
             e.printStackTrace();
         }
     }
@@ -1768,15 +1874,13 @@ public class FullscreenActivity extends AppCompatActivity {
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             activityLog = manager.getDatabase("activitylog");
-            WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-
+            @SuppressLint("WifiManagerLeak") WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
             //This is for setting the MAC address if it is being run in a android emulator.
             String m_WLANMAC;
             m_WLANMAC = wm.getConnectionInfo().getMacAddress();
             if(m_WLANMAC == null) {
                 m_WLANMAC = "mymac";
             }
-
             Document retrievedDocument = activityLog.getDocument(m_WLANMAC);
             Map<String, Object> properties = retrievedDocument.getProperties();
             if ((ArrayList<String>) properties.get("female_opened") != null) {
@@ -1883,7 +1987,7 @@ public class FullscreenActivity extends AppCompatActivity {
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             activityLog = manager.getDatabase("activitylog");
-            WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+            @SuppressLint("WifiManagerLeak") WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
             String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
             Document retrievedDocument = activityLog.getDocument(m_WLANMAC);
             if (retrievedDocument != null) {

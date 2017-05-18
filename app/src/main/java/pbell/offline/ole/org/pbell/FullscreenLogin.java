@@ -1,5 +1,6 @@
 package pbell.offline.ole.org.pbell;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -103,7 +104,8 @@ public class FullscreenLogin extends AppCompatActivity {
     private ProgressDialog mDialog;
     JSONObject jsonServerData;
     final Context context = this;
-    String[] databaseList = {"members", "membercourseprogress", "meetups", "usermeetups", "assignments",
+    String[] databaseList = {"members", "meetups", "usermeetups", "assignments",
+            "assignmentpaper","courseanswer","coursequestion","courses","courseschedule","coursestep","membercourseprogress",
             "calendar", "groups", "invitations", "configurations", "requests", "shelf", "languages"};
     Replication[] push = new Replication[databaseList.length];
     Replication[] pull = new Replication[databaseList.length];
@@ -275,7 +277,7 @@ public class FullscreenLogin extends AppCompatActivity {
              try {
                  Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                  activitylog = manager.getDatabase("activitylog");
-                 WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+                 @SuppressLint("WifiManagerLeak") WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
                  String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
                  Document doc = activitylog.getExistingDocument(m_WLANMAC);
                  Map<String, Object> properties = doc.getProperties();
@@ -354,7 +356,7 @@ public class FullscreenLogin extends AppCompatActivity {
                  try {
                      Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                      activitylog = manager.getDatabase("activitylog");
-                     WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+                     @SuppressLint("WifiManagerLeak") WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
                      String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
                      Document doc = activitylog.getExistingDocument(m_WLANMAC);
                      Map<String, Object> properties = doc.getProperties();
@@ -611,8 +613,7 @@ public class FullscreenLogin extends AppCompatActivity {
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             activityLog = manager.getDatabase("activitylog");
-            WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-
+            @SuppressLint("WifiManagerLeak") WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
             //This is for setting the MAC address if it is being run in a android emulator.
             String m_WLANMAC;
             m_WLANMAC = wm.getConnectionInfo().getMacAddress();
@@ -661,7 +662,7 @@ public class FullscreenLogin extends AppCompatActivity {
 
     }
     public void getSyncURLDialog(){
-        final WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        @SuppressLint("WifiManagerLeak") final WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
         AlertDialog.Builder dialogB = new AlertDialog.Builder(this);
         dialogB.setView(R.layout.dialog_setup);
         dialogB.setCancelable(true);
@@ -743,7 +744,7 @@ public class FullscreenLogin extends AppCompatActivity {
         }
     }
     public void setDateDialog(){
-        final WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        @SuppressLint("WifiManagerLeak") final WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
         AlertDialog.Builder dialogB = new AlertDialog.Builder(this);
         dialogB.setView(R.layout.dialog_date);
         dialogB.setCancelable(true);
@@ -1482,7 +1483,7 @@ public class FullscreenLogin extends AppCompatActivity {
         try {
             Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database activitylog = manager.getDatabase("activitylog");
-            WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+            @SuppressLint("WifiManagerLeak") WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
             String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
             Document doc = activitylog.getDocument(m_WLANMAC);
             ///Map<String, Object> properties = doc.getProperties();
