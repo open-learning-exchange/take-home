@@ -11,7 +11,7 @@
     <color name="list_row_hover_start_color">#ebeef0</color>
     <color name="list_row_hover_end_color">#ebeef0</color>
 
-    <color name="white">#ffffffff</color>
+    <color name="white">#ffffff</color>
     <color name="black">#ff000000</color>
 
     <color name="black_overlay">#66000000</color>
@@ -24,4 +24,5 @@
     <color name="ole_black_blue">#34495e</color>
     <color name="ole_green_btn">#2ecc71</color>
     <color name="ole_blue_btn">#3498db</color>
+    <color name="UI_blue">#4ea2ca</color>
 </resources>

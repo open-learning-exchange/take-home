@@ -78,6 +78,8 @@ import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ImageButton;
+
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
@@ -125,7 +127,8 @@ public class FullscreenLogin extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_fullscreen_login_new);
+        ///setContentView(R.layout.activity_fullscreen_login_new);
+        setContentView(R.layout.new_activity_login);
         mContentView = findViewById(R.id.fullscreen_content2);
         ActionBar actionBar = getSupportActionBar();
         actionBar.hide();
@@ -133,6 +136,14 @@ public class FullscreenLogin extends AppCompatActivity {
         // Todo - : Decide on either to clear resource database and file storage anytime user syncs or rather keep old resources only if user doesn't change server url
         mUsername = (EditText) mContentView.findViewById(R.id.txtUsername);
         mPasswordView = (EditText) findViewById(R.id.txtPassword);
+        Button BecomMemberButton = (Button) findViewById(R.id.btnBecomeMember);
+        BecomMemberButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(context, Home.class);
+                startActivity(intent);
+            }
+        });
         Button SignInButton = (Button) findViewById(R.id.btnSignIn);
         SignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -149,7 +160,7 @@ public class FullscreenLogin extends AppCompatActivity {
                 }
             }
         });
-        Button SetupButton = (Button) findViewById(R.id.btnSetup);
+        ImageButton SetupButton = (ImageButton) findViewById(R.id.btnSetup);
         SetupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
