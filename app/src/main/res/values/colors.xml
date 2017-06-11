@@ -24,5 +24,6 @@
     <color name="ole_black_blue">#34495e</color>
     <color name="ole_green_btn">#2ecc71</color>
     <color name="ole_blue_btn">#3498db</color>
+    <color name="ole_yellow_btn">#ffd100</color>
     <color name="UI_blue">#4ea2ca</color>
 </resources>

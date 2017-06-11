@@ -359,7 +359,7 @@
                                         android:textColor="@color/ole_white" />
 
                                     <Button
-                                        android:id="@+id/button3"
+                                        android:id="@+id/btnLanguage"
                                         android:layout_width="0dp"
                                         android:layout_height="match_parent"
                                         android:layout_weight="1"

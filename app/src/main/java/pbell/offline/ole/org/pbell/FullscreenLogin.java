@@ -136,14 +136,24 @@ public class FullscreenLogin extends AppCompatActivity {
         // Todo - : Decide on either to clear resource database and file storage anytime user syncs or rather keep old resources only if user doesn't change server url
         mUsername = (EditText) mContentView.findViewById(R.id.txtUsername);
         mPasswordView = (EditText) findViewById(R.id.txtPassword);
-        Button BecomMemberButton = (Button) findViewById(R.id.btnBecomeMember);
-        BecomMemberButton.setOnClickListener(new View.OnClickListener() {
+        // New UI
+        Button BecomeMemberButton = (Button) findViewById(R.id.btnBecomeMember);
+        BecomeMemberButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(context, Home.class);
                 startActivity(intent);
             }
         });
+        Button Language = (Button) findViewById(R.id.btnLanguage);
+        Language.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(context, CustomizedListView.class);
+                startActivity(intent);
+            }
+        });
+        //
         Button SignInButton = (Button) findViewById(R.id.btnSignIn);
         SignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -160,6 +170,8 @@ public class FullscreenLogin extends AppCompatActivity {
                 }
             }
         });
+
+        // New UI
         ImageButton SetupButton = (ImageButton) findViewById(R.id.btnSetup);
         SetupButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -167,6 +179,7 @@ public class FullscreenLogin extends AppCompatActivity {
                 getSyncURLDialog();
             }
         });
+        //
 
         restorePref();
         copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
@@ -277,8 +290,8 @@ public class FullscreenLogin extends AppCompatActivity {
                      nwUpdateMemberVisits.setSumVisits(numOfVisits);
                      nwUpdateMemberVisits.execute("");
                  }
-                 Database dbResources = manager.getDatabase("visits");
-                 dbResources.delete();
+                 Database visitsdb = manager.getDatabase("visits");
+                 visitsdb.delete();
              } catch (Exception err) {
                  feedbackDialog.dismiss();
                  alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
@@ -865,7 +878,10 @@ public class FullscreenLogin extends AppCompatActivity {
         }catch(Exception err){
             Log.e("MYAPP", err.getMessage());
         }
-        startSyncProcess();
+        ResourcesJson rsj = new ResourcesJson();
+        if(rsj.ResourcesJson(sys_oldSyncServerURL,"resources",androidContext)){
+            startSyncProcess();
+        }
         ///// End creating design Document
     }
     public void emptyAllDbs() {

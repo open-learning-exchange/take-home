@@ -48,5 +48,6 @@ dependencies {
     compile 'org.lightcouch:lightcouch:0.1.8'
     compile 'org.webjars.npm:jsonparse:1.2.0'
     compile 'org.apache.httpcomponents:httpclient-android:4.3.5'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
     testCompile 'junit:junit:4.12'
 }
