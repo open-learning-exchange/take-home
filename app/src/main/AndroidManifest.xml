@@ -103,7 +103,12 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_home"
             android:theme="@style/FullscreenTheme" />
-        <activity android:name=".CustomizedListView"></activity>
+        <activity android:name=".CustomizedListView" />
+        <activity
+            android:name=".User_Dashboard"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_user__dashboard"
+            android:theme="@style/FullscreenTheme"></activity>
     </application>
 
 </manifest>

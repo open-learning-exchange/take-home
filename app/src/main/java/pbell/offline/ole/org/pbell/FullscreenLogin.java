@@ -149,7 +149,8 @@ public class FullscreenLogin extends AppCompatActivity {
         Language.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(context, CustomizedListView.class);
+                //Intent intent = new Intent(context, CustomizedListView.class);
+                Intent intent = new Intent(context, User_Dashboard.class);
                 startActivity(intent);
             }
         });
