@@ -50,7 +50,7 @@
                         android:weightSum="3">
 
                         <com.makeramen.roundedimageview.RoundedImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                            android:id="@+id/imageView1"
+                            android:id="@+id/imv_profile_photo"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:layout_marginLeft="30dp"
@@ -86,7 +86,7 @@
                             android:textStyle="bold" />
 
                         <TextView
-                            android:id="@+id/lbl_title"
+                            android:id="@+id/lbl_role"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -98,6 +98,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/lt_buttons"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="3.5"
@@ -105,6 +106,7 @@
                     android:weightSum="4">
 
                     <LinearLayout
+                        android:id="@+id/lt_buttons_row1"
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_marginTop="5dp"
@@ -114,6 +116,7 @@
                         android:weightSum="6">
 
                         <LinearLayout
+                            android:id="@+id/lt_language"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="2"
@@ -157,6 +160,7 @@
                         </LinearLayout>
 
                         <LinearLayout
+                            android:id="@+id/lt_badges"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="2"
@@ -173,7 +177,7 @@
                                 android:paddingTop="5dp">
 
                                 <ImageButton
-                                    android:id="@+id/imageButton2"
+                                    android:id="@+id/ibtn_Badges"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:layout_weight="1"
@@ -201,6 +205,7 @@
                         </LinearLayout>
 
                         <LinearLayout
+                            android:id="@+id/lt_survey"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="2"
@@ -216,7 +221,7 @@
                                 android:paddingTop="5dp">
 
                                 <ImageButton
-                                    android:id="@+id/imageButton3"
+                                    android:id="@+id/ibtn_Survay"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:layout_weight="1"
@@ -245,15 +250,16 @@
                     </LinearLayout>
 
                     <LinearLayout
-                        android:id="@+id/lbl_2"
+                        android:id="@+id/lt_buttons_row2"
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="2"
-                        android:orientation="horizontal"
                         android:background="@drawable/border"
+                        android:orientation="horizontal"
                         android:weightSum="6">
 
                         <LinearLayout
+                            android:id="@+id/lt_emails"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:layout_weight="2"
@@ -269,7 +275,7 @@
                                 android:paddingTop="5dp">
 
                                 <ImageButton
-                                    android:id="@+id/imageButton4"
+                                    android:id="@+id/ibtn_Emails"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:layout_weight="1"
@@ -301,10 +307,10 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:layout_weight="2"
+                            android:background="@drawable/border"
                             android:orientation="vertical"
                             android:paddingBottom="5dp"
-                            android:weightSum="4"
-                            android:background="@drawable/border">
+                            android:weightSum="4">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -314,7 +320,7 @@
                                 android:paddingTop="5dp">
 
                                 <ImageButton
-                                    android:id="@+id/imageButton5"
+                                    android:id="@+id/ibtn_Points"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:layout_weight="1"
@@ -342,6 +348,7 @@
                         </LinearLayout>
 
                         <LinearLayout
+                            android:id="@+id/lt_feedback"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:layout_weight="2"
@@ -357,7 +364,7 @@
                                 android:paddingTop="5dp">
 
                                 <ImageButton
-                                    android:id="@+id/imageButton6"
+                                    android:id="@+id/ibtn_Feedback"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:layout_weight="1"
@@ -387,6 +394,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/lt_hotMenu"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="6"
@@ -403,6 +411,7 @@
                         android:weightSum="6">
 
                         <LinearLayout
+                            android:id="@+id/lt_color_myLibrary"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_marginBottom="10dp"
@@ -445,7 +454,7 @@
                             android:orientation="horizontal">
 
                             <ImageButton
-                                android:id="@+id/imageButton8"
+                                android:id="@+id/ibtn_myLibrary"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
@@ -463,10 +472,11 @@
                             android:orientation="horizontal">
 
                             <TextView
-                                android:id="@+id/lbl_MyLibrary"
+                                android:id="@+id/lbl_myLibrary"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
+                                android:clickable="true"
                                 android:gravity="left|center"
                                 android:padding="7dp"
                                 android:text="@string/bbtext_MyLibrary"
@@ -485,6 +495,7 @@
                         android:weightSum="6">
 
                         <LinearLayout
+                            android:id="@+id/lt_color_myCourses"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_marginBottom="10dp"
@@ -507,7 +518,7 @@
                                 android:orientation="horizontal">
 
                                 <TextView
-                                    android:id="@+id/lbl_NumMyLibrary"
+                                    android:id="@+id/lbl_NumMyCourses"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
@@ -527,7 +538,7 @@
                             android:orientation="horizontal">
 
                             <ImageButton
-                                android:id="@+id/imageButton8"
+                                android:id="@+id/ibtn_myCourses"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
@@ -545,10 +556,11 @@
                             android:orientation="horizontal">
 
                             <TextView
-                                android:id="@+id/lbl_MyLibrary"
+                                android:id="@+id/lbl_myCourses"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
+                                android:clickable="true"
                                 android:gravity="left|center"
                                 android:padding="7dp"
                                 android:text="@string/bbtext_MyCourses"
@@ -567,6 +579,7 @@
                         android:weightSum="6">
 
                         <LinearLayout
+                            android:id="@+id/lt_color_myTeams"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_marginBottom="10dp"
@@ -589,7 +602,7 @@
                                 android:orientation="horizontal">
 
                                 <TextView
-                                    android:id="@+id/lbl_NumMyLibrary"
+                                    android:id="@+id/lbl_NumMyTeams"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
@@ -609,7 +622,7 @@
                             android:orientation="horizontal">
 
                             <ImageButton
-                                android:id="@+id/imageButton8"
+                                android:id="@+id/ibtn_myTeams"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
@@ -627,10 +640,11 @@
                             android:orientation="horizontal">
 
                             <TextView
-                                android:id="@+id/lbl_MyLibrary"
+                                android:id="@+id/lbl_myTeams"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
+                                android:clickable="true"
                                 android:gravity="left|center"
                                 android:padding="7dp"
                                 android:text="@string/bbtext_MyTeams"
@@ -649,6 +663,7 @@
                         android:weightSum="6">
 
                         <LinearLayout
+                            android:id="@+id/lt_color_myMeetups"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_marginBottom="10dp"
@@ -671,7 +686,7 @@
                                 android:orientation="horizontal">
 
                                 <TextView
-                                    android:id="@+id/lbl_NumMyLibrary"
+                                    android:id="@+id/lbl_NumMyMeetups"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
@@ -691,7 +706,7 @@
                             android:orientation="horizontal">
 
                             <ImageButton
-                                android:id="@+id/imageButton8"
+                                android:id="@+id/ibtn_myMeetups"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
@@ -709,10 +724,11 @@
                             android:orientation="horizontal">
 
                             <TextView
-                                android:id="@+id/lbl_MyLibrary"
+                                android:id="@+id/lbl_myMeetups"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
+                                android:clickable="true"
                                 android:gravity="left|center"
                                 android:padding="7dp"
                                 android:text="@string/bbtext_Meetups"
@@ -756,7 +772,7 @@
                             android:orientation="horizontal">
 
                             <ImageButton
-                                android:id="@+id/imageButton8"
+                                android:id="@+id/ibtn_Logout"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
@@ -778,6 +794,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
+                                android:clickable="true"
                                 android:gravity="left|center"
                                 android:padding="7dp"
                                 android:text="@string/txtLogout"
@@ -790,6 +807,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/lt_topBar"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="4.7"
@@ -814,7 +832,7 @@
                         android:paddingTop="3dp">
 
                         <ImageButton
-                            android:id="@+id/imageButton11"
+                            android:id="@+id/ibtn_PlanetLogo"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
@@ -839,6 +857,7 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
+                        android:clickable="true"
                         android:gravity="center_vertical|center_horizontal"
                         android:text="HOME"
                         android:textAlignment="center"
@@ -859,6 +878,7 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
+                        android:clickable="true"
                         android:gravity="center_vertical|center_horizontal"
                         android:text="LIBRARY"
                         android:textAlignment="center"
@@ -879,6 +899,7 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
+                        android:clickable="true"
                         android:gravity="center_vertical|center_horizontal"
                         android:text="COURSES"
                         android:textAlignment="center"
@@ -899,6 +920,7 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
+                        android:clickable="true"
                         android:gravity="center_vertical|center_horizontal"
                         android:text="MEETUPS"
                         android:textAlignment="center"
@@ -920,6 +942,7 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
+                        android:clickable="true"
                         android:gravity="center_vertical|center_horizontal"
                         android:text="MEMBERS"
                         android:textAlignment="center"
@@ -940,6 +963,7 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
+                        android:clickable="true"
                         android:gravity="center_vertical|center_horizontal"
                         android:text="REPORTS"
                         android:textAlignment="center"
@@ -960,6 +984,7 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
+                        android:clickable="true"
                         android:gravity="center_vertical|center_horizontal"
                         android:text="FEEDBACK"
                         android:textAlignment="center"
@@ -974,7 +999,7 @@
                     android:orientation="vertical">
 
                     <fragment
-                        android:id="@+id/fragment"
+                        android:id="@+id/fgm_ContentHolder"
                         android:name="pbell.offline.ole.org.pbell.TabFragment0"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent" />
