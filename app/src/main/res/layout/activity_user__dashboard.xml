@@ -801,7 +801,30 @@
                     android:layout_height="0dp"
                     android:layout_weight="1"
                     android:background="#0175eb"
-                    android:orientation="vertical"></LinearLayout>
+                    android:gravity="right"
+                    android:orientation="horizontal"
+                    android:weightSum="6">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="2"
+                        android:orientation="horizontal"
+                        android:paddingBottom="3dp"
+                        android:paddingTop="3dp">
+
+                        <ImageButton
+                            android:id="@+id/imageButton11"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@null"
+                            android:padding="3.5dp"
+                            android:paddingBottom="4dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/planet_learning_logo" />
+                    </LinearLayout>
+                </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
