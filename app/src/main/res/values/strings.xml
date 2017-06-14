@@ -19,9 +19,9 @@
 
     <!-- Bottom Bar Menu related to Dashboard -->
     <string name="bbtext_Achievments">Achievements</string>
-    <string name="bbtext_MyLibrary">My Library</string>
+    <string name="bbtext_MyLibrary">myLibrary</string>
     <string name="bbtext_Courses">Courses Progress</string>
-    <string name="bbtext_Meetups">My Meetups</string>
+    <string name="bbtext_Meetups">myMeetups</string>
 
     <!-- Strings related to Fragment 0 / Achievements -->
     <string name="frg1_Visits">Visits</string>
@@ -93,4 +93,6 @@
     <string name="dummy_content">DUMMY\nCONTENT</string>
 
     <string name="title_activity_user__dashboard">User_Dashboard</string>
+    <string name="bbtext_MyCourses">myCourses</string>
+    <string name="bbtext_MyTeams">myTeams</string>
 </resources>

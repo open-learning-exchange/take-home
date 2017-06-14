@@ -92,7 +92,8 @@
                             android:layout_weight="1"
                             android:gravity="bottom|center"
                             android:text="Lead Manager"
-                            android:textColor="@color/ole_white" />
+                            android:textColor="@color/ole_white"
+                            android:textSize="16sp" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -404,49 +405,388 @@
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
-                            android:layout_weight="2"
-                            android:orientation="horizontal"></LinearLayout>
+                            android:layout_marginBottom="10dp"
+                            android:layout_marginTop="10dp"
+                            android:layout_weight="1.7"
+                            android:background="@drawable/rounded_corners_right_red"
+                            android:gravity="right"
+                            android:orientation="horizontal"
+                            android:weightSum="5">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginBottom="3dp"
+                                android:layout_marginLeft="4dp"
+                                android:layout_marginRight="5dp"
+                                android:layout_marginTop="3dp"
+                                android:layout_weight="1.8"
+                                android:background="@drawable/rounded_corners_notification_white"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/lbl_NumMyLibrary"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:gravity="center_vertical|center_horizontal"
+                                    android:text="10"
+                                    android:textAlignment="center"
+                                    android:textColor="@color/black"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                        </LinearLayout>
 
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
-                            android:orientation="horizontal"></LinearLayout>
+                            android:orientation="horizontal">
+
+                            <ImageButton
+                                android:id="@+id/imageButton8"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:padding="3.5dp"
+                                android:paddingBottom="4dp"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/university" />
+                        </LinearLayout>
 
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
-                            android:layout_weight="3"
-                            android:orientation="horizontal"></LinearLayout>
+                            android:layout_weight="3.3"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/lbl_MyLibrary"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:gravity="left|center"
+                                android:padding="7dp"
+                                android:text="@string/bbtext_MyLibrary"
+                                android:textColor="@color/white"
+                                android:textSize="16sp" />
+                        </LinearLayout>
                     </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/lt_myCourses"
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="2"
+                        android:background="@drawable/border"
                         android:orientation="horizontal"
-                        android:background="@drawable/border"></LinearLayout>
+                        android:weightSum="6">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginBottom="10dp"
+                            android:layout_marginTop="10dp"
+                            android:layout_weight="1.7"
+                            android:background="@drawable/rounded_corners_right_yellow"
+                            android:gravity="right"
+                            android:orientation="horizontal"
+                            android:weightSum="5">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginBottom="3dp"
+                                android:layout_marginLeft="4dp"
+                                android:layout_marginRight="5dp"
+                                android:layout_marginTop="3dp"
+                                android:layout_weight="1.8"
+                                android:background="@drawable/rounded_corners_notification_white"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/lbl_NumMyLibrary"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:gravity="center_vertical|center_horizontal"
+                                    android:text="3"
+                                    android:textAlignment="center"
+                                    android:textColor="@color/black"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="horizontal">
+
+                            <ImageButton
+                                android:id="@+id/imageButton8"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:padding="3.5dp"
+                                android:paddingBottom="4dp"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/books" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="3.3"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/lbl_MyLibrary"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:gravity="left|center"
+                                android:padding="7dp"
+                                android:text="@string/bbtext_MyCourses"
+                                android:textColor="@color/white"
+                                android:textSize="16sp" />
+                        </LinearLayout>
+                    </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/lt_myTeams"
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="2"
+                        android:background="@drawable/border"
                         android:orientation="horizontal"
-                        android:background="@drawable/border"></LinearLayout>
+                        android:weightSum="6">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginBottom="10dp"
+                            android:layout_marginTop="10dp"
+                            android:layout_weight="1.7"
+                            android:background="@drawable/rounded_corners_right_green"
+                            android:gravity="right"
+                            android:orientation="horizontal"
+                            android:weightSum="5">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginBottom="3dp"
+                                android:layout_marginLeft="4dp"
+                                android:layout_marginRight="5dp"
+                                android:layout_marginTop="3dp"
+                                android:layout_weight="1.8"
+                                android:background="@drawable/rounded_corners_notification_white"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/lbl_NumMyLibrary"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:gravity="center_vertical|center_horizontal"
+                                    android:text="1"
+                                    android:textAlignment="center"
+                                    android:textColor="@color/black"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="horizontal">
+
+                            <ImageButton
+                                android:id="@+id/imageButton8"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:padding="3.5dp"
+                                android:paddingBottom="4dp"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/team" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="3.3"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/lbl_MyLibrary"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:gravity="left|center"
+                                android:padding="7dp"
+                                android:text="@string/bbtext_MyTeams"
+                                android:textColor="@color/white"
+                                android:textSize="16sp" />
+                        </LinearLayout>
+                    </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/lt_myMeetups"
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="2"
+                        android:background="@drawable/border"
                         android:orientation="horizontal"
-                        android:background="@drawable/border"></LinearLayout>
+                        android:weightSum="6">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginBottom="10dp"
+                            android:layout_marginTop="10dp"
+                            android:layout_weight="1.7"
+                            android:background="@drawable/rounded_corners_right_pink"
+                            android:gravity="right"
+                            android:orientation="horizontal"
+                            android:weightSum="5">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginBottom="3dp"
+                                android:layout_marginLeft="4dp"
+                                android:layout_marginRight="5dp"
+                                android:layout_marginTop="3dp"
+                                android:layout_weight="1.8"
+                                android:background="@drawable/rounded_corners_notification_white"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/lbl_NumMyLibrary"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:gravity="center_vertical|center_horizontal"
+                                    android:text="5"
+                                    android:textAlignment="center"
+                                    android:textColor="@color/black"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="horizontal">
+
+                            <ImageButton
+                                android:id="@+id/imageButton8"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:padding="3.5dp"
+                                android:paddingBottom="4dp"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/communication" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="3.3"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/lbl_MyLibrary"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:gravity="left|center"
+                                android:padding="7dp"
+                                android:text="@string/bbtext_Meetups"
+                                android:textColor="@color/white"
+                                android:textSize="16sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1.5"
-                    android:orientation="horizontal"></LinearLayout>
+                    android:orientation="horizontal"
+                    android:paddingTop="7dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="2"
+                        android:orientation="horizontal"
+                        android:weightSum="6">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginBottom="10dp"
+                            android:layout_marginTop="10dp"
+                            android:layout_weight="3"
+                            android:gravity="right"
+                            android:orientation="horizontal"
+                            android:weightSum="5">
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="horizontal">
+
+                            <ImageButton
+                                android:id="@+id/imageButton8"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:padding="3.5dp"
+                                android:paddingBottom="4dp"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/exit" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="2"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/lbl_Logout"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:gravity="left|center"
+                                android:padding="7dp"
+                                android:text="@string/txtLogout"
+                                android:textAllCaps="true"
+                                android:textColor="@color/white"
+                                android:textSize="14sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
             </LinearLayout>
 
             <LinearLayout

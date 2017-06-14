@@ -12,7 +12,7 @@
     <color name="list_row_hover_end_color">#ebeef0</color>
 
     <color name="white">#ffffff</color>
-    <color name="black">#ff000000</color>
+    <color name="black">#000000</color>
 
     <color name="black_overlay">#66000000</color>
     <color name="ole_blue">#3f75a3</color>
