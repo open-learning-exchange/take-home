@@ -998,11 +998,12 @@
                     android:background="@color/ole_white"
                     android:orientation="vertical">
 
-                    <fragment
-                        android:id="@+id/fgm_ContentHolder"
-                        android:name="pbell.offline.ole.org.pbell.TabFragment0"
+                    <FrameLayout
+                        android:id="@+id/fmlt_container"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
+                        android:layout_height="match_parent">
+
+                    </FrameLayout>
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>

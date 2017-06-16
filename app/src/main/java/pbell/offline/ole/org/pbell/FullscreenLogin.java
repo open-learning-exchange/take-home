@@ -149,7 +149,7 @@ public class FullscreenLogin extends AppCompatActivity {
         Language.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Intent intent = new Intent(context, CustomizedListView.class);
+                //Intent intent = new Intent(context, ListView_Library.class);
                 Intent intent = new Intent(context, User_Dashboard.class);
                 startActivity(intent);
             }
@@ -682,7 +682,7 @@ public class FullscreenLogin extends AppCompatActivity {
     public String todaysDate(){
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Calendar cal = Calendar.getInstance();
-        System.out.println(dateFormat.format(cal.getTime()));
+        Log.e("MyCouch", "System Date : " + dateFormat.format(cal.getTime()));
         return dateFormat.format(cal.getTime());
 
     }
@@ -1465,7 +1465,12 @@ public class FullscreenLogin extends AppCompatActivity {
                             Log.e("MyCouch", "Ended New Activity Resource -- ");
                             JsonArray resources_opened_Array = new JsonArray();
                             JsonElement resources_opened_Element = parser.parse(gson.toJson(cls_resources_opened));
-                            resources_opened_Array.addAll(resources_opened_Element.getAsJsonArray());
+                            try{
+                                resources_opened_Array.addAll(resources_opened_Element.getAsJsonArray());
+                            }catch (Exception err){
+                                Log.e("MyCouch", "Opened resources null " + err.getMessage());
+                                err.printStackTrace();
+                            }
                             Log.e("MyCouch", "Rating " + female_opened_Array);
                             jsonObject.addProperty("logDate", Serverdate);
                             jsonObject.addProperty("male_visits", cls_male_visits);
@@ -1482,6 +1487,7 @@ public class FullscreenLogin extends AppCompatActivity {
                             dbClient.save(jsonObject);
                         }catch(Exception err){
                             Log.e("MyCouch", "Error writing new activity log data "+ err.getMessage());
+                            err.printStackTrace();
                         }
                     }
                 }
@@ -1555,7 +1561,12 @@ public class FullscreenLogin extends AppCompatActivity {
             cls_View = view;
         }
         protected String doInBackground(String... urls) {
-            try {
+            Calendar c = Calendar.getInstance();
+            SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+            Serverdate = df.format(c.getTime());
+            Log.e("MyCouch", "Current Date: "+Serverdate.toString());
+
+            /*try {
                 URI uri = URI.create(sys_oldSyncServerURL);
                 String url_Scheme = uri.getScheme();
                 String url_Host = uri.getHost();
@@ -1582,6 +1593,8 @@ public class FullscreenLogin extends AppCompatActivity {
                 Log.e("MyCouch", "error getting date "+e.getMessage());
                 return null;
             }
+            */
+            return "";
         }
         protected void onPostExecute(String message) {
             // TODO: check this.exception

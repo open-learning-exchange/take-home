@@ -11,6 +11,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.LayerDrawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,14 +22,15 @@ import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
-public class ListviewAdapter  extends BaseAdapter {
+public class ListViewAdapter_Library extends BaseAdapter {
 
     private Activity activity;
     private ArrayList<HashMap<String, String>> data;
     private static LayoutInflater inflater=null;
     public ImageLoader imageLoader;
+    private static final String TAG = "MYAPP";
 
-    public ListviewAdapter(Activity a, ArrayList<HashMap<String, String>> d) {
+    public ListViewAdapter_Library(Activity a, ArrayList<HashMap<String, String>> d) {
         activity = a;
         data=d;
         inflater = (LayoutInflater)activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -50,7 +52,7 @@ public class ListviewAdapter  extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         View vi=convertView;
         if(convertView==null)
-            vi = inflater.inflate(R.layout.listview_row, null);
+            vi = inflater.inflate(R.layout.listview_row_library, null);
 
         TextView title = (TextView)vi.findViewById(R.id.list_title); // title
         TextView description = (TextView)vi.findViewById(R.id.list_desc); // description
@@ -71,22 +73,40 @@ public class ListviewAdapter  extends BaseAdapter {
         material = data.get(position);
 
                 // Setting all values in listview
-        title.setText(material.get(CustomizedListView.KEY_TITLE));
-        description.setText(material.get(CustomizedListView.KEY_DESCRIPTION));
+        title.setText(material.get(ListView_Library.KEY_TITLE));
+        description.setText(material.get(ListView_Library.KEY_DESCRIPTION));
         details.setText("Details");
-        ///details.setText(material.get(CustomizedListView.KEY_DETAILS));
+        details.setTag(material.get(ListView_Library.KEY_DETAILS));
+        details.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(TAG, "Details Clicked ********** "+v.getTag());
+            }
+        });
         feedback.setText("Feedback");
-        ///feedback.setText(material.get(CustomizedListView.KEY_FEEDBACK));
+        feedback.setTag(material.get(ListView_Library.KEY_FEEDBACK));
+        feedback.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(TAG, "Feedback Clicked ********** "+v.getTag());
+            }
+        });
         delete.setText("Delete");
-        ///delete.setText(material.get(CustomizedListView.KEY_DELETE));
-        ratingAvgNum.setText(""+material.get(CustomizedListView.KEY_RATING));
-        ratingStars.setRating(Float.parseFloat(""+material.get(CustomizedListView.KEY_RATING)));
-        totalNum.setText(material.get(CustomizedListView.KEY_TOTALNUM_RATING));
+        delete.setTag(material.get(ListView_Library.KEY_DELETE));
+        delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(TAG, "Delete Clicked ********** "+v.getTag());
+            }
+        });
+        ratingAvgNum.setText(""+material.get(ListView_Library.KEY_RATING));
+        ratingStars.setRating(Float.parseFloat(""+material.get(ListView_Library.KEY_RATING)));
+        totalNum.setText(material.get(ListView_Library.KEY_TOTALNUM_RATING));
         femalerating.setProgress(Integer.parseInt("1"));
-        //femalerating.setProgress(Integer.parseInt(material.get(CustomizedListView.KEY_FEMALE_RATING)));
+        //femalerating.setProgress(Integer.parseInt(material.get(ListView_Library.KEY_FEMALE_RATING)));
         malerating.setProgress(Integer.parseInt("1"));
-        //malerating.setProgress(Integer.parseInt(material.get(CustomizedListView.KEY_MALE_RATING)));
-        imageLoader.DisplayImage(material.get(CustomizedListView.KEY_THUMB_URL), thumb_image);
+        //malerating.setProgress(Integer.parseInt(material.get(ListView_Library.KEY_MALE_RATING)));
+        imageLoader.DisplayImage(material.get(ListView_Library.KEY_THUMB_URL), thumb_image);
         return vi;
     }
 }

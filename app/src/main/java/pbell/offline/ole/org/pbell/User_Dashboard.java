@@ -1,24 +1,29 @@
 package pbell.offline.ole.org.pbell;
 
-import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v4.app.FragmentActivity;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
-import android.os.Handler;
+import android.text.TextUtils;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.couchbase.lite.Database;
+import com.couchbase.lite.Document;
+import com.couchbase.lite.Manager;
+import com.couchbase.lite.Query;
+import com.couchbase.lite.QueryEnumerator;
+import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -40,13 +45,15 @@ public class User_Dashboard extends FragmentActivity {
     /// String
     String sys_oldSyncServerURL, sys_username, sys_lastSyncDate,
             sys_password, sys_usercouchId, sys_userfirstname, sys_userlastname,
-            sys_usergender, sys_uservisits, sys_servername, sys_serverversion, doc_lastVisit, sys_NewDate = "";
+            sys_usergender, sys_uservisits, sys_servername, sys_serverversion = "";
+    String doc_lastVisit, sys_NewDate, profile_membersRoles="";
     /// Integer
-    int sys_uservisits_Int;
+    int sys_uservisits_Int,myLibraryItemCount,myCoursesItemCount;
     //// Boolean
     Boolean sys_singlefilestreamdownload, sys_multiplefilestreamdownload;
     //// Object
     Object[] sys_membersWithResource;
+    Activity activity;
 
     ///Others
     SharedPreferences settings;
@@ -61,15 +68,22 @@ public class User_Dashboard extends FragmentActivity {
         setContentView(R.layout.activity_user__dashboard);
         mControlsView = findViewById(R.id.fullscreen_content_controls);
         androidContext = new AndroidContext(this);
+        activity = this;
+
         initiateLayoutMaterials();
         initiateOnClickActions();
         restorePreferences();
         loadUIDynamicText();
+
+        TabFragment0 tF0 = new TabFragment0();
+        tF0.setArguments(getIntent().getExtras());
+        getSupportFragmentManager().beginTransaction().add(R.id.fmlt_container, tF0).commit();
     }
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
     }
+
     public void initiateLayoutMaterials(){
         btnBadges = (ImageButton) findViewById(R.id.ibtn_Badges);
         btnSurvay = (ImageButton) findViewById(R.id.ibtn_Survay);
@@ -264,6 +278,15 @@ public class User_Dashboard extends FragmentActivity {
             @Override
             public void onClick(View viewIn) {
                 try {
+                    // Create fragment and give it an argument specifying the article it should show
+                    ListView_Library newFragment = new ListView_Library();
+                    Bundle args = new Bundle();
+                    args.putInt("Arg1",1);
+                    newFragment.setArguments(args);
+                    FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                    transaction.replace(R.id.fmlt_container, newFragment);
+                    transaction.addToBackStack(null);
+                    transaction.commit();
                 } catch (Exception except) {
                     Log.d(TAG,"Library click action error "+except.getMessage());
                 }
@@ -345,9 +368,9 @@ public class User_Dashboard extends FragmentActivity {
     }
     public void loadUIDynamicText(){
         lbl_Name.setText(getUserName());
-       // lbl_Role.setText(getUserRole());
-        lbl_NumMyLibrary.setText(getUserMyLibraryNum());
-        lbl_NumMyCourse.setText(getUserMyCourseNum());
+        lbl_Role.setText(String.valueOf(getUserRole()));
+        lbl_NumMyLibrary.setText(String.valueOf(getUserMyLibraryNum()));
+        lbl_NumMyCourse.setText(String.valueOf(getUserMyCourseNum()));
         lbl_NumMyTeams.setText(getUserMyTeamsNum());
         lbl_NumMyMeetups.setText(getUserMtMeetupsNum());
     }
@@ -359,13 +382,70 @@ public class User_Dashboard extends FragmentActivity {
         }
     }
     public String getUserRole(){
-        return "0";
+        String memberId = sys_usercouchId;
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database db_members = manager.getExistingDatabase("members");
+            Document members_doc = db_members.getExistingDocument(memberId);
+            Map<String, Object> members_doc_properties = members_doc.getProperties();
+            ArrayList membersRoles = (ArrayList) members_doc_properties.get("roles");
+            profile_membersRoles = TextUtils.join(" - ", membersRoles);
+            return profile_membersRoles;
+        }catch(Exception except){
+            Log.d(TAG,"Counting MyLibrary resources error "+except.getMessage());
+            return  "-";
+        }
     }
-    public String getUserMyLibraryNum(){
-        return "0";
+    public Integer getUserMyLibraryNum(){
+        String memberId = sys_usercouchId;
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database db_shelf = manager.getExistingDatabase("shelf");
+            Query orderedQuery = chViews.ReadShelfByIdView(db_shelf).createQuery();
+            orderedQuery.setDescending(true);
+            QueryEnumerator results = orderedQuery.run();
+            myLibraryItemCount = 0;
+            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document shelf_doc = db_shelf.getExistingDocument(docId);
+                Map<String, Object> shelf_doc_properties = shelf_doc.getProperties();
+                if (memberId.equals((String) shelf_doc_properties.get("memberId"))) {
+                    myLibraryItemCount++;
+                }
+            }
+            return  myLibraryItemCount;
+        }catch(Exception except){
+            Log.d(TAG,"Counting MyLibrary resources error "+except.getMessage());
+            return  0;
+        }
     }
-    public String getUserMyCourseNum(){
-        return "0";
+    public Integer getUserMyCourseNum(){
+        String memberId = sys_usercouchId;
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database db_courses = manager.getExistingDatabase("courses");
+            Query orderedQuery = chViews.ReadCourses(db_courses).createQuery();
+            orderedQuery.setDescending(true);
+            QueryEnumerator results = orderedQuery.run();
+            myCoursesItemCount = 0;
+            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document courses_doc = db_courses.getExistingDocument(docId);
+                Map<String, Object> courses_doc_properties = courses_doc.getProperties();
+                ArrayList courseMembers = (ArrayList) courses_doc_properties.get("members");
+                for (int cnt = 0; cnt < courseMembers.size(); cnt++) {
+                    if (memberId.equals(courseMembers.get(cnt).toString())) {
+                        myCoursesItemCount++;
+                    }
+                }
+            }
+            return  myCoursesItemCount;
+        }catch(Exception except){
+            Log.d(TAG,"Counting MyLibrary resources error "+except.getMessage());
+            return  0;
+        }
     }
     public String getUserMyTeamsNum(){
         return "0";
@@ -381,7 +461,5 @@ public class User_Dashboard extends FragmentActivity {
             Log.e("MYAPP", " Creating Service error "+error.getMessage());
         }
     }
-
-
 }
 

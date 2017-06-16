@@ -1,25 +1,19 @@
 package pbell.offline.ole.org.pbell;
 
-import android.app.Dialog;
-import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
-import android.media.MediaPlayer;
-import android.net.Uri;
-import android.os.Build;
-import android.support.v7.app.AppCompatActivity;
+import android.content.res.AssetManager;
+import android.support.v4.app.Fragment;
 import android.os.Bundle;
 /*
-public class CustomizedListView extends AppCompatActivity {
+public class ListView_Library extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_customized_list_view);
+        setContentView(R.layout.listview_universal);
     }
 }
 */
@@ -30,24 +24,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import org.json.JSONObject;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
-import android.app.Activity;
-import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Manager;
@@ -55,13 +38,8 @@ import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
-import com.couchbase.lite.replicator.Replication;
-import com.github.kittinunf.fuel.android.core.Json;
-import com.google.gson.JsonObject;
 
-import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-
-public class CustomizedListView extends AppCompatActivity {
+public class ListView_Library extends Fragment {
    // static final String URL = "http://api.androidhive.info/music/music.xml";
     static final String KEY_MATERIALS = "materials"; // parent node
     static final String KEY_ID = "id";
@@ -75,8 +53,9 @@ public class CustomizedListView extends AppCompatActivity {
     static final String KEY_FEMALE_RATING = "0";
     static final String KEY_MALE_RATING = "0";
     static final String KEY_THUMB_URL = "thumb_url";
-    final Context context = this;
+    Context context;
     public static final String PREFS_NAME = "MyPrefsFile";
+    public static final String USERNAME = "";
     SharedPreferences settings;
     private static final String TAG = "MYAPP";
     String sys_oldSyncServerURL, sys_username, sys_lastSyncDate,
@@ -93,20 +72,22 @@ public class CustomizedListView extends AppCompatActivity {
     int rsLstCnt,csLstCnt = 0;
     static Intent intent;
     Database database;
+    AssetManager assetManager;
 
     private List<String> resIDArrayList = new ArrayList<String>();
     ListView list;
-    ListviewAdapter adapter;
+    ListViewAdapter_Library adapter;
     ArrayList<HashMap<String, String>> materialList;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_customized_list_view);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        context = container.getContext();
+        assetManager = getActivity().getAssets();
+        View rootView = inflater.inflate(R.layout.listview_universal, container, false);
 
         materialList = new ArrayList<HashMap<String, String>>();
 
-        androidContext = new AndroidContext(this);
+        androidContext = new AndroidContext(container.getContext());
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
         } catch (IOException e) {
@@ -115,27 +96,18 @@ public class CustomizedListView extends AppCompatActivity {
         restorePref();
         LoadShadowResourceList();
 
-       list=(ListView)findViewById(R.id.material_list);
-
-        // Getting adapter by passing xml data ArrayList
-        adapter=new ListviewAdapter(this, materialList);
+        list=(ListView)rootView.findViewById(R.id.material_list);
+        adapter=new ListViewAdapter_Library(getActivity(), materialList);
         list.setAdapter(adapter);
-/*
-        // Click event for single list row
-        list.setOnItemClickListener(new OnItemClickListener() {
-
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-
-
+            public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
             }
         });
-        */
+
+        return rootView;
     }
     public void LoadShadowResourceList() {
-       /// String memberId = sys_usercouchId;
-        String memberId = "fc02805c02a99e1c6c0a643bc200db8a";
             try {
                 Database shadowres = manager.getDatabase("shadowresources");
                 Query orderedQuery = chViews.ReadMemberVisitsId(shadowres).createQuery();
@@ -171,9 +143,11 @@ public class CustomizedListView extends AppCompatActivity {
                             "Subject : "+android.text.TextUtils.join(",", (ArrayList) resource_properties.get("subject")) + "  Resource Type : " +(String) resource_properties.get("resourceType") + " \n" +
                             "Date Uploaded : "+(String) resource_properties.get("uploadDate") + "  ";
                     map.put(KEY_DESCRIPTION, buildDecript);
-                    map.put(KEY_DETAILS, "");
-                    map.put(KEY_FEEDBACK, "");
-                    map.put(KEY_DELETE, "");
+                    // Button Actions
+                    map.put(KEY_DETAILS,((String) resource_properties.get("_id")));
+                    map.put(KEY_FEEDBACK, ((String) resource_properties.get("_id")));
+                    map.put(KEY_DELETE, ((String) resource_properties.get("_id")));
+
                     map.put(KEY_RATING, (((String) resource_properties.get("averageRating")) == "")? "2.2" : (String) resource_properties.get("averageRating"));
                     map.put(KEY_TOTALNUM_RATING, "Rating  ("+resource_properties.get("averageRating")+")");
                     map.put(KEY_FEMALE_RATING, "");
@@ -349,7 +323,7 @@ public class CustomizedListView extends AppCompatActivity {
     }
     public void restorePref(){
         // Restore preferences
-        settings = getSharedPreferences(PREFS_NAME, 0);
+        settings = getActivity().getSharedPreferences(PREFS_NAME, 0);
         sys_username = settings.getString("pf_username","");
         sys_oldSyncServerURL = settings.getString("pf_sysncUrl","http://");
         sys_lastSyncDate = settings.getString("pf_lastSyncDate","");
