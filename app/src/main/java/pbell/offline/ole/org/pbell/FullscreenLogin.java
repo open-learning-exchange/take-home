@@ -583,7 +583,6 @@ public class FullscreenLogin extends AppCompatActivity {
                 editor.putString("pf_server_nation", Server_nationName);
                 editor.putString("pf_server_version", Server_version);
                 editor.commit();
-
             }
             db.close();
             return true;

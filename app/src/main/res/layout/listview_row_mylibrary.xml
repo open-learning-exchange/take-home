@@ -9,7 +9,6 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:weightSum="5">
-
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -39,7 +38,7 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="3.5"
+            android:layout_weight="3.2"
             android:orientation="vertical"
             android:weightSum="6">
 
@@ -66,35 +65,50 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="3"
+                android:layout_weight="2"
                 android:orientation="horizontal"
                 android:weightSum="4">
 
                 <Button
-                    android:id="@+id/btn_listVewDetails"
+                    android:id="@+id/btn_listDelete"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="30dp"
+                    android:layout_marginLeft="10dp"
                     android:layout_marginRight="10dp"
                     android:layout_weight="1"
+                    android:background="@drawable/listview_selector"
+                    android:text="Delete"
+                    android:textAllCaps="true" />
+
+                <Button
+                    android:id="@+id/btn_listVewDetails"
+                    android:layout_width="wrap_content"
+                    android:layout_height="30dp"
+                    android:layout_marginRight="10dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/listview_selector"
                     android:text="View Details" />
 
                 <Button
                     android:id="@+id/btn_listFeedback"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="30dp"
                     android:layout_marginLeft="10dp"
                     android:layout_marginRight="10dp"
                     android:layout_weight="1"
+                    android:background="@drawable/listview_selector"
                     android:text="Feedback" />
 
                 <Button
-                    android:id="@+id/btn_listDelete"
+                    android:id="@+id/btn_listOpen"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="30dp"
                     android:layout_marginLeft="10dp"
                     android:layout_marginRight="10dp"
                     android:layout_weight="1"
-                    android:text="Delete" />
+                    android:background="@drawable/listview_selector"
+                    android:text="Open"
+                    android:textAllCaps="true" />
 
             </LinearLayout>
 
@@ -103,7 +117,8 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_marginLeft="20dp"
+            android:layout_weight="1.2"
             android:orientation="vertical"
             android:weightSum="6">
 
@@ -111,7 +126,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_gravity="center_vertical|center_horizontal"
-                android:layout_weight="2"
+                android:layout_weight="2.3"
                 android:orientation="horizontal">
 
                 <RatingBar
@@ -123,7 +138,7 @@
                     android:numStars="5"
                     android:rating=".1"
                     android:scaleX="1"
-                    android:scaleY="1"
+                    android:scaleY="0.8"
                     android:transformPivotX="0dp"
                     android:transformPivotY="0dp" />
             </LinearLayout>
@@ -131,8 +146,8 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_marginTop="10dp"
-                android:layout_weight="2"
+                android:layout_weight="1.7"
+                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
                 <TextView
@@ -152,7 +167,7 @@
                     android:background="@drawable/rounded_corners_yellow"
                     android:text="4.2"
                     android:textAlignment="center"
-                    android:textSize="20sp"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
             </LinearLayout>
 

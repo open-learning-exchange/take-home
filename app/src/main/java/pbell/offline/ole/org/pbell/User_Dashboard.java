@@ -1,18 +1,30 @@
 package pbell.offline.ole.org.pbell;
 
 import android.app.Activity;
+import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.net.Uri;
+import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
+import android.support.v4.content.IntentCompat;
+import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.couchbase.lite.Attachment;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.Manager;
@@ -20,9 +32,24 @@ import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
+import com.github.kittinunf.fuel.Fuel;
+import com.github.kittinunf.fuel.core.FuelError;
+import com.github.kittinunf.fuel.core.Request;
+import com.github.kittinunf.fuel.core.Response;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,23 +59,27 @@ import java.util.Set;
  */
 public class User_Dashboard extends FragmentActivity {
     private View mControlsView;
-    String TAG = "UserDashboard";
+    String TAG = "MYAPP";
     public static final String PREFS_NAME = "MyPrefsFile";
 
+    //// Declare LinearLayouts
+    LinearLayout lt_myLibrary, lt_myCourses, lt_myTeams, lt_myMembers;
+
     //// Declare Image Buttons
-    ImageButton btnBadges,btnSurvay,btnEmails,btnPoints,btnFeedback,
-            btnMyLibrary,btnMyCourses,btnMyTeams,btnMyMeetups,btnLogout,btnPlanetLogo;
+    ImageButton btnBadges, btnSurvay, btnEmails, btnPoints, btnFeedback,
+            btnMyLibrary, btnMyCourses, btnMyTeams, btnMyMeetups, btnLogout, btnPlanetLogo;
     //// TextView
-    TextView lblMyLibrary,lblMyCourses,lblMyTeams,lblMyMeetups,lblLogout,
-            lblHome,lblLibrary,lblCourses,lblMeetups,lblMembers,lblReports,lblFeedback,
-            lbl_Name,lbl_Role,lbl_NumMyLibrary, lbl_NumMyCourse,lbl_NumMyTeams,lbl_NumMyMeetups;
+    TextView lblMyLibrary, lblMyCourses, lblMyTeams, lblMyMeetups, lblLogout,
+            lblHome, lblLibrary, lblCourses, lblMeetups, lblMembers, lblReports, lblFeedback,
+            lbl_Name, lbl_Role, lbl_NumMyLibrary, lbl_NumMyCourse, lbl_NumMyTeams, lbl_NumMyMeetups;
     /// String
     String sys_oldSyncServerURL, sys_username, sys_lastSyncDate,
             sys_password, sys_usercouchId, sys_userfirstname, sys_userlastname,
             sys_usergender, sys_uservisits, sys_servername, sys_serverversion = "";
-    String doc_lastVisit, sys_NewDate, profile_membersRoles="";
+    String doc_lastVisit, sys_NewDate, profile_membersRoles = "";
+    String resourceIdTobeOpened;
     /// Integer
-    int sys_uservisits_Int,myLibraryItemCount,myCoursesItemCount;
+    int sys_uservisits_Int, myLibraryItemCount, myCoursesItemCount;
     //// Boolean
     Boolean sys_singlefilestreamdownload, sys_multiplefilestreamdownload;
     //// Object
@@ -58,9 +89,12 @@ public class User_Dashboard extends FragmentActivity {
     ///Others
     SharedPreferences settings;
     CouchViews chViews = new CouchViews();
+    LogHouse logHouse = new LogHouse();
     Intent serviceIntent;
     AndroidContext androidContext;
     final Context context = this;
+    private ProgressDialog mDialog;
+    Dialog openResourceDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,12 +113,13 @@ public class User_Dashboard extends FragmentActivity {
         tF0.setArguments(getIntent().getExtras());
         getSupportFragmentManager().beginTransaction().add(R.id.fmlt_container, tF0).commit();
     }
+
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
     }
 
-    public void initiateLayoutMaterials(){
+    public void initiateLayoutMaterials() {
         btnBadges = (ImageButton) findViewById(R.id.ibtn_Badges);
         btnSurvay = (ImageButton) findViewById(R.id.ibtn_Survay);
         btnEmails = (ImageButton) findViewById(R.id.ibtn_Emails);
@@ -97,33 +132,39 @@ public class User_Dashboard extends FragmentActivity {
         btnLogout = (ImageButton) findViewById(R.id.ibtn_Logout);
         btnPlanetLogo = (ImageButton) findViewById(R.id.ibtn_PlanetLogo);
 
-        lblMyLibrary = (TextView)findViewById(R.id.lbl_myLibrary);
-        lblMyCourses = (TextView)findViewById(R.id.lbl_myCourses);
-        lblMyTeams = (TextView)findViewById(R.id.lbl_myTeams);
-        lblMyMeetups = (TextView)findViewById(R.id.lbl_myMeetups);
-        lblLogout = (TextView)findViewById(R.id.lbl_Logout);
-        lblHome = (TextView)findViewById(R.id.lbl_home);
-        lblLibrary = (TextView)findViewById(R.id.lbl_library);
-        lblCourses = (TextView)findViewById(R.id.lbl_courses);
-        lblMeetups = (TextView)findViewById(R.id.lbl_meetups);
-        lblMembers = (TextView)findViewById(R.id.lbl_members);
-        lblReports = (TextView)findViewById(R.id.lbl_reports);
-        lblFeedback = (TextView)findViewById(R.id.lbl_feedback);
+        lblMyLibrary = (TextView) findViewById(R.id.lbl_myLibrary);
+        lblMyCourses = (TextView) findViewById(R.id.lbl_myCourses);
+        lblMyTeams = (TextView) findViewById(R.id.lbl_myTeams);
+        lblMyMeetups = (TextView) findViewById(R.id.lbl_myMeetups);
+        lblLogout = (TextView) findViewById(R.id.lbl_Logout);
+        lblHome = (TextView) findViewById(R.id.lbl_home);
+        lblLibrary = (TextView) findViewById(R.id.lbl_library);
+        lblCourses = (TextView) findViewById(R.id.lbl_courses);
+        lblMeetups = (TextView) findViewById(R.id.lbl_meetups);
+        lblMembers = (TextView) findViewById(R.id.lbl_members);
+        lblReports = (TextView) findViewById(R.id.lbl_reports);
+        lblFeedback = (TextView) findViewById(R.id.lbl_feedback);
 
-        lbl_Name = (TextView)findViewById(R.id.lbl_name);
-        lbl_Role = (TextView)findViewById(R.id.lbl_role);
-        lbl_NumMyLibrary = (TextView)findViewById(R.id.lbl_NumMyLibrary);
-        lbl_NumMyCourse = (TextView)findViewById(R.id.lbl_NumMyCourses);
-        lbl_NumMyTeams = (TextView)findViewById(R.id.lbl_NumMyTeams);
-        lbl_NumMyMeetups = (TextView)findViewById(R.id.lbl_NumMyMeetups);
+        lbl_Name = (TextView) findViewById(R.id.lbl_name);
+        lbl_Role = (TextView) findViewById(R.id.lbl_role);
+        lbl_NumMyLibrary = (TextView) findViewById(R.id.lbl_NumMyLibrary);
+        lbl_NumMyCourse = (TextView) findViewById(R.id.lbl_NumMyCourses);
+        lbl_NumMyTeams = (TextView) findViewById(R.id.lbl_NumMyTeams);
+        lbl_NumMyMeetups = (TextView) findViewById(R.id.lbl_NumMyMeetups);
+
+        lt_myLibrary = (LinearLayout) findViewById(R.id.lt_myLibrary);
+        lt_myCourses = (LinearLayout) findViewById(R.id.lt_myCourses);
+        lt_myTeams = (LinearLayout) findViewById(R.id.lt_myTeams);
+        lt_myMembers = (LinearLayout) findViewById(R.id.lt_myMeetups);
     }
-    public void initiateOnClickActions(){
+
+    public void initiateOnClickActions() {
         btnBadges.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 try {
                 } catch (Exception except) {
-                    Log.d(TAG,"Badges click action error "+except.getMessage());
+                    Log.d(TAG, "Badges click action error " + except.getMessage());
                 }
             }
         });
@@ -132,7 +173,7 @@ public class User_Dashboard extends FragmentActivity {
             public void onClick(View view) {
                 try {
                 } catch (Exception except) {
-                    Log.d(TAG,"Survay click action error "+except.getMessage());
+                    Log.d(TAG, "Survay click action error " + except.getMessage());
                 }
             }
         });
@@ -141,7 +182,7 @@ public class User_Dashboard extends FragmentActivity {
             public void onClick(View view) {
                 try {
                 } catch (Exception except) {
-                    Log.d(TAG,"Emails click action error "+except.getMessage());
+                    Log.d(TAG, "Emails click action error " + except.getMessage());
                 }
             }
         });
@@ -150,7 +191,7 @@ public class User_Dashboard extends FragmentActivity {
             public void onClick(View view) {
                 try {
                 } catch (Exception except) {
-                    Log.d(TAG,"Points click action error "+except.getMessage());
+                    Log.d(TAG, "Points click action error " + except.getMessage());
                 }
             }
         });
@@ -159,7 +200,7 @@ public class User_Dashboard extends FragmentActivity {
             public void onClick(View view) {
                 try {
                 } catch (Exception except) {
-                    Log.d(TAG,"Feedback click action error "+except.getMessage());
+                    Log.d(TAG, "Feedback click action error " + except.getMessage());
                 }
             }
         });
@@ -167,8 +208,9 @@ public class User_Dashboard extends FragmentActivity {
             @Override
             public void onClick(View view) {
                 try {
+                    openMyLibrary();
                 } catch (Exception except) {
-                    Log.d(TAG,"MyLibrary click action error "+except.getMessage());
+                    Log.d(TAG, "MyLibrary click action error " + except.getMessage());
                 }
             }
         });
@@ -177,7 +219,7 @@ public class User_Dashboard extends FragmentActivity {
             public void onClick(View view) {
                 try {
                 } catch (Exception except) {
-                    Log.d(TAG,"MyCourses click action error "+except.getMessage());
+                    Log.d(TAG, "MyCourses click action error " + except.getMessage());
                 }
             }
         });
@@ -186,7 +228,7 @@ public class User_Dashboard extends FragmentActivity {
             public void onClick(View view) {
                 try {
                 } catch (Exception except) {
-                    Log.d(TAG,"MyTeams click action error "+except.getMessage());
+                    Log.d(TAG, "MyTeams click action error " + except.getMessage());
                 }
             }
         });
@@ -195,7 +237,7 @@ public class User_Dashboard extends FragmentActivity {
             public void onClick(View view) {
                 try {
                 } catch (Exception except) {
-                    Log.d(TAG,"MyMeetups click action error "+except.getMessage());
+                    Log.d(TAG, "MyMeetups click action error " + except.getMessage());
                 }
             }
         });
@@ -204,7 +246,7 @@ public class User_Dashboard extends FragmentActivity {
             public void onClick(View view) {
                 try {
                 } catch (Exception except) {
-                    Log.d(TAG,"Logout click action error "+except.getMessage());
+                    Log.d(TAG, "Logout click action error " + except.getMessage());
                 }
             }
         });
@@ -213,7 +255,7 @@ public class User_Dashboard extends FragmentActivity {
             public void onClick(View view) {
                 try {
                 } catch (Exception except) {
-                    Log.d(TAG,"PlanetLogo click action error "+except.getMessage());
+                    Log.d(TAG, "PlanetLogo click action error " + except.getMessage());
                 }
             }
         });
@@ -224,8 +266,9 @@ public class User_Dashboard extends FragmentActivity {
             @Override
             public void onClick(View viewIn) {
                 try {
+                    openMyLibrary();
                 } catch (Exception except) {
-                    Log.d(TAG,"MyLibrary click action error "+except.getMessage());
+                    Log.d(TAG, "MyLibrary click action error " + except.getMessage());
                 }
             }
         });
@@ -234,7 +277,7 @@ public class User_Dashboard extends FragmentActivity {
             public void onClick(View viewIn) {
                 try {
                 } catch (Exception except) {
-                    Log.d(TAG,"MyCourses click action error "+except.getMessage());
+                    Log.d(TAG, "MyCourses click action error " + except.getMessage());
                 }
             }
         });
@@ -243,7 +286,7 @@ public class User_Dashboard extends FragmentActivity {
             public void onClick(View viewIn) {
                 try {
                 } catch (Exception except) {
-                    Log.d(TAG,"MyTeams click action error "+except.getMessage());
+                    Log.d(TAG, "MyTeams click action error " + except.getMessage());
                 }
             }
         });
@@ -251,8 +294,9 @@ public class User_Dashboard extends FragmentActivity {
             @Override
             public void onClick(View viewIn) {
                 try {
+
                 } catch (Exception except) {
-                    Log.d(TAG,"MyMeetups click action error "+except.getMessage());
+                    Log.d(TAG, "MyMeetups click action error " + except.getMessage());
                 }
             }
         });
@@ -261,7 +305,7 @@ public class User_Dashboard extends FragmentActivity {
             public void onClick(View viewIn) {
                 try {
                 } catch (Exception except) {
-                    Log.d(TAG,"Logout click action error "+except.getMessage());
+                    Log.d(TAG, "Logout click action error " + except.getMessage());
                 }
             }
         });
@@ -270,7 +314,7 @@ public class User_Dashboard extends FragmentActivity {
             public void onClick(View viewIn) {
                 try {
                 } catch (Exception except) {
-                    Log.d(TAG,"Home click action error "+except.getMessage());
+                    Log.d(TAG, "Home click action error " + except.getMessage());
                 }
             }
         });
@@ -278,17 +322,9 @@ public class User_Dashboard extends FragmentActivity {
             @Override
             public void onClick(View viewIn) {
                 try {
-                    // Create fragment and give it an argument specifying the article it should show
-                    ListView_Library newFragment = new ListView_Library();
-                    Bundle args = new Bundle();
-                    args.putInt("Arg1",1);
-                    newFragment.setArguments(args);
-                    FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                    transaction.replace(R.id.fmlt_container, newFragment);
-                    transaction.addToBackStack(null);
-                    transaction.commit();
+                    openLibrary();
                 } catch (Exception except) {
-                    Log.d(TAG,"Library click action error "+except.getMessage());
+                    Log.d(TAG, "Library click action error " + except.getMessage());
                 }
             }
         });
@@ -297,7 +333,7 @@ public class User_Dashboard extends FragmentActivity {
             public void onClick(View viewIn) {
                 try {
                 } catch (Exception except) {
-                    Log.d(TAG,"Courses click action error "+except.getMessage());
+                    Log.d(TAG, "Courses click action error " + except.getMessage());
                 }
             }
         });
@@ -306,7 +342,7 @@ public class User_Dashboard extends FragmentActivity {
             public void onClick(View viewIn) {
                 try {
                 } catch (Exception except) {
-                    Log.d(TAG,"Meetups click action error "+except.getMessage());
+                    Log.d(TAG, "Meetups click action error " + except.getMessage());
                 }
             }
         });
@@ -315,7 +351,7 @@ public class User_Dashboard extends FragmentActivity {
             public void onClick(View viewIn) {
                 try {
                 } catch (Exception except) {
-                    Log.d(TAG,"Members click action error "+except.getMessage());
+                    Log.d(TAG, "Members click action error " + except.getMessage());
                 }
             }
         });
@@ -324,7 +360,7 @@ public class User_Dashboard extends FragmentActivity {
             public void onClick(View viewIn) {
                 try {
                 } catch (Exception except) {
-                    Log.d(TAG,"Reports click action error "+except.getMessage());
+                    Log.d(TAG, "Reports click action error " + except.getMessage());
                 }
             }
         });
@@ -333,40 +369,42 @@ public class User_Dashboard extends FragmentActivity {
             public void onClick(View viewIn) {
                 try {
                 } catch (Exception except) {
-                    Log.d(TAG,"Feedback click action error "+except.getMessage());
+                    Log.d(TAG, "Feedback click action error " + except.getMessage());
                 }
             }
         });
 
 
     }
-    public void restorePreferences(){
+
+    public void restorePreferences() {
         settings = getSharedPreferences(PREFS_NAME, 0);
-        sys_username = settings.getString("pf_username","");
-        sys_oldSyncServerURL = settings.getString("pf_sysncUrl","http://");
-        sys_lastSyncDate = settings.getString("pf_lastSyncDate","");
-        sys_password = settings.getString("pf_password","");
-        sys_usercouchId = settings.getString("pf_usercouchId","");
-        sys_userfirstname = settings.getString("pf_userfirstname","");
-        sys_userlastname = settings.getString("pf_userlastname","");
-        sys_usergender = settings.getString("pf_usergender","");
-        sys_uservisits = settings.getString("pf_uservisits","");;
-        sys_uservisits_Int = settings.getInt("pf_uservisits_Int",0);
-        sys_singlefilestreamdownload =settings.getBoolean("pf_singlefilestreamdownload",true);
-        sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload",true);
-        sys_servername = settings.getString("pf_server_name"," ");
-        sys_serverversion = settings.getString("pf_server_version"," ");
+        sys_username = settings.getString("pf_username", "");
+        sys_oldSyncServerURL = settings.getString("pf_sysncUrl", "http://");
+        sys_lastSyncDate = settings.getString("pf_lastSyncDate", "");
+        sys_password = settings.getString("pf_password", "");
+        sys_usercouchId = settings.getString("pf_usercouchId", "");
+        sys_userfirstname = settings.getString("pf_userfirstname", "");
+        sys_userlastname = settings.getString("pf_userlastname", "");
+        sys_usergender = settings.getString("pf_usergender", "");
+        sys_uservisits = settings.getString("pf_uservisits", "");
+        sys_uservisits_Int = settings.getInt("pf_uservisits_Int", 0);
+        sys_singlefilestreamdownload = settings.getBoolean("pf_singlefilestreamdownload", true);
+        sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload", true);
+        sys_servername = settings.getString("pf_server_name", " ");
+        sys_serverversion = settings.getString("pf_server_version", " ");
         loadUIDynamicText();
-        Set<String> mwr = settings.getStringSet("membersWithResource",null);
-        try{
+        Set<String> mwr = settings.getStringSet("membersWithResource", null);
+        try {
             sys_membersWithResource = mwr.toArray();
-            Log.e(TAG, " membersWithResource  = "+sys_membersWithResource.length);
-        }catch(Exception err){
+            Log.e(TAG, " membersWithResource  = " + sys_membersWithResource.length);
+        } catch (Exception err) {
             Log.e(TAG, " Error creating  sys_membersWithResource");
         }
         runBackgroundService();
     }
-    public void loadUIDynamicText(){
+
+    public void loadUIDynamicText() {
         lbl_Name.setText(getUserName());
         lbl_Role.setText(String.valueOf(getUserRole()));
         lbl_NumMyLibrary.setText(String.valueOf(getUserMyLibraryNum()));
@@ -374,14 +412,16 @@ public class User_Dashboard extends FragmentActivity {
         lbl_NumMyTeams.setText(getUserMyTeamsNum());
         lbl_NumMyMeetups.setText(getUserMtMeetupsNum());
     }
-    public String getUserName(){
-        if(sys_username!=""){
-            return sys_userfirstname + " " +sys_userlastname;
-        }else{
+
+    public String getUserName() {
+        if (sys_username != "") {
+            return sys_userfirstname + " " + sys_userlastname;
+        } else {
             return "";
         }
     }
-    public String getUserRole(){
+
+    public String getUserRole() {
         String memberId = sys_usercouchId;
         try {
             Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
@@ -391,12 +431,13 @@ public class User_Dashboard extends FragmentActivity {
             ArrayList membersRoles = (ArrayList) members_doc_properties.get("roles");
             profile_membersRoles = TextUtils.join(" - ", membersRoles);
             return profile_membersRoles;
-        }catch(Exception except){
-            Log.d(TAG,"Counting MyLibrary resources error "+except.getMessage());
-            return  "-";
+        } catch (Exception except) {
+            Log.d(TAG, "Counting MyLibrary resources error " + except.getMessage());
+            return "-";
         }
     }
-    public Integer getUserMyLibraryNum(){
+
+    public Integer getUserMyLibraryNum() {
         String memberId = sys_usercouchId;
         try {
             Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
@@ -414,13 +455,14 @@ public class User_Dashboard extends FragmentActivity {
                     myLibraryItemCount++;
                 }
             }
-            return  myLibraryItemCount;
-        }catch(Exception except){
-            Log.d(TAG,"Counting MyLibrary resources error "+except.getMessage());
-            return  0;
+            return myLibraryItemCount;
+        } catch (Exception except) {
+            Log.d(TAG, "Counting MyLibrary resources error " + except.getMessage());
+            return 0;
         }
     }
-    public Integer getUserMyCourseNum(){
+
+    public Integer getUserMyCourseNum() {
         String memberId = sys_usercouchId;
         try {
             Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
@@ -441,25 +483,507 @@ public class User_Dashboard extends FragmentActivity {
                     }
                 }
             }
-            return  myCoursesItemCount;
-        }catch(Exception except){
-            Log.d(TAG,"Counting MyLibrary resources error "+except.getMessage());
-            return  0;
+            return myCoursesItemCount;
+        } catch (Exception except) {
+            Log.d(TAG, "Counting MyLibrary resources error " + except.getMessage());
+            return 0;
         }
     }
-    public String getUserMyTeamsNum(){
+
+    public String getUserMyTeamsNum() {
         return "0";
     }
-    public String getUserMtMeetupsNum(){
+
+    public String getUserMtMeetupsNum() {
         return "0";
     }
-    public void runBackgroundService(){
-        try{
-            serviceIntent = new Intent(context,ServerSearchService.class);
+
+    public void alertDialogOkay(String Message) {
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
+        builder1.setMessage(Message);
+        builder1.setCancelable(true);
+        builder1.setNegativeButton("Okay",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert11 = builder1.create();
+        alert11.show();
+    }
+
+    public boolean deleteDirectory(File path) {
+        if (path.exists()) {
+            if (path.isDirectory()) {
+                File[] files = path.listFiles();
+                for (int i = 0; i < files.length; i++) {
+                    deleteDirectory(files[i]);
+                }
+            }
+            return path.delete();
+        }
+
+        return false;
+    }
+
+    public void runBackgroundService() {
+        try {
+            serviceIntent = new Intent(context, ServerSearchService.class);
             context.stopService(serviceIntent);
-        }catch(Exception error) {
-            Log.e("MYAPP", " Creating Service error "+error.getMessage());
+        } catch (Exception error) {
+            Log.e("MYAPP", " Creating Service error " + error.getMessage());
         }
     }
+
+    public void resetActiveButton() {
+        lt_myLibrary.setBackgroundColor(Color.TRANSPARENT);
+        lt_myLibrary.setBackgroundDrawable(getResources().getDrawable(R.drawable.border));
+        lt_myCourses.setBackgroundColor(Color.TRANSPARENT);
+        lt_myCourses.setBackgroundDrawable(getResources().getDrawable(R.drawable.border));
+        lt_myTeams.setBackgroundColor(Color.TRANSPARENT);
+        lt_myTeams.setBackgroundDrawable(getResources().getDrawable(R.drawable.border));
+        lt_myMembers.setBackgroundColor(Color.TRANSPARENT);
+        lt_myMembers.setBackgroundDrawable(getResources().getDrawable(R.drawable.border));
+        lblHome.setTextColor(getResources().getColor(R.color.ole_white));
+        lblLibrary.setTextColor(getResources().getColor(R.color.ole_white));
+        lblCourses.setTextColor(getResources().getColor(R.color.ole_white));
+        lblMeetups.setTextColor(getResources().getColor(R.color.ole_white));
+        lblMembers.setTextColor(getResources().getColor(R.color.ole_white));
+        lblReports.setTextColor(getResources().getColor(R.color.ole_white));
+        lblFeedback.setTextColor(getResources().getColor(R.color.ole_white));
+    }
+
+    public void openLibrary() {
+        ListView_Library newFragment = new ListView_Library();
+        Bundle args = new Bundle();
+        args.putInt("Arg1", 1);
+        newFragment.setArguments(args);
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fmlt_container, newFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
+        ///Show as active
+        resetActiveButton();
+        lblLibrary.setTextColor(getResources().getColor(R.color.ole_yellow));
+    }
+
+    public void openMyLibrary() {
+        ListView_myLibrary fg_myLibrary = new ListView_myLibrary();
+        Bundle args = new Bundle();
+        args.putInt("Arg1", 1);
+        fg_myLibrary.setArguments(args);
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fmlt_container, fg_myLibrary);
+        transaction.addToBackStack(null);
+        transaction.commit();
+        ///Show as active
+        resetActiveButton();
+        lt_myLibrary.setBackgroundColor(getResources().getColor(R.color.ole_blueLine));
+    }
+
+    public Boolean openResources(String id) {
+        resourceIdTobeOpened = id;
+        Log.d(TAG, "Trying to open resource " + id);
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database res_Db = manager.getExistingDatabase("resources");
+            Document res_doc = res_Db.getExistingDocument(resourceIdTobeOpened);
+            String openwith = (String) res_doc.getProperty("openWith");
+            String openResName = (String) res_doc.getProperty("title");
+            ///openFromDiskDirectly = true;
+            logHouse.updateActivityOpenedResources(this, sys_usercouchId, resourceIdTobeOpened, openResName);
+            Log.e("MYAPP", " member opening resource  = " + resourceIdTobeOpened + " and Open with " + openwith);
+            List<String> attmentNames = res_doc.getCurrentRevision().getAttachmentNames();
+/////HTML
+            if (openwith.equalsIgnoreCase("HTML")) {
+               /* indexFilePath = null;
+                if (attmentNames.size() > 1) {
+                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                        downloadHTMLContent(resourceIdTobeOpened, (String) attmentNames.get(cnt));
+                    }
+                    if (indexFilePath != null) {
+                        openHTML(indexFilePath);
+                    }
+                } else {
+                    openImage(resourceIdTobeOpened, (String) attmentNames.get(0), getExtension(attmentNames.get(0)));
+                }*/
+////PDF
+            } else if (openwith.equalsIgnoreCase("Just download")) {
+                //// Todo work to get just download
+            } else if (openwith.equalsIgnoreCase("PDF.js")) {
+                Log.e("MyCouch", " Command Video name -:  " + resourceIdTobeOpened);
+                String filenameOnly = "";
+                String root = Environment.getExternalStorageDirectory().toString();
+                File myDir = new File(root + "/ole_temp");
+                for (File f : myDir.listFiles()) {
+                    if (f.isFile()) {
+                        if (f.getName().indexOf(".") > 0) {
+                            filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
+                        }
+                        Log.e("MyCouch", " File name -:  " + f.getName() + " Filename only " + filenameOnly);
+                        if (filenameOnly.equalsIgnoreCase(resourceIdTobeOpened)) {
+                            try {
+                                mDialog.dismiss();
+                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                intent.setPackage("com.adobe.reader");
+                                intent.setDataAndType(Uri.fromFile(f), "application/pdf");
+                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                startActivity(intent);
+                            } catch (Exception err) {
+                                myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
+                                File dst = new File(myDir, "adobe_reader.apk");
+                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                            }
+                        }
+                    }
+                }
+
+////MP3
+            } else if (openwith.equalsIgnoreCase("MP3")) {
+                Log.e("MyCouch", " Command Video name -:  " + resourceIdTobeOpened);
+                String filenameOnly = "";
+                String root = Environment.getExternalStorageDirectory().toString();
+                File myDir = new File(root + "/ole_temp");
+                for (File f : myDir.listFiles()) {
+                    if (f.isFile()) {
+                        if (f.getName().indexOf(".") > 0) {
+                            filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
+                        }
+                        Log.e("MyCouch", " File name -:  " + f.getName() + " Filename only " + filenameOnly);
+                        if (filenameOnly.equalsIgnoreCase(resourceIdTobeOpened)) {
+                            mDialog.dismiss();
+                            Intent intent = new Intent();
+                            intent.setAction(Intent.ACTION_VIEW);
+                            String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(f).toString());
+                            String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                            intent.setDataAndType(Uri.fromFile(f), mimetype);
+                            this.startActivity(intent);
+                        }
+                    }
+                }
+/// BELL READER
+            } else if (openwith.equalsIgnoreCase("Bell-Reader")) {
+                Log.e("MyCouch", " Command Video name -:  " + resourceIdTobeOpened);
+                String filenameOnly = "";
+                String root = Environment.getExternalStorageDirectory().toString();
+                File myDir = new File(root + "/ole_temp");
+                for (File f : myDir.listFiles()) {
+                    if (f.isFile()) {
+                        if (f.getName().indexOf(".") > 0) {
+                            filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
+                        }
+                        Log.e("MyCouch", " File name -:  " + f.getName() + " Filename only " + filenameOnly);
+                        if (filenameOnly.equalsIgnoreCase(resourceIdTobeOpened)) {
+                            try {
+                                mDialog.dismiss();
+                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                intent.setPackage("com.adobe.reader");
+                                intent.setDataAndType(Uri.fromFile(f), "application/pdf");
+                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                startActivity(intent);
+                            } catch (Exception err) {
+                                myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
+                                File dst = new File(myDir, "adobe_reader.apk");
+                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                            }
+                        }
+                    }
+                }
+/////VIDEO
+            } else if (openwith.equalsIgnoreCase("Flow Video Player")) {
+                Log.e("MyCouch", " Command Video name -:  " + resourceIdTobeOpened);
+                String filenameOnly = "";
+                String root = Environment.getExternalStorageDirectory().toString();
+                File myDir = new File(root + "/ole_temp");
+                for (File f : myDir.listFiles()) {
+                    if (f.isFile()) {
+                        if (f.getName().indexOf(".") > 0) {
+                            filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
+                        }
+                        Log.e("MyCouch", " File name -:  " + f.getName() + " Filename only " + filenameOnly);
+                        if (filenameOnly.equalsIgnoreCase(resourceIdTobeOpened)) {
+                            mDialog.dismiss();
+                            Intent intent = new Intent();
+                            intent.setAction(Intent.ACTION_VIEW);
+                            String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(f).toString());
+                            String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                            intent.setDataAndType(Uri.fromFile(f), mimetype);
+                            this.startActivity(intent);
+                        }
+                    }
+                }
+            }
+//// Video Book Player
+            else if (openwith.equalsIgnoreCase("BeLL Video Book Player")) {
+            }
+            /// Native Video
+            else if (openwith.equalsIgnoreCase("Native Video")) {
+                Log.e("MyCouch", " Command Video name -:  " + resourceIdTobeOpened);
+                String filenameOnly = "";
+                String root = Environment.getExternalStorageDirectory().toString();
+                File myDir = new File(root + "/ole_temp");
+                for (File f : myDir.listFiles()) {
+                    if (f.isFile()) {
+                        if (f.getName().indexOf(".") > 0) {
+                            filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
+                        }
+                        Log.e("MyCouch", " File name -:  " + f.getName() + " Filename only " + filenameOnly);
+                        if (filenameOnly.equalsIgnoreCase(resourceIdTobeOpened)) {
+                            mDialog.dismiss();
+                            Intent intent = new Intent();
+                            intent.setAction(Intent.ACTION_VIEW);
+                            String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(f).toString());
+                            String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                            intent.setDataAndType(Uri.fromFile(f), mimetype);
+                            this.startActivity(intent);
+                        }
+                    }
+                }
+            }
+        } catch (Exception Er) {
+            Log.d("MyCouch", "Opening resource error " + Er.getMessage());
+        }
+        return true;
+    }
+
+    public Boolean downloadResources(String resId) {
+        /*clicked_rs_status = online;
+        clicked_rs_title = title;
+        clicked_rs_ID = resId;
+        resButtonId = buttonPressedId;*/
+        AlertDialog.Builder dialogB2 = new AlertDialog.Builder(context);
+        // custom dialog
+        dialogB2.setView(R.layout.dialog_prompt_resource_location);
+        dialogB2.setCancelable(true);
+        openResourceDialog = dialogB2.create();
+        openResourceDialog.show();
+        TextView txtResourceId = (TextView) openResourceDialog.findViewById(R.id.txtResourceID);
+        ///////////txtResourceId.setText(title);
+        //// Open material online
+        Button dialogBtnOpenFileOnline = (Button) openResourceDialog.findViewById(R.id.btnOpenOnline);
+        /*dialogBtnOpenFileOnline.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Todo Open resource in a browser
+                dialog2.dismiss();
+                OneByOneResID = clicked_rs_ID;
+                Fuel ful = new Fuel();
+                onlinecouchresource = sys_oldSyncServerURL + "/resources/" + OneByOneResID;
+                ful.get(sys_oldSyncServerURL + "/resources/" + OneByOneResID).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+                    @Override
+                    public void success(Request request, Response response, String s) {
+                        try {
+                            try {
+                                /// alertDialogOkay(OneByOneResID+"");
+                                openFromOnlineServer = true;
+                                jsonData = new JSONObject(s);
+                                String openWith = (String) jsonData.get("openWith");
+                                Log.e("MyCouch", "Open With -- " + openWith);
+                                JSONObject _attachments = (JSONObject) jsonData.get("_attachments");
+                                if (!openWith.equalsIgnoreCase("HTML")) {
+                                    Iterator<String> keys = _attachments.keys();
+                                    if (keys.hasNext()) {
+                                        String key = (String) keys.next();
+                                        String encodedkey = URLEncoder.encode(key, "utf-8");
+                                        onlinecouchresource = onlinecouchresource + "/" + encodedkey;
+                                        mDialog.dismiss();
+                                        openHTML(onlinecouchresource);
+                                    }
+                                } else {
+                                    if (_attachments.length() <= 1) {
+                                        Iterator<String> keys = _attachments.keys();
+                                        if (keys.hasNext()) {
+                                            String key = (String) keys.next();
+                                            String encodedkey = URLEncoder.encode(key, "utf-8");
+                                            onlinecouchresource = onlinecouchresource + "/" + encodedkey;
+                                            mDialog.dismiss();
+                                            openHTML(onlinecouchresource);
+                                        }
+                                    } else {
+                                        onlinecouchresource = onlinecouchresource + "/index.html";
+                                        mDialog.dismiss();
+                                        openHTML(onlinecouchresource);
+                                    }
+
+                                }
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void failure(Request request, Response response, FuelError fuelError) {
+                        alertDialogOkay("Error downloading file");
+                        Log.e("MyCouch", " " + fuelError);
+                    }
+                });
+            }
+        });
+*/
+        //// Download Only selected file
+        Button dialogBtnDownoadFile = (Button) openResourceDialog.findViewById(R.id.btnDownloadFile);
+ /*       dialogBtnDownoadFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openResourceDialog.dismiss();
+                OneByOneResID = clicked_rs_ID;
+                try {
+                    mDialog = new ProgressDialog(context);
+                    mDialog.setMessage("Please wait...");
+                    mDialog.setCancelable(false);
+                    mDialog.show();
+
+                    ///syncThreadHandler();
+
+                    //// Todo Decide which option is best
+                    singleFiledownload = true;
+                    new FullscreenActivity.downloadSpecificResourceToDisk().execute();
+                    //final AsyncTask<String, Void, Boolean> execute = new SyncResource().execute();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    mDialog = new ProgressDialog(context);
+                    mDialog.setMessage("Error Downloading Resource. Check connection to server and try again");
+                    mDialog.setCancelable(true);
+                    mDialog.show();
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+
+                }
+            }
+        });
+*/
+        //// Download all resources on button click
+        Button dialogBtnDownoadAll = (Button) openResourceDialog.findViewById(R.id.btnDownloadAll);
+ /*dialogBtnDownoadAll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog2.dismiss();
+                OneByOneResID = clicked_rs_ID;
+                try {
+                    //String root = Environment.getExternalStorageDirectory().toString();
+                    //File myDir = new File(root + "/ole_temp");
+                    //deleteDirectory(myDir);
+                    //myDir.mkdirs();
+                    mDialog = new ProgressDialog(context);
+                    mDialog.setMessage("Downloading resource, please wait..." + resourceTitleList[allresDownload]);
+                    mDialog.setCancelable(true);
+                    mDialog.show();
+                    htmlResourceList.clear();
+                    allhtmlDownload = 0;
+                    //// Todo Decide which option is best
+                    singleFiledownload = false;
+                    new FullscreenActivity.downloadAllResourceToDisk().execute();
+                    //new SyncAllResource().execute();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+
+                }
+            }
+        });*/
+        mDialog = new ProgressDialog(context);
+        mDialog.setMessage("This resource is not downloaded on this device. \n Please wait. Establishing connection with to server so you can download it...");
+        mDialog.setCancelable(false);
+        mDialog.show();
+ /*       new FullscreenActivity.AsyncCheckConnection().execute();*/
+        return true;
+    }
+
+    //// Opening Resource Types //
+    public void openHTML(String index) {
+        final String mainFile = index;
+        try {
+            try {
+                mDialog.dismiss();
+                ComponentName componentName = getPackageManager().getLaunchIntentForPackage("org.mozilla.firefox").getComponent();
+                Intent firefoxIntent = IntentCompat.makeRestartActivityTask(componentName);
+                firefoxIntent.setDataAndType(Uri.parse(mainFile), "text/html");
+                startActivity(firefoxIntent);
+
+                //startActivity(intent);
+            } catch (Exception err) {
+                mDialog.dismiss();
+                Log.e("Error", err.getMessage());
+                File myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
+                File dst = new File(myDir, "firefox_49_0_multi_android.apk");
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            }
+
+        } catch (Exception Er) {
+            Er.printStackTrace();
+            mDialog.dismiss();
+            alertDialogOkay("Couldn't open resource try again");
+
+        }
+
+    }
+
+    public void openImage(String docId, final String fileName, String player) {
+        final String myfilename = fileName;
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database res_Db = manager.getExistingDatabase("resources");
+            Document res_doc = res_Db.getExistingDocument(docId);
+            final Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment(fileName);
+            try {
+                File src = new File(fileAttachment.getContentURL().getPath());
+                InputStream in = new FileInputStream(src);
+                String root = Environment.getExternalStorageDirectory().toString();
+                File myDir = new File(root + "/ole_temp");
+                if (!myDir.exists()) {
+                    myDir.mkdirs();
+                }
+                File dst = new File(myDir, fileAttachment.getName().replace(" ", ""));
+                try {
+                    FileOutputStream out = new FileOutputStream(dst);
+                    byte[] buff = new byte[1024];
+                    int read = 0;
+                    while ((read = in.read(buff)) > 0) {
+                        out.write(buff, 0, read);
+                    }
+                    in.close();
+                    out.close();
+                    Log.e("tag", " Copied PDF " + dst.toString());
+                } catch (Exception err) {
+                    err.printStackTrace();
+                    mDialog.dismiss();
+                    alertDialogOkay("Couldn't open resource try again");
+                }
+                mDialog.dismiss();
+                Intent intent = new Intent();
+                intent.setAction(android.content.Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.fromFile(dst), "image/*");
+                //Log.e("tag", " URL Path "+ Uri.fromFile(dst).getPath());;
+                startActivity(intent);
+            } catch (Exception err) {
+
+                mDialog.dismiss();
+                alertDialogOkay("Couldn't open resource try again");
+            }
+        } catch (Exception Er) {
+            Er.printStackTrace();
+
+            mDialog.dismiss();
+            alertDialogOkay("Couldn't open resource try again");
+        }
+
+    }
+
 }
 

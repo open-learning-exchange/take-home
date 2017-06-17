@@ -121,21 +121,15 @@ public class ListView_Library extends Fragment {
                     com.couchbase.lite.Document resource_doc = shadowres.getExistingDocument(docId);
                     Map<String, Object> resource_properties = resource_doc.getProperties();
                     String doc_id = ((String) resource_properties.get("_id"));
-                    // Update server members with visits
                     try {
                         resource_properties = resource_doc.getProperties();
                     } catch (Exception errs) {
                         Log.e("tag", "OBJECT ERROR " + errs.toString());
                     }
                     HashMap<String, String> map = new HashMap<String, String>();
-
-                    String myresTitile = ((String) resource_properties.get("title"));
-                    String myresId = ((String) resource_properties.get("_id"));
-                    String myresType, myresDec, myresExt = "";
-                    resourceTitleList[rsLstCnt] = myresTitile;
-                    resourceIdList[rsLstCnt] = myresId;
-                    resIDArrayList.add(myresId);
-
+                    resourceTitleList[rsLstCnt] = (String) resource_properties.get("title");
+                    resourceIdList[rsLstCnt] = (String) resource_properties.get("_id");
+                    resIDArrayList.add((String) resource_properties.get("_id"));
                     map.put(KEY_ID, ((String) resource_properties.get("_id")));
                     map.put(KEY_TITLE, ((String) resource_properties.get("title")));
                     Log.e("MyCouch", "Number shadow items " + ((String) resource_properties.get("title")) + " ");
@@ -153,142 +147,8 @@ public class ListView_Library extends Fragment {
                     map.put(KEY_FEMALE_RATING, "");
                     map.put(KEY_MALE_RATING, "");
                     ///map.put(KEY_THUMB_URL, parser.getValue(e, KEY_THUMB_URL));
-                    myresDec = (String) resource_properties.get("author") + "";
-                    myresType = (String) resource_properties.get("averageRating") + "";
-                    myresExt = (String) resource_properties.get("openWith") + "";
                     materialList.add(map);
-                    ///resourceList.add(resource);
                     rsLstCnt++;
-            /*
-            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-            Database db = manager.getExistingDatabase("shelf");
-            Database resource_Db = manager.getDatabase("resources");
-            Query orderedQuery = chViews.ReadShelfByIdView(db).createQuery();
-            orderedQuery.setDescending(true);
-            QueryEnumerator results = orderedQuery.run();
-            resourceIdList = new String[results.getCount()];
-            resourceTitleList = new String[results.getCount()];
-            rsLstCnt = 0;
-            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
-                QueryRow row = it.next();
-                String docId = (String) row.getValue();
-                com.couchbase.lite.Document doc = db.getExistingDocument(docId);
-                Map<String, Object> properties = doc.getProperties();
-                Map<String, Object> resource_properties = null;
-                if (memberId.equals((String) properties.get("memberId"))) {
-
-                    String myresTitile = ((String) properties.get("resourceTitle"));
-                    String myresId = ((String) properties.get("resourceId"));
-                    String myresType, myresDec, myresExt = "";
-                    resourceTitleList[rsLstCnt] = myresTitile;
-                    resourceIdList[rsLstCnt] = myresId;
-                    resIDArrayList.add(myresId);
-                    Log.e("tag", "MEMBER ID " + (String) properties.get("resourceTitle"));
-                    try {
-                        com.couchbase.lite.Document resource_doc = resource_Db.getExistingDocument((String) properties.get("resourceId"));
-                        Log.e("tag", "RES ID " + (String) properties.get("resourceId"));
-                        try {
-                            resource_properties = resource_doc.getProperties();
-                        } catch (Exception errs) {
-                            Log.e("tag", "OBJECT ERROR " + errs.toString());
-                        }
-                        HashMap<String, String> map = new HashMap<String, String>();
-                        map.put(KEY_ID, ((String) resource_properties.get("resourceId")));
-                        map.put(KEY_TITLE, ((String) resource_properties.get("resourceTitle")));
-                        String buildDecript = "";
-                        buildDecript = (String) resource_properties.get("author") + "  "+
-                                (String) resource_properties.get("language") + "  "+
-                                (String) resource_properties.get("subject") + "  "+
-                                (String) resource_properties.get("resourceType") + "  "+
-                                (String) resource_properties.get("uploadDate") + "  "+
-                        map.put(KEY_DESCRIPTION, buildDecript);
-                        map.put(KEY_DETAILS, "");
-                        map.put(KEY_FEEDBACK, "");
-                        map.put(KEY_DELETE, "");
-                        map.put(KEY_RATING, (String) resource_properties.get("averageRating"));
-                        map.put(KEY_TOTALNUM_RATING,"??");
-                        //map.put(KEY_FEMALE_RATING, "");
-                        //map.put(KEY_MALE_RATING, "");
-                        ///map.put(KEY_THUMB_URL, parser.getValue(e, KEY_THUMB_URL));
-                        myresDec = (String) resource_properties.get("author") + "";
-                        myresType = (String) resource_properties.get("averageRating") + "";
-                        myresExt = (String) resource_properties.get("openWith") + "";
-                        materialList.add(map);
-                        ///resourceList.add(resource);
-                        rsLstCnt++;
-                    } catch (Exception err) {
-                        Log.e("tag", "ERROR " + err.getMessage());
-                        //myresTitile = "Unknown resource .. ";
-                        //myresId = "";
-                        myresDec = "";
-                        myresType = "";
-                        rsLstCnt++;
-                    }
-                    resourceNo++;
-                }
-            }
-            */
-
-            /*
-
-            LinearLayout row2 = (LinearLayout) findViewById(R.id.layholder_library);
-            libraryButtons = new Button[rsLstCnt];
-            for (int ButtonCnt = 0; ButtonCnt < rsLstCnt; ButtonCnt++) {
-                libraryButtons[ButtonCnt] = new Button(this);
-                libraryButtons[ButtonCnt].setText(resourceTitleList[ButtonCnt]);
-                libraryButtons[ButtonCnt].setId(ButtonCnt);
-                libraryButtons[ButtonCnt].setBackgroundResource(R.drawable.rounded_corners_black_blue);
-                libraryButtons[ButtonCnt].setTextColor(getResources().getColor(R.color.white));
-                libraryButtons[ButtonCnt].setAllCaps(false);
-                libraryButtons[ButtonCnt].setPadding(10, 5, 10, 5);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                    libraryButtons[ButtonCnt].setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-                }
-                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(170, MATCH_PARENT);
-                layoutParams.setMargins(1, 0, 1, 0); // left, top, right, bottom
-                GradientDrawable drawable = new GradientDrawable();
-                drawable.setShape(GradientDrawable.RECTANGLE);
-                drawable.setStroke(2, Color.WHITE);
-                drawable.setCornerRadius(2);
-                drawable.setColor(getResources().getColor(R.color.ole_black_blue));
-                libraryButtons[ButtonCnt].setBackgroundDrawable(drawable);
-                libraryButtons[ButtonCnt].setLayoutParams(layoutParams);
-                row2.addView(libraryButtons[ButtonCnt]);
-                try {
-                    manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                    com.couchbase.lite.Document resource_doc = resource_Db.getExistingDocument((String) resourceIdList[ButtonCnt]);
-                    Map<String, Object> resource_properties = resource_doc.getProperties();
-                    Log.e("tag", "RES ID " + (String) resource_properties.get("resourceId"));
-                    libraryButtons[ButtonCnt].setTextColor(getResources().getColor(R.color.ole_white));
-                } catch (Exception errs) {
-                    libraryButtons[ButtonCnt].setTextColor(getResources().getColor(R.color.ole_yellow));
-                    Log.e("tag", "OBJECT ERROR " + errs.toString());
-                }
-
-                libraryButtons[ButtonCnt].setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        if (libraryButtons[view.getId()].getCurrentTextColor() == getResources().getColor(R.color.ole_yellow)) {
-                            ///MaterialClickDialog(false, resourceTitleList[view.getId()], resourceIdList[view.getId()], view.getId());
-                        } else {
-                            mDialog = new ProgressDialog(context);
-                            mDialog.setMessage("Opening please " + resourceTitleList[view.getId()] + " wait...");
-                            mDialog.setCancelable(true);
-                            mDialog.show();
-                            openedResourceId = resourceIdList[view.getId()];
-                            openedResourceTitle = resourceTitleList[view.getId()];
-                            openedResource = true;
-                            ///openDoc(resourceIdList[view.getId()]);
-                            Log.e("MyCouch", "Clicked to open " + resourceIdList[view.getId()]);
-
-                        }
-
-                    }
-
-                });
-                //////////// Save list in Preferences
-            }
-            */
                 }
                 shadowres.close();
 

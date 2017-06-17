@@ -58,7 +58,7 @@ public class ListViewAdapter_Library extends BaseAdapter {
         TextView description = (TextView)vi.findViewById(R.id.list_desc); // description
         Button details = (Button)vi.findViewById(R.id.btn_listVewDetails); // details
         Button feedback = (Button)vi.findViewById(R.id.btn_listFeedback); // feedback
-        Button delete = (Button)vi.findViewById(R.id.btn_listDelete); // delete
+        Button addToMyLibrary = (Button)vi.findViewById(R.id.btn_listAddToMyLibrary); // delete
         TextView ratingAvgNum = (TextView)vi.findViewById(R.id.lbl_listAvgRating); // delete
         TextView totalNum = (TextView)vi.findViewById(R.id.lbl_listTotalrating); // delete
         RatingBar ratingStars = (RatingBar) vi.findViewById(R.id.list_rating);
@@ -91,12 +91,13 @@ public class ListViewAdapter_Library extends BaseAdapter {
                 Log.i(TAG, "Feedback Clicked ********** "+v.getTag());
             }
         });
-        delete.setText("Delete");
-        delete.setTag(material.get(ListView_Library.KEY_DELETE));
-        delete.setOnClickListener(new View.OnClickListener() {
+        addToMyLibrary.setText("Add to myLibrary");
+
+        addToMyLibrary.setTag(material.get(ListView_Library.KEY_DELETE));
+        addToMyLibrary.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i(TAG, "Delete Clicked ********** "+v.getTag());
+                Log.i(TAG, "addToMyLibrary Clicked ********** "+v.getTag());
             }
         });
         ratingAvgNum.setText(""+material.get(ListView_Library.KEY_RATING));
