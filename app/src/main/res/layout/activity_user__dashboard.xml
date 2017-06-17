@@ -148,7 +148,7 @@
                                 android:orientation="horizontal">
 
                                 <TextView
-                                    android:id="@+id/lbl_language"
+                                    android:id="@+id/lbl_language1"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:layout_weight="1"
@@ -291,7 +291,7 @@
                                 android:orientation="horizontal">
 
                                 <TextView
-                                    android:id="@+id/lbl_language"
+                                    android:id="@+id/lbl_language4"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:layout_weight="1"
@@ -336,7 +336,7 @@
                                 android:orientation="horizontal">
 
                                 <TextView
-                                    android:id="@+id/lbl_language"
+                                    android:id="@+id/lbl_language5"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:layout_weight="1"
@@ -380,7 +380,7 @@
                                 android:orientation="horizontal">
 
                                 <TextView
-                                    android:id="@+id/lbl_language"
+                                    android:id="@+id/lbl_language6"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:layout_weight="1"
@@ -945,7 +945,7 @@
                         android:clickable="true"
                         android:gravity="center_vertical|center_horizontal"
                         android:text="MEMBERS"
-                        android:textAlignment="center"
+                        android:textAppearance="@style/TextAppearance.AppCompat"
                         android:textColor="@color/ole_white" />
 
                     <TextView
