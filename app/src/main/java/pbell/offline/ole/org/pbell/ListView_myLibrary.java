@@ -75,6 +75,7 @@ public class ListView_myLibrary extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         context = container.getContext();
+        context = this.getActivity().getWindow().getContext();
         assetManager = getActivity().getAssets();
         View rootView = inflater.inflate(R.layout.listview_universal, container, false);
 
@@ -90,7 +91,7 @@ public class ListView_myLibrary extends Fragment {
         LoadMyLibraryList();
 
         list = (ListView) rootView.findViewById(R.id.material_list);
-        adapter = new ListViewAdapter_myLibrary(getActivity(), materialList);
+        adapter = new ListViewAdapter_myLibrary(getActivity(), context, materialList);
         list.setAdapter(adapter);
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

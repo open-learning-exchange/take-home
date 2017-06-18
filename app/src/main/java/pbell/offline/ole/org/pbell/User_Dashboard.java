@@ -2,20 +2,27 @@ package pbell.offline.ole.org.pbell;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.DownloadManager;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.v4.content.IntentCompat;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -25,6 +32,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.couchbase.lite.Attachment;
+import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.Manager;
@@ -36,9 +44,11 @@ import com.github.kittinunf.fuel.Fuel;
 import com.github.kittinunf.fuel.core.FuelError;
 import com.github.kittinunf.fuel.core.Request;
 import com.github.kittinunf.fuel.core.Response;
+import com.google.gson.JsonObject;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.lightcouch.CouchDbClientAndroid;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -46,8 +56,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -77,7 +89,7 @@ public class User_Dashboard extends FragmentActivity {
             sys_password, sys_usercouchId, sys_userfirstname, sys_userlastname,
             sys_usergender, sys_uservisits, sys_servername, sys_serverversion = "";
     String doc_lastVisit, sys_NewDate, profile_membersRoles = "";
-    String resourceIdTobeOpened;
+    String resourceIdTobeOpened,OneByOneResID,OneByOneResTitle;
     /// Integer
     int sys_uservisits_Int, myLibraryItemCount, myCoursesItemCount;
     //// Boolean
@@ -91,23 +103,27 @@ public class User_Dashboard extends FragmentActivity {
     CouchViews chViews = new CouchViews();
     LogHouse logHouse = new LogHouse();
     Intent serviceIntent;
-    AndroidContext androidContext;
+    AndroidContext androidContext ;
     final Context context = this;
     private ProgressDialog mDialog;
     Dialog openResourceDialog;
+    DownloadManager downloadManager;
+    private long enqueue;
+    boolean singleFileDownload=true;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user__dashboard);
         mControlsView = findViewById(R.id.fullscreen_content_controls);
-        androidContext = new AndroidContext(this);
+        androidContext= new AndroidContext(this);
         activity = this;
-
         initiateLayoutMaterials();
         initiateOnClickActions();
         restorePreferences();
         loadUIDynamicText();
+
 
         TabFragment0 tF0 = new TabFragment0();
         tF0.setArguments(getIntent().getExtras());
@@ -117,6 +133,8 @@ public class User_Dashboard extends FragmentActivity {
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
+
+
     }
 
     public void initiateLayoutMaterials() {
@@ -378,7 +396,7 @@ public class User_Dashboard extends FragmentActivity {
     }
 
     public void restorePreferences() {
-        settings = getSharedPreferences(PREFS_NAME, 0);
+        settings = context.getSharedPreferences(PREFS_NAME, 0);
         sys_username = settings.getString("pf_username", "");
         sys_oldSyncServerURL = settings.getString("pf_sysncUrl", "http://");
         sys_lastSyncDate = settings.getString("pf_lastSyncDate", "");
@@ -524,6 +542,46 @@ public class User_Dashboard extends FragmentActivity {
         }
 
         return false;
+    }
+
+    public void downloadWithDownloadManagerSingleFile(String fileURL, String FileName) {
+        String url = fileURL;
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+        request.setDescription(OneByOneResID + "-" + OneByOneResTitle);
+        request.setTitle(OneByOneResTitle);
+        // in order for this if to run, you must use the android 3.2 to compile your app
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            request.allowScanningByMediaScanner();
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+        }
+        Log.e("MyCouch", " Destination is " + FileName);
+        request.setDestinationInExternalPublicDir("ole_temp", FileName);
+        // get download service and enqueue file
+        mDialog.setMessage("Downloading  \" " + OneByOneResTitle + " \" . please wait...");
+        downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+        enqueue = downloadManager.enqueue(request);
+    }
+
+    public void createResourceDoc(String manualResId, String manualResTitle, String manualResopenWith) {
+        Database database = null;
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            database = manager.getDatabase("resources");
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put("title", manualResTitle);
+            properties.put("openWith", manualResopenWith);
+            properties.put("localfile", "yes");
+            // properties.put("resourceType", manualResType);
+            Document document = database.getDocument(manualResId);
+            try {
+                document.putProperties(properties);
+            } catch (CouchbaseLiteException e) {
+                Log.e("MyCouch", "Cannot save document", e);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     public void runBackgroundService() {
@@ -752,22 +810,30 @@ public class User_Dashboard extends FragmentActivity {
         return true;
     }
 
-    public Boolean downloadResources(String resId) {
+    public Boolean downloadResources(String resId, Activity act,Context perimeter_context) {
         /*clicked_rs_status = online;
         clicked_rs_title = title;
         clicked_rs_ID = resId;
         resButtonId = buttonPressedId;*/
+        OneByOneResID = resId;
         AlertDialog.Builder dialogB2 = new AlertDialog.Builder(context);
         // custom dialog
         dialogB2.setView(R.layout.dialog_prompt_resource_location);
         dialogB2.setCancelable(true);
-        openResourceDialog = dialogB2.create();
-        openResourceDialog.show();
+        Dialog openResourceDialog = dialogB2.create();
         TextView txtResourceId = (TextView) openResourceDialog.findViewById(R.id.txtResourceID);
-        ///////////txtResourceId.setText(title);
+        txtResourceId.setText(resId);
+/*
+        final Dialog dialog = new Dialog(context);
+        dialog.setContentView(R.layout.dialog_prompt_resource_location);
+        dialog.setTitle("Title...");
+        TextView txtResourceId = (TextView) dialog.findViewById(R.id.txtResourceID);
+        txtResourceId.setText(resId);
+        */
+
         //// Open material online
-        Button dialogBtnOpenFileOnline = (Button) openResourceDialog.findViewById(R.id.btnOpenOnline);
-        /*dialogBtnOpenFileOnline.setOnClickListener(new View.OnClickListener() {
+      /*  Button dialogBtnOpenFileOnline = (Button) openResourceDialog.findViewById(R.id.btnOpenOnline);
+        dialogBtnOpenFileOnline.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //Todo Open resource in a browser
@@ -832,22 +898,18 @@ public class User_Dashboard extends FragmentActivity {
 */
         //// Download Only selected file
         Button dialogBtnDownoadFile = (Button) openResourceDialog.findViewById(R.id.btnDownloadFile);
- /*       dialogBtnDownoadFile.setOnClickListener(new View.OnClickListener() {
+        dialogBtnDownoadFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                openResourceDialog.dismiss();
-                OneByOneResID = clicked_rs_ID;
+                //openResourceDialog.dismiss();
                 try {
                     mDialog = new ProgressDialog(context);
                     mDialog.setMessage("Please wait...");
                     mDialog.setCancelable(false);
                     mDialog.show();
-
+                    singleFileDownload = true;
                     ///syncThreadHandler();
-
-                    //// Todo Decide which option is best
-                    singleFiledownload = true;
-                    new FullscreenActivity.downloadSpecificResourceToDisk().execute();
+                    new downloadSpecificResourceToDisk().execute();
                     //final AsyncTask<String, Void, Boolean> execute = new SyncResource().execute();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -861,7 +923,7 @@ public class User_Dashboard extends FragmentActivity {
                 }
             }
         });
-*/
+
         //// Download all resources on button click
         Button dialogBtnDownoadAll = (Button) openResourceDialog.findViewById(R.id.btnDownloadAll);
  /*dialogBtnDownoadAll.setOnClickListener(new View.OnClickListener() {
@@ -892,97 +954,87 @@ public class User_Dashboard extends FragmentActivity {
                 }
             }
         });*/
-        mDialog = new ProgressDialog(context);
+        openResourceDialog.show();
+/*        mDialog = new ProgressDialog(act);
         mDialog.setMessage("This resource is not downloaded on this device. \n Please wait. Establishing connection with to server so you can download it...");
         mDialog.setCancelable(false);
-        mDialog.show();
+        mDialog.show(); */
  /*       new FullscreenActivity.AsyncCheckConnection().execute();*/
         return true;
     }
 
-    //// Opening Resource Types //
-    public void openHTML(String index) {
-        final String mainFile = index;
-        try {
-            try {
-                mDialog.dismiss();
-                ComponentName componentName = getPackageManager().getLaunchIntentForPackage("org.mozilla.firefox").getComponent();
-                Intent firefoxIntent = IntentCompat.makeRestartActivityTask(componentName);
-                firefoxIntent.setDataAndType(Uri.parse(mainFile), "text/html");
-                startActivity(firefoxIntent);
-
-                //startActivity(intent);
-            } catch (Exception err) {
-                mDialog.dismiss();
-                Log.e("Error", err.getMessage());
-                File myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
-                File dst = new File(myDir, "firefox_49_0_multi_android.apk");
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-            }
-
-        } catch (Exception Er) {
-            Er.printStackTrace();
-            mDialog.dismiss();
-            alertDialogOkay("Couldn't open resource try again");
-
-        }
-
+    public boolean downloadNow(String resId, Activity act,Context perimeter_context){
+        OneByOneResID = resId;
+        new downloadSpecificResourceToDisk().execute();
+        return true;
     }
 
-    public void openImage(String docId, final String fileName, String player) {
-        final String myfilename = fileName;
-        AndroidContext androidContext = new AndroidContext(context);
-        Manager manager = null;
-        try {
-            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-            Database res_Db = manager.getExistingDatabase("resources");
-            Document res_doc = res_Db.getExistingDocument(docId);
-            final Attachment fileAttachment = res_doc.getCurrentRevision().getAttachment(fileName);
+    //// Opening Resource Types //
+    class downloadSpecificResourceToDisk extends AsyncTask<String, Void, Boolean> {
+        @Override
+        protected Boolean doInBackground(String... params) {
             try {
-                File src = new File(fileAttachment.getContentURL().getPath());
-                InputStream in = new FileInputStream(src);
-                String root = Environment.getExternalStorageDirectory().toString();
-                File myDir = new File(root + "/ole_temp");
-                if (!myDir.exists()) {
-                    myDir.mkdirs();
+                URI uri = URI.create(sys_oldSyncServerURL);
+                String url_Scheme = uri.getScheme();
+                String url_Host = uri.getHost();
+                int url_Port = uri.getPort();
+                String url_user = null, url_pwd = null;
+                if (sys_oldSyncServerURL.contains("@")) {
+                    String[] userinfo = uri.getUserInfo().split(":");
+                    url_user = userinfo[0];
+                    url_pwd = userinfo[1];
                 }
-                File dst = new File(myDir, fileAttachment.getName().replace(" ", ""));
-                try {
-                    FileOutputStream out = new FileOutputStream(dst);
-                    byte[] buff = new byte[1024];
-                    int read = 0;
-                    while ((read = in.read(buff)) > 0) {
-                        out.write(buff, 0, read);
+                CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+                if (dbClient.contains(OneByOneResID)) {
+                    /// Handle with Json
+                    JsonObject jsonObject = dbClient.find(JsonObject.class, OneByOneResID);
+                    JsonObject jsonAttachments = jsonObject.getAsJsonObject("_attachments");
+                    final String openWith = (String) jsonObject.get("openWith").getAsString();
+                    final String title = jsonObject.get("title").getAsString();
+                    OneByOneResTitle = title;
+                    Log.e("MyCouch", "Open With -- " + openWith);
+                    if (!openWith.equalsIgnoreCase("HTML")) {
+                        JSONObject _attachments = new JSONObject(jsonAttachments.toString());
+                        Iterator<String> keys = _attachments.keys();
+                        if (keys.hasNext()) {
+                            String key = (String) keys.next();
+                            Log.e("MyCouch", "-- " + key);
+                            final String encodedkey = URLEncoder.encode(key, "utf-8");
+                            File file = new File(encodedkey);
+                            String extension = encodedkey.substring(encodedkey.lastIndexOf("."));
+                            final String diskFileName = OneByOneResID + extension;
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    downloadWithDownloadManagerSingleFile(sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey, diskFileName);
+                                    createResourceDoc(OneByOneResID, title, openWith);
+                                }
+                            });
+                        }
+                    } else {
+                        /*Log.e("MyCouch", "-- HTML NOT PART OF DOWNLOADS ");
+                        htmlResourceList.add(OneByOneResID);
+                        if (allhtmlDownload < htmlResourceList.size()) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    callSuncOneHTMLResource();
+                                }
+                            });
+                        } else {
+                            mDialog.dismiss();
+                            alertDialogOkay("Download Completed");
+                        }*/
                     }
-                    in.close();
-                    out.close();
-                    Log.e("tag", " Copied PDF " + dst.toString());
-                } catch (Exception err) {
-                    err.printStackTrace();
-                    mDialog.dismiss();
-                    alertDialogOkay("Couldn't open resource try again");
                 }
-                mDialog.dismiss();
-                Intent intent = new Intent();
-                intent.setAction(android.content.Intent.ACTION_VIEW);
-                intent.setDataAndType(Uri.fromFile(dst), "image/*");
-                //Log.e("tag", " URL Path "+ Uri.fromFile(dst).getPath());;
-                startActivity(intent);
-            } catch (Exception err) {
-
-                mDialog.dismiss();
-                alertDialogOkay("Couldn't open resource try again");
+            } catch (Exception e) {
+                Log.e("MyCouch", "Download this resource error " + e.getMessage());
+               // mDialog.dismiss();
+                alertDialogOkay("Error downloading file, check connection and try again");
+                return null;
             }
-        } catch (Exception Er) {
-            Er.printStackTrace();
-
-            mDialog.dismiss();
-            alertDialogOkay("Couldn't open resource try again");
+            return null;
         }
-
     }
 
 }
