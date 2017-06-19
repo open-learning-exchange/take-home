@@ -21,6 +21,7 @@ import android.graphics.drawable.LayerDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -50,8 +51,10 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Handler;
 
 public class ListViewAdapter_myLibrary extends BaseAdapter {
 
@@ -74,8 +77,14 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             sys_usergender, sys_uservisits, sys_servername, sys_serverversion = "";
     String OneByOneResID, OneByOneResTitle;
     SharedPreferences settings;
+    List<String> resIDArrayList = new ArrayList<String>();
 
-    public ListViewAdapter_myLibrary(Activity a, Context cont, ArrayList<HashMap<String, String>> d) {
+    LogHouse logHouse = new LogHouse();
+    protected int _splashTime = 5000;
+    private Thread splashTread;
+
+    public ListViewAdapter_myLibrary(final List<String> resIDsList, Activity a, Context cont, ArrayList<HashMap<String, String>> d) {
+        resIDArrayList.addAll(resIDsList);
         activity = a;
         data = d;
         context = cont.getApplicationContext();
@@ -97,6 +106,13 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
                         int columnIndex = c.getColumnIndex(DownloadManager.COLUMN_STATUS);
                         if (DownloadManager.STATUS_SUCCESSFUL == c.getInt(columnIndex)) {
                             if (!singleFileDownload) {
+                                if(resIDsList.indexOf(OneByOneResID) < resIDsList.size()){
+                                    OneByOneResID = resIDsList.get(resIDsList.indexOf(OneByOneResID)+1);
+                                    new downloadSpecificResourceToDisk().execute();
+                                }else {
+                                    mDialog.dismiss();
+                                    alertDialogOkay("Download Completed");
+                                }
                                 /*libraryButtons[allresDownload].setTextColor(getResources().getColor(R.color.ole_white));
                                 if (allresDownload < libraryButtons.length) {
                                     allresDownload++;
@@ -121,29 +137,17 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
 
                                 }*/
                             } else {
-                                //btnMyLibrary.performClick();
+                                ///btnMyLibrary.performClick();
                                 ///libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_white));
                                 mDialog.dismiss();
                                 alertDialogOkay("Download Completed");
                             }
                         } else if (DownloadManager.STATUS_FAILED == c.getInt(columnIndex)) {
                             alertDialogOkay("Download Failed for");
-                            if (!singleFileDownload) {
-                               /* if (allresDownload < libraryButtons.length) {
-                                    allresDownload++;
-                                    if (resourceTitleList[allresDownload] != null) {
-                                        new FullscreenActivity.downloadAllResourceToDisk().execute();
-                                        openFromDiskDirectly = true;
-                                    } else {
-                                        if (allhtmlDownload < htmlResourceList.size()) {
-                                            new FullscreenActivity.SyncAllHTMLResource().execute();
-                                        } else {
-                                            mDialog.dismiss();
-                                            alertDialogOkay("Download Completed");
-                                        }
-                                    }
-                                }*/
-                            } else {
+                            if(resIDsList.indexOf(OneByOneResID) < resIDsList.size()){
+                                OneByOneResID = resIDsList.get(resIDsList.indexOf(OneByOneResID)+1);
+                                new downloadSpecificResourceToDisk().execute();
+                            }else {
                                 mDialog.dismiss();
                                 alertDialogOkay("Download Completed");
                             }
@@ -315,7 +319,12 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             case "Feedback":
                 break;
             case "Open":
-                if (user_dashboard.openResources(resourceId)) {
+                mDialog = new ProgressDialog(activity.getWindow().getContext());
+                mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                mDialog.setMessage("Please wait...");
+                mDialog.setCancelable(false);
+                mDialog.show();
+                if (openResources(resourceId)) {
                     Log.i(TAG, "Open Clicked ********** " + resourceId);
                 } else {
                     Log.i(TAG, "Open  ********** " + resourceId);
@@ -331,8 +340,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
                 mDialog.show();
                 singleFileDownload = true;
                 new downloadSpecificResourceToDisk().execute();
-                Log.i(TAG, "Download  ********** " + resourceId);
-
+                Log.i(TAG, "Downloading  ********** " + resourceId);
                 break;
         }
     }
@@ -421,5 +429,123 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             return null;
         }
     }
+    public Boolean openResources(String id) {
+        String resourceIdTobeOpened = id;
+        Log.d(TAG, "Trying to open resource " + id);
+        try {
+            AndroidContext androidContext = new AndroidContext(context);
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database res_Db = manager.getExistingDatabase("resources");
+            Document res_doc = res_Db.getExistingDocument(resourceIdTobeOpened);
+            String openwith = (String) res_doc.getProperty("openWith");
+            String openResName = (String) res_doc.getProperty("title");
+            ///openFromDiskDirectly = true;
+            logHouse.updateActivityOpenedResources(context, sys_usercouchId, resourceIdTobeOpened, openResName);
+            Log.e("MYAPP", " member opening resource  = " + resourceIdTobeOpened + " and Open with " + openwith);
+            List<String> attmentNames = res_doc.getCurrentRevision().getAttachmentNames();
+ //// PDF and Bell-Reader
+             if (openwith.equalsIgnoreCase("PDF.js") || (openwith.equalsIgnoreCase("Bell-Reader"))) {
+                Log.e(TAG, " Command Video name -:  " + resourceIdTobeOpened);
+                String filenameOnly = "";
+                String root = Environment.getExternalStorageDirectory().toString();
+                File myDir = new File(root + "/ole_temp");
+                for (File f : myDir.listFiles()) {
+                    if (f.isFile()) {
+                        if (f.getName().indexOf(".") > 0) {
+                            filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
+                        }
+                        Log.e(TAG, " File name -:  " + f.getName() + " Filename only " + filenameOnly);
+                        if (filenameOnly.equalsIgnoreCase(resourceIdTobeOpened)) {
+                            try {
+                                mDialog.dismiss();
+                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                intent.setPackage("com.adobe.reader");
+                                intent.setDataAndType(Uri.fromFile(f), "application/pdf");
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                context.startActivity(intent);
+                            } catch (Exception err) {
+                                err.printStackTrace();
+                                myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
+                                File dst = new File(myDir, "adobe_reader.apk");
+                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                context.startActivity(intent);
+                            }
+                        }
+                    }
+                }
+////MP3
+            } else if (openwith.equalsIgnoreCase("MP3")) {
+                Log.e("MyCouch", " Command Video name -:  " + resourceIdTobeOpened);
+                String filenameOnly = "";
+                String root = Environment.getExternalStorageDirectory().toString();
+                File myDir = new File(root + "/ole_temp");
+                for (File f : myDir.listFiles()) {
+                    if (f.isFile()) {
+                        if (f.getName().indexOf(".") > 0) {
+                            filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
+                        }
+                        Log.e("MyCouch", " File name -:  " + f.getName() + " Filename only " + filenameOnly);
+                        if (filenameOnly.equalsIgnoreCase(resourceIdTobeOpened)) {
+                            mDialog.dismiss();
+                            Intent intent = new Intent();
+                            intent.setAction(Intent.ACTION_VIEW);
+                            String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(f).toString());
+                            String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                            intent.setDataAndType(Uri.fromFile(f), mimetype);
+                            context.startActivity(intent);
+                        }
+                    }
+                }
+///// VIDEO or Video Book Player
+            } else if (openwith.equalsIgnoreCase("Flow Video Player") || (openwith.equalsIgnoreCase("Native Video"))) {
+                Log.e("MyCouch", " Command Video name -:  " + resourceIdTobeOpened);
+                String filenameOnly = "";
+                String root = Environment.getExternalStorageDirectory().toString();
+                File myDir = new File(root + "/ole_temp");
+                for (File f : myDir.listFiles()) {
+                    if (f.isFile()) {
+                        if (f.getName().indexOf(".") > 0) {
+                            filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
+                        }
+                        Log.e("MyCouch", " File name -:  " + f.getName() + " Filename only " + filenameOnly);
+                        if (filenameOnly.equalsIgnoreCase(resourceIdTobeOpened)) {
+                            mDialog.dismiss();
+                            Intent intent = new Intent();
+                            intent.setAction(Intent.ACTION_VIEW);
+                            String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(f).toString());
+                            String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                            intent.setDataAndType(Uri.fromFile(f), mimetype);
+                            context.startActivity(intent);
+                        }
+                    }
+                }
+            }
+///// HTML
+            else if (openwith.equalsIgnoreCase("HTML")) {
+               /* indexFilePath = null;
+                if (attmentNames.size() > 1) {
+                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                        downloadHTMLContent(resourceIdTobeOpened, (String) attmentNames.get(cnt));
+                    }
+                    if (indexFilePath != null) {
+                        openHTML(indexFilePath);
+                    }
+                } else {
+                    openImage(resourceIdTobeOpened, (String) attmentNames.get(0), getExtension(attmentNames.get(0)));
+                }*/
+//// PDF
+            } else if (openwith.equalsIgnoreCase("Just download")) {
+                //// Todo work to get just download
+            }
+             else if (openwith.equalsIgnoreCase("BeLL Video Book Player")) {
+             }
+        } catch (Exception Er) {
+            Log.d("MyCouch", "Opening resource error " + Er.getMessage());
+        }
+        return true;
+    }
+
 
 }

@@ -91,7 +91,7 @@ public class ListView_myLibrary extends Fragment {
         LoadMyLibraryList();
 
         list = (ListView) rootView.findViewById(R.id.material_list);
-        adapter = new ListViewAdapter_myLibrary(getActivity(), context, materialList);
+        adapter = new ListViewAdapter_myLibrary(resIDArrayList, getActivity(), context, materialList);
         list.setAdapter(adapter);
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
