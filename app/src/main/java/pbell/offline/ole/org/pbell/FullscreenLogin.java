@@ -159,15 +159,19 @@ public class FullscreenLogin extends AppCompatActivity {
         SignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (authenticateUser()) {
-                    if (updateActivityLog()) {
-                        Intent intent = new Intent(context, FullscreenActivity.class);
-                        startActivity(intent);
+                if (getSystemInfo()){
+                    if (authenticateUser()) {
+                        if (updateActivityLog()) {
+                            Intent intent = new Intent(context, User_Dashboard.class);
+                            startActivity(intent);
+                        } else {
+                            alertDialogOkay("System Error. Please contact administrator");
+                        }
                     } else {
-                        alertDialogOkay("System Error. Please contact administrator");
+                        alertDialogOkay("Login incorrect or Not found. Check and try again.");
                     }
-                } else {
-                    alertDialogOkay("Login incorrect or Not found. Check and try again.");
+                }else{
+                    alertDialogOkay("Device not linked to a cummunity/nation. Use the setting button to sync with community/nation.");
                 }
             }
         });
@@ -479,7 +483,55 @@ public class FullscreenLogin extends AppCompatActivity {
                 Map<String, Object> properties = doc.getProperties();
                 String doc_loginId = (String) properties.get("login");
                 String doc_password = (String) properties.get("password");
-                if (mUsername.getText().toString().equals(doc_loginId)) {
+                 if (doc_password == "" && !mPasswordView.getText().toString().equals("")) {
+                     if (mUsername.getText().toString().equals(doc_loginId)) {
+                     try {
+                         Map<String, Object> doc_credentials = (Map<String, Object>) properties.get("credentials");
+                         AndroidDecrypter adc = new AndroidDecrypter();
+                         SharedPreferences.Editor editor = settings.edit();
+                         String ServerName = settings.getString("pf_server_code", "");
+
+                         Log.e("MYAPP", " User Login  " + (String) properties.get("login"));
+                         Log.e("MYAPP", " User id  " + (String) properties.get("_id"));
+                         Log.e("MYAPP", " User ServerName  " + ServerName);
+                         if (adc.AndroidDecrypter(doc_loginId, mPasswordView.getText().toString(), doc_credentials.get("value").toString())) {
+                             if (ServerName.equalsIgnoreCase((String) properties.get("community"))) {
+
+                                 editor.putString("pf_username", (String) properties.get("login"));
+                                 editor.putString("pf_password", (String) properties.get("password"));
+                                 editor.putString("pf_usercouchId", (String) properties.get("_id"));
+                                 editor.putString("pf_userfirstname", (String) properties.get("firstName"));
+                                 editor.putString("pf_userlastname", (String) properties.get("lastName"));
+                                 editor.putString("pf_usergender", (String) properties.get("Gender"));
+                                 sys_usergender = (String) properties.get("Gender");
+                                 try {
+                                     String noOfVisits = properties.get("visits").toString();
+                                     int currentTotalVisits = Integer.parseInt(noOfVisits) + totalVisits((String) properties.get("_id"));
+                                     editor.putInt("pf_uservisits_Int", currentTotalVisits);
+                                     editor.putString("pf_uservisits", currentTotalVisits + "");
+                                     editor.putString("pf_lastVisitDate", doc_lastVisit);
+                                 } catch (Exception err) {
+                                     alertDialogOkay(err.getMessage());
+                                 }
+                                 Set<String> stgSet = settings.getStringSet("pf_userroles", new HashSet<String>());
+                                 ArrayList roleList = (ArrayList<String>) properties.get("roles");
+                                 for (int cnt = 0; cnt < roleList.size(); cnt++) {
+                                     stgSet.add(String.valueOf(roleList.get(cnt)));
+                                 }
+                                 editor.putStringSet("pf_userroles", stgSet);
+                                 editor.commit();
+                                 Log.e("MYAPP", " RowChipsView Login Id: " + doc_loginId + " Password: " + doc_password);
+                                 restorePref();
+                                 return true;
+                             }
+                         }
+
+                     } catch (Exception err) {
+                         Log.e("MYAPP", " Encryption Err  " + err.getMessage());
+                         return false;
+                     }
+                 }
+                } else if (mUsername.getText().toString().equals(doc_loginId)) {
                     if (mPasswordView.getText().toString().equals(doc_password) && !properties.containsKey("credentials")) {
                         SharedPreferences.Editor editor = settings.edit();
                         editor.putString("pf_username", (String) properties.get("login"));
@@ -508,43 +560,6 @@ public class FullscreenLogin extends AppCompatActivity {
                         editor.commit();
                         Log.e("MYAPP", " RowChipsView Login OLD encryption: " + doc_loginId + " Password: " + doc_password);
                         return true;
-                    } else if (doc_password == "" && !mPasswordView.getText().toString().equals("")) {
-                        try {
-                            Map<String, Object> doc_credentials = (Map<String, Object>) properties.get("credentials");
-                            AndroidDecrypter adc = new AndroidDecrypter();
-                            if (adc.AndroidDecrypter(doc_loginId, mPasswordView.getText().toString(), doc_credentials.get("value").toString())) {
-                                SharedPreferences.Editor editor = settings.edit();
-                                editor.putString("pf_username", (String) properties.get("login"));
-                                editor.putString("pf_password", (String) properties.get("password"));
-                                editor.putString("pf_usercouchId", (String) properties.get("_id"));
-                                editor.putString("pf_userfirstname", (String) properties.get("firstName"));
-                                editor.putString("pf_userlastname", (String) properties.get("lastName"));
-                                editor.putString("pf_usergender", (String) properties.get("Gender"));
-                                sys_usergender = (String) properties.get("Gender");
-                                try {
-                                    String noOfVisits = properties.get("visits").toString();
-                                    int currentTotalVisits = Integer.parseInt(noOfVisits) + totalVisits((String) properties.get("_id"));
-                                    editor.putInt("pf_uservisits_Int", currentTotalVisits);
-                                    editor.putString("pf_uservisits", currentTotalVisits + "");
-                                    editor.putString("pf_lastVisitDate", doc_lastVisit);
-                                } catch (Exception err) {
-                                    alertDialogOkay(err.getMessage());
-                                }
-                                Set<String> stgSet = settings.getStringSet("pf_userroles", new HashSet<String>());
-                                ArrayList roleList = (ArrayList<String>) properties.get("roles");
-                                for (int cnt = 0; cnt < roleList.size(); cnt++) {
-                                    stgSet.add(String.valueOf(roleList.get(cnt)));
-                                }
-                                editor.putStringSet("pf_userroles", stgSet);
-                                editor.commit();
-                                Log.e("MYAPP", " RowChipsView Login Id: " + doc_loginId + " Password: " + doc_password);
-                                restorePref();
-                                return true;
-                            }
-                        } catch (Exception err) {
-                            Log.e("MYAPP", " Encryption Err  " + err.getMessage());
-                            return false;
-                        }
                     } else {
                         return false;
                     }
@@ -576,17 +591,20 @@ public class FullscreenLogin extends AppCompatActivity {
                 String Server_name = (String) properties.get("name");
                 String Server_nationName = (String) properties.get("nationName");
                 String Server_version = (String) properties.get("version");
+                String Server_code = (String) properties.get("code");
 
                 //////alertDialogOkay(Server_name+" Names");
                 SharedPreferences.Editor editor = settings.edit();
                 editor.putString("pf_server_name", Server_name);
                 editor.putString("pf_server_nation", Server_nationName);
                 editor.putString("pf_server_version", Server_version);
+                editor.putString("pf_server_code", Server_code);
                 editor.commit();
             }
             db.close();
             return true;
         } catch (Exception e) {
+            e.printStackTrace();
             return true;
         }
     }
@@ -886,16 +904,17 @@ public class FullscreenLogin extends AppCompatActivity {
     }
     public void emptyAllDbs() {
         if(wipeClean) {
-
             for (int cnt = 0; cnt < databaseList.length; cnt++) {
                 try {
                     Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                    Database dbResources = manager.getDatabase(databaseList[cnt]);
-                    dbResources.delete();
+                    Database db = manager.getDatabase(databaseList[cnt]);
+                    Log.e("MYAPP","Deleting "+databaseList[cnt]);
+                    db.delete();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
+            //// Delete Device Created Databases
             try {
                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                 Database dbResources = manager.getDatabase("resources");
@@ -903,6 +922,21 @@ public class FullscreenLogin extends AppCompatActivity {
             }catch(Exception err){
                 err.printStackTrace();
             }
+            try {
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbResources = manager.getDatabase("shadowresources");
+                dbResources.delete();
+            }catch(Exception err){
+                err.printStackTrace();
+            }
+            try {
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbOffline_courses = manager.getDatabase("offline_courses");
+                dbOffline_courses.delete();
+            }catch(Exception err){
+                err.printStackTrace();
+            }
+
             try{
                 String root = Environment.getExternalStorageDirectory().toString();
                 File myDir = new File(root + "/ole_temp");

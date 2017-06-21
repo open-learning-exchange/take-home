@@ -5,7 +5,6 @@ package pbell.offline.ole.org.pbell;
  */
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -39,6 +38,9 @@ import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.Manager;
+import com.couchbase.lite.Query;
+import com.couchbase.lite.QueryEnumerator;
+import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
 import com.google.gson.JsonObject;
 
@@ -50,13 +52,13 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Handler;
 
-public class ListViewAdapter_myLibrary extends BaseAdapter {
+public class ListViewAdapter_myCourses extends BaseAdapter {
 
     private Activity activity;
     private ArrayList<HashMap<String, String>> data;
@@ -70,6 +72,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
     DownloadManager downloadManager;
     boolean singleFileDownload = true;
     public static final String PREFS_NAME = "MyPrefsFile";
+    CouchViews chViews = new CouchViews();
 
     /// String
     String sys_oldSyncServerURL, sys_username, sys_lastSyncDate,
@@ -83,8 +86,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
     protected int _splashTime = 5000;
     private Thread splashTread;
 
-    public ListViewAdapter_myLibrary(final List<String> resIDsList, Activity a, Context cont, ArrayList<HashMap<String, String>> d) {
-        resIDArrayList.addAll(resIDsList);
+    public ListViewAdapter_myCourses(final List<String> resIDsList, Activity a, Context cont, ArrayList<HashMap<String, String>> d) {
         activity = a;
         data = d;
         context = cont.getApplicationContext();
@@ -107,7 +109,9 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
                         if (DownloadManager.STATUS_SUCCESSFUL == c.getInt(columnIndex)) {
                             if (!singleFileDownload) {
                                 if(resIDsList.indexOf(OneByOneResID) < resIDsList.size()){
-                                    OneByOneResID = resIDsList.get(resIDsList.indexOf(OneByOneResID)+1);
+                                    int nextResID = resIDsList.indexOf(OneByOneResID)+1;
+                                    OneByOneResID = resIDsList.get(nextResID);
+                                    Log.e(TAG, "Next to Download  -- " + OneByOneResID);
                                     new downloadSpecificResourceToDisk().execute();
                                 }else {
                                     mDialog.dismiss();
@@ -137,7 +141,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
 
                                 }*/
                             } else {
-                                ///btnMyLibrary.performClick();
+                                ///btnCourses.performClick();
                                 ///libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_white));
                                 mDialog.dismiss();
                                 alertDialogOkay("Download Completed");
@@ -174,62 +178,32 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         View vi = convertView;
         if (convertView == null) {
-            vi = inflater.inflate(R.layout.listview_row_mylibrary, null);
+            vi = inflater.inflate(R.layout.listview_row_mycourses, null);
         }
 
         TextView title = (TextView) vi.findViewById(R.id.list_title); // title
         TextView description = (TextView) vi.findViewById(R.id.list_desc); // description
-        Button details = (Button) vi.findViewById(R.id.btn_listVewDetails); // details
-        Button feedback = (Button) vi.findViewById(R.id.btn_listFeedback); // feedback
-        Button delete = (Button) vi.findViewById(R.id.btn_listDelete); // delete
-        Button open = (Button) vi.findViewById(R.id.btn_listOpen); // delete
-        TextView ratingAvgNum = (TextView) vi.findViewById(R.id.lbl_listAvgRating); // delete
-        TextView totalNum = (TextView) vi.findViewById(R.id.lbl_listTotalrating); // delete
+        Button open = (Button) vi.findViewById(R.id.btn_listOpen); // open
+        TextView ratingAvgNum = (TextView) vi.findViewById(R.id.lbl_listAvgRating); //
+        TextView totalNum = (TextView) vi.findViewById(R.id.lbl_listTotalrating); //
         RatingBar ratingStars = (RatingBar) vi.findViewById(R.id.list_rating);
         LayerDrawable stars = (LayerDrawable) ratingStars.getProgressDrawable();
         stars.getDrawable(2).setColorFilter(Color.parseColor("#ffa500"), PorterDuff.Mode.SRC_ATOP);
 
-        ProgressBar femalerating = (ProgressBar) vi.findViewById(R.id.female_progressbar); // delete
-        ProgressBar malerating = (ProgressBar) vi.findViewById(R.id.male_progressbar); // delete
+        ProgressBar femalerating = (ProgressBar) vi.findViewById(R.id.female_progressbar); //
+        ProgressBar malerating = (ProgressBar) vi.findViewById(R.id.male_progressbar); //
         ImageView thumb_image = (ImageView) vi.findViewById(R.id.list_image); //  image
 
         HashMap<String, String> material = new HashMap<String, String>();
         material = data.get(position);
 
-        // Setting all values in ListView_myLibrary
-        title.setText(material.get(ListView_myLibrary.KEY_TITLE));
-        description.setText(material.get(ListView_myLibrary.KEY_DESCRIPTION));
-        details.setText("Details");
-        details.setTag(material.get(ListView_myLibrary.KEY_DETAILS));
-        details.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                buttonAction(v.getTag().toString(), "Details");
-                Log.i(TAG, "Details Clicked ********** " + v.getTag());
-            }
-        });
-        feedback.setText("Feedback");
-        feedback.setTag(material.get(ListView_myLibrary.KEY_FEEDBACK));
-        feedback.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                buttonAction(v.getTag().toString(), "Feedback");
-                Log.i(TAG, "Feedback Clicked ********** " + v.getTag());
-            }
-        });
-        delete.setText("Delete");
-        delete.setTag(material.get(ListView_myLibrary.KEY_DELETE));
-        delete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                buttonAction(v.getTag().toString(), "Delete");
-                Log.i(TAG, "Delete Clicked ********** " + v.getTag());
-            }
-        });
+        // Setting all values in ListView_myCourses
+        title.setText(material.get(ListView_myCourses.KEY_TITLE));
+        description.setText(material.get(ListView_myCourses.KEY_DESCRIPTION));
 
-        if (material.get(ListView_myLibrary.KEY_RESOURCE_STATUS).equalsIgnoreCase("downloaded")) {
+        if (material.get(ListView_myCourses.KEY_RESOURCE_STATUS).equalsIgnoreCase("downloaded")) {
             open.setText("Open");
-            open.setTag(material.get(ListView_myLibrary.KEY_ID));
+            open.setTag(material.get(ListView_myCourses.KEY_ID));
             open.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -238,7 +212,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             });
         } else {
             open.setText("Download");
-            open.setTag(material.get(ListView_myLibrary.KEY_ID));
+            open.setTag(material.get(ListView_myCourses.KEY_ID));
             open.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -247,14 +221,14 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             });
         }
 
-        ratingAvgNum.setText("" + material.get(ListView_myLibrary.KEY_RATING));
-        ratingStars.setRating(Float.parseFloat("" + material.get(ListView_myLibrary.KEY_RATING)));
-        totalNum.setText(material.get(ListView_myLibrary.KEY_TOTALNUM_RATING));
+        ratingAvgNum.setText("" + material.get(ListView_myCourses.KEY_RATING));
+        ratingStars.setRating( Float.parseFloat((material.get(ListView_myCourses.KEY_RATING) == null) ? "2.2" : material.get(ListView_myCourses.KEY_RATING)));
+        totalNum.setText(material.get(ListView_myCourses.KEY_TOTALNUM_RATING));
         femalerating.setProgress(Integer.parseInt("1"));
-        //femalerating.setProgress(Integer.parseInt(material.get(ListView_myLibrary.KEY_FEMALE_RATING)));
+        //femalerating.setProgress(Integer.parseInt(material.get(ListView_myCourses.KEY_FEMALE_RATING)));
         malerating.setProgress(Integer.parseInt("1"));
-        //malerating.setProgress(Integer.parseInt(material.get(ListView_myLibrary.KEY_MALE_RATING)));
-        imageLoader.DisplayImage(material.get(ListView_myLibrary.KEY_THUMB_URL), thumb_image);
+        //malerating.setProgress(Integer.parseInt(material.get(ListView_myCourses.KEY_MALE_RATING)));
+        imageLoader.DisplayImage(material.get(ListView_myCourses.KEY_THUMB_URL), thumb_image);
         return vi;
     }
 
@@ -310,13 +284,9 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
 
     }
 
-    public void buttonAction(String resourceId, String action) {
+    public void buttonAction(String courseId, String action) {
         switch (action) {
             case "Delete":
-                break;
-            case "Details":
-                break;
-            case "Feedback":
                 break;
             case "Open":
                 mDialog = new ProgressDialog(activity.getWindow().getContext());
@@ -324,14 +294,16 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
                 mDialog.setMessage("Please wait...");
                 mDialog.setCancelable(false);
                 mDialog.show();
-                if (openResources(resourceId)) {
-                    Log.i(TAG, "Open Clicked ********** " + resourceId);
+                if (openCourse(courseId)) {
+                    Log.i(TAG, "Open Clicked ********** " + courseId);
                 } else {
-                    Log.i(TAG, "Open  ********** " + resourceId);
+                    Log.i(TAG, "Open  ********** " + courseId);
                 }
                 break;
             case "Download":
-                OneByOneResID = resourceId;
+                restorePreferences(activity);
+                downloadCourseResources(courseId);
+                /*OneByOneResID = courseId;
                 restorePreferences(activity);
                 mDialog = new ProgressDialog(activity.getWindow().getContext());
                 mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
@@ -340,9 +312,59 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
                 mDialog.show();
                 singleFileDownload = true;
                 new downloadSpecificResourceToDisk().execute();
-                Log.i(TAG, "Downloading  ********** " + resourceId);
+                Log.i(TAG, "Downloading  ********** " + courseId);*/
                 break;
         }
+    }
+
+    public void downloadCourseResources(String courseId){
+       try{
+           resIDArrayList.clear();
+           AndroidContext androidContext = new AndroidContext(context);
+           Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+           manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+           Database coursestep_Db = manager.getExistingDatabase("coursestep");
+           Query orderedQuery = chViews.ReadCourseSteps(coursestep_Db).createQuery();
+           orderedQuery.setDescending(true);
+           QueryEnumerator results = orderedQuery.run();
+           int courseStepsCounter =0;
+           for (Iterator<QueryRow> item = results; item.hasNext(); ) {
+               QueryRow row = item.next();
+               String docId = (String) row.getValue();
+               Document doc = coursestep_Db.getExistingDocument(docId);
+               Map<String, Object> coursestep_properties = doc.getProperties();
+               if (courseId.equals((String) coursestep_properties.get("courseId"))) {
+                   ArrayList resourceList = (ArrayList<String>) coursestep_properties.get("resourceId");
+                   for (int cnt = 0; cnt < resourceList.size(); cnt++) {
+                       resIDArrayList.add(String.valueOf(resourceList.get(cnt)));
+                   }
+                              /*  ArrayList course_step_resourceId = (ArrayList) coursestep_properties.get("resourceId");
+                                ArrayList course_step_resourceTitles = (ArrayList) coursestep_properties.get("resourceTitles");
+                                String course_step_title = (String) coursestep_properties.get("title");
+                                String course_step_id = (String) coursestep_properties.get("_id");
+                                String course_step_descr = (String) coursestep_properties.get("description");
+                                int course_step_No = (Integer) coursestep_properties.get("step");*/
+                   Log.e(TAG, "Course Step title " + ((String) coursestep_properties.get("title")) + " ");
+                   courseStepsCounter++;
+               }
+           }
+           for(int x=0;x<resIDArrayList.size();x++){
+               Log.e(TAG, "Resources for course ( "+courseId+" ) step " + resIDArrayList.get(x));
+           }
+           if(resIDArrayList.size()>0) {
+               OneByOneResID = resIDArrayList.get(0);
+               mDialog = new ProgressDialog(activity.getWindow().getContext());
+               mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+               mDialog.setMessage("Please wait...");
+               mDialog.setCancelable(false);
+               mDialog.show();
+               singleFileDownload = false;
+               new downloadSpecificResourceToDisk().execute();
+           }
+
+       }catch(Exception err){
+           err.printStackTrace();
+       }
     }
 
     public void downloadWithDownloadManagerSingleFile(String fileURL, String FileName) {
@@ -423,13 +445,14 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             } catch (Exception e) {
                 Log.e(TAG, "Download this resource error " + e.getMessage());
                 // mDialog.dismiss();
-                alertDialogOkay("Error downloading file, check connection and try again");
+               // alertDialogOkay("Error downloading file, check connection and try again");
+                e.printStackTrace();
                 return null;
             }
             return null;
         }
     }
-    public Boolean openResources(String id) {
+    public Boolean openCourse(String id) {
         String resourceIdTobeOpened = id;
         Log.d(TAG, "Trying to open resource " + id);
         try {

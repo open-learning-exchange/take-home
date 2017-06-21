@@ -236,6 +236,7 @@ public class User_Dashboard extends FragmentActivity {
             @Override
             public void onClick(View view) {
                 try {
+                    openMyCourses();
                 } catch (Exception except) {
                     Log.d(TAG, "MyCourses click action error " + except.getMessage());
                 }
@@ -294,6 +295,7 @@ public class User_Dashboard extends FragmentActivity {
             @Override
             public void onClick(View viewIn) {
                 try {
+                    openMyCourses();
                 } catch (Exception except) {
                     Log.d(TAG, "MyCourses click action error " + except.getMessage());
                 }
@@ -637,6 +639,20 @@ public class User_Dashboard extends FragmentActivity {
         ///Show as active
         resetActiveButton();
         lt_myLibrary.setBackgroundColor(getResources().getColor(R.color.ole_blueLine));
+    }
+
+    public void openMyCourses() {
+        ListView_myCourses fg_myCourses = new ListView_myCourses();
+        Bundle args = new Bundle();
+        args.putInt("Arg1", 1);
+        fg_myCourses.setArguments(args);
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fmlt_container, fg_myCourses);
+        transaction.addToBackStack(null);
+        transaction.commit();
+        ///Show as active
+        resetActiveButton();
+        lt_myCourses.setBackgroundColor(getResources().getColor(R.color.ole_blueLine));
     }
 
     public Boolean openResources(String id) {
