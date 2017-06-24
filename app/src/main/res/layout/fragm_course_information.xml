@@ -1,0 +1,176 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Fragm_course_information">
+
+    <!-- TODO: Update blank fragment layout -->
+
+    <LinearLayout
+        android:id="@+id/lt_masterFrame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="10dp"
+        android:orientation="vertical"
+        android:background="@drawable/course_border"
+        android:weightSum="10">
+
+        <LinearLayout
+            android:id="@+id/lt_header_main"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1.5"
+            android:orientation="horizontal"
+            android:background="@drawable/course_header_bg">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:weightSum="12">
+
+                <LinearLayout
+                    android:id="@+id/lt_headerText"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="9"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingLeft="10dp">
+
+                    <TextView
+                        android:id="@+id/lbl_CourseTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="TextView"
+                        android:textColor="@color/white"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/lt_headerLeftPonts"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="3"
+                    android:orientation="horizontal"></LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/lt_MainContent"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_margin="3dp"
+            android:layout_weight="7.1"
+            android:orientation="vertical"
+            android:weightSum="8">
+
+            <LinearLayout
+                android:id="@+id/lt_Cont_StepTitle"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="horizontal"></LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/lt_Cont_Description"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="4.5"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/editText2"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:ems="10"
+                    android:inputType="textMultiLine"
+                    android:padding="5dp"
+                    android:text="The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. The step will assess your ability to accurately diagnosis a child with a cough and difficult breathing. "
+                    android:textAlignment="textStart"
+                    android:textAllCaps="false"
+                    android:textIsSelectable="false"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/lt_Cont_Resources"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="2.5"
+                android:orientation="horizontal"></LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1.4"
+            android:background="@drawable/course_footer_top_border"
+            android:gravity="right"
+            android:orientation="horizontal"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            android:weightSum="12">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="4"
+                android:gravity="left|right|center_vertical|center_horizontal"
+                android:orientation="horizontal"
+                android:weightSum="6">
+
+                <Button
+                    android:id="@+id/btnBack"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:text="Back"
+                    android:textColor="@color/white" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="4"
+                android:gravity="center_vertical|center_horizontal|center"
+                android:orientation="horizontal"
+                android:weightSum="6">
+
+                <Button
+                    android:id="@+id/btnContLater"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:text="Continue Later"
+                    android:textColor="@color/white" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="4"
+                android:gravity="right|center_vertical|center_horizontal"
+                android:orientation="horizontal"
+                android:weightSum="6">
+
+                <Button
+                    android:id="@+id/btnNext"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:text="Next"
+                    android:textColor="@color/white" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

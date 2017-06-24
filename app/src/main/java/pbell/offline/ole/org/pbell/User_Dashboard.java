@@ -69,7 +69,7 @@ import java.util.Set;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class User_Dashboard extends FragmentActivity {
+public class User_Dashboard extends FragmentActivity implements Fragm_course_information.OnFragmentInteractionListener {
     private View mControlsView;
     String TAG = "MYAPP";
     public static final String PREFS_NAME = "MyPrefsFile";
@@ -628,7 +628,7 @@ public class User_Dashboard extends FragmentActivity {
     }
 
     public void openMyLibrary() {
-        ListView_myLibrary fg_myLibrary = new ListView_myLibrary();
+        /*ListView_myLibrary fg_myLibrary = new ListView_myLibrary();
         Bundle args = new Bundle();
         args.putInt("Arg1", 1);
         fg_myLibrary.setArguments(args);
@@ -638,7 +638,16 @@ public class User_Dashboard extends FragmentActivity {
         transaction.commit();
         ///Show as active
         resetActiveButton();
-        lt_myLibrary.setBackgroundColor(getResources().getColor(R.color.ole_blueLine));
+        lt_myLibrary.setBackgroundColor(getResources().getColor(R.color.ole_blueLine));*/
+        Fragm_course_information fg_myLibrary = new Fragm_course_information();
+        Bundle args = new Bundle();
+        args.putInt("Arg1", 1);
+        fg_myLibrary.setArguments(args);
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fmlt_container, fg_myLibrary);
+        transaction.addToBackStack(null);
+        transaction.commit();
+
     }
 
     public void openMyCourses() {
@@ -653,6 +662,7 @@ public class User_Dashboard extends FragmentActivity {
         ///Show as active
         resetActiveButton();
         lt_myCourses.setBackgroundColor(getResources().getColor(R.color.ole_blueLine));
+
     }
 
     public Boolean openResources(String id) {
@@ -983,6 +993,11 @@ public class User_Dashboard extends FragmentActivity {
         OneByOneResID = resId;
         new downloadSpecificResourceToDisk().execute();
         return true;
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
     }
 
     //// Opening Resource Types //

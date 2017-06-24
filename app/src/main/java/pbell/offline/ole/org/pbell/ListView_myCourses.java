@@ -89,7 +89,7 @@ public class ListView_myCourses extends Fragment {
             e.printStackTrace();
         }
         restorePref();
-        LoadMyLibraryList();
+        LoadMyCourses();
 
         list = (ListView) rootView.findViewById(R.id.material_list);
         adapter = new ListViewAdapter_myCourses(resIDArrayList, getActivity(), context, materialList);
@@ -103,12 +103,33 @@ public class ListView_myCourses extends Fragment {
         return rootView;
     }
 
-    public void LoadMyLibraryList() {
+    public void LoadMyCourses() {
         try {
+            /// Todo remove bellow code
+            /*
+            try {
+                AndroidContext androidContext = new AndroidContext(context);
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbOffline_courses = manager.getDatabase("offline_courses");
+                dbOffline_courses.delete();
+            }catch(Exception err){
+                err.printStackTrace();
+            }
+
+            try {
+                AndroidContext androidContext = new AndroidContext(context);
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dboffline_course_resources = manager.getDatabase("offline_course_resources");
+                dboffline_course_resources.delete();
+            }catch(Exception err){
+                err.printStackTrace();
+            }
+            */
+
+
             //maximus
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database course_db = manager.getExistingDatabase("courses");
-            ///Database resource_Db = manager.getDatabase("resources");
             Query orderedQuery = chViews.ReadCourses(course_db).createQuery();
             orderedQuery.setDescending(true);
             QueryEnumerator results = orderedQuery.run();
@@ -200,8 +221,8 @@ public class ListView_myCourses extends Fragment {
                         map.put(KEY_FEMALE_RATING, "");
                         map.put(KEY_MALE_RATING, "");
                         ///map.put(KEY_THUMB_URL, parser.getValue(e, KEY_THUMB_URL));
-                        Database local_downloaded_resources = manager.getDatabase("offline_courses");
-                        Document local_downloaded_doc = local_downloaded_resources.getExistingDocument((String) properties.get("_id"));
+                        Database local_downloaded_courses = manager.getDatabase("offline_courses");
+                        Document local_downloaded_doc = local_downloaded_courses.getExistingDocument((String) properties.get("_id"));
                         if(local_downloaded_doc!=null){
                             map.put(KEY_RESOURCE_STATUS,"downloaded");
                         }else{
@@ -266,5 +287,7 @@ public class ListView_myCourses extends Fragment {
         sys_servername = settings.getString("pf_server_name", " ");
         sys_serverversion = settings.getString("pf_server_version", " ");
     }
+
+
 
 }

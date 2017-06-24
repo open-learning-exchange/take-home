@@ -95,4 +95,7 @@
     <string name="title_activity_user__dashboard">User_Dashboard</string>
     <string name="bbtext_MyCourses">myCourses</string>
     <string name="bbtext_MyTeams">myTeams</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
