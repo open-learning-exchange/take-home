@@ -3,12 +3,12 @@
     android:shape="rectangle"   >
 
     <solid
-        android:color="@color/ole_green_btn" >
+        android:color="#12af00" >
     </solid>
 
     <stroke
         android:width="2dp"
-        android:color="@color/ole_green_btn" >
+        android:color="#12af00" >
     </stroke>
 
     <padding
@@ -19,8 +19,8 @@
     </padding>
 
     <corners
-        android:topLeftRadius="11dp" android:topRightRadius="11dp"
-        android:bottomLeftRadius="11dp" android:bottomRightRadius="11dp">
+        android:topLeftRadius="7dp" android:topRightRadius="7dp"
+        android:bottomLeftRadius="7dp" android:bottomRightRadius="7dp">
     </corners>
 
 </shape>

@@ -90,6 +90,20 @@ public class CouchViews {
         );
         return CourseSteps;
     }
+    public View ReadCourseStepsByCourseID(Database db,final String courseId) {
+        View CourseSteps = db.getView("Coursestep");
+        CourseSteps.setMap(
+                new Mapper(){
+                    @Override
+                    public void map(Map<String, Object> document,Emitter emitter) {
+                        if (courseId.equals(document.get("courseId"))) {
+                            emitter.emit((String) document.get("courseId"), (String) document.get("_id"));
+                        }
+                    }
+                }, "1"
+        );
+        return CourseSteps;
+    }
     public View ReadMemberVisits(Database db) {
         View VisitsByMemberIdView = db.getView("visits");
         VisitsByMemberIdView.setMap(

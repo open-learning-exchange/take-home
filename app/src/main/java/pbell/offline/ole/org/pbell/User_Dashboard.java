@@ -4,23 +4,18 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
-import android.os.Bundle;
-import android.support.v4.content.IntentCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -31,7 +26,6 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.couchbase.lite.Attachment;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
@@ -50,12 +44,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.lightcouch.CouchDbClientAndroid;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -69,7 +58,7 @@ import java.util.Set;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class User_Dashboard extends FragmentActivity implements Fragm_course_information.OnFragmentInteractionListener {
+public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse.OnFragmentInteractionListener, ListViewAdapter_myCourses.OnCourseListListener, Fragm_myCourses.OnFragmentInteractionListener {
     private View mControlsView;
     String TAG = "MYAPP";
     public static final String PREFS_NAME = "MyPrefsFile";
@@ -98,6 +87,9 @@ public class User_Dashboard extends FragmentActivity implements Fragm_course_inf
     Object[] sys_membersWithResource;
     Activity activity;
 
+    ////Buttons
+    Button dialogBtnDownoadAll, dialogBtnDownoadFile, dialogBtnOpenFileOnline;
+
     ///Others
     SharedPreferences settings;
     CouchViews chViews = new CouchViews();
@@ -110,6 +102,7 @@ public class User_Dashboard extends FragmentActivity implements Fragm_course_inf
     DownloadManager downloadManager;
     private long enqueue;
     boolean singleFileDownload=true;
+    Dialog dialog2;
 
 
     @Override
@@ -618,7 +611,7 @@ public class User_Dashboard extends FragmentActivity implements Fragm_course_inf
         Bundle args = new Bundle();
         args.putInt("Arg1", 1);
         newFragment.setArguments(args);
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        FragmentTransaction transaction =  getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.fmlt_container, newFragment);
         transaction.addToBackStack(null);
         transaction.commit();
@@ -639,7 +632,7 @@ public class User_Dashboard extends FragmentActivity implements Fragm_course_inf
         ///Show as active
         resetActiveButton();
         lt_myLibrary.setBackgroundColor(getResources().getColor(R.color.ole_blueLine));*/
-        Fragm_course_information fg_myLibrary = new Fragm_course_information();
+        Fragm_TakeCourse fg_myLibrary = new Fragm_TakeCourse();
         Bundle args = new Bundle();
         args.putInt("Arg1", 1);
         fg_myLibrary.setArguments(args);
@@ -651,7 +644,7 @@ public class User_Dashboard extends FragmentActivity implements Fragm_course_inf
     }
 
     public void openMyCourses() {
-        ListView_myCourses fg_myCourses = new ListView_myCourses();
+        Fragm_myCourses fg_myCourses = new Fragm_myCourses();
         Bundle args = new Bundle();
         args.putInt("Arg1", 1);
         fg_myCourses.setArguments(args);
@@ -1000,6 +993,24 @@ public class User_Dashboard extends FragmentActivity implements Fragm_course_inf
 
     }
 
+    @Override
+    public void onFragmentMessage(String TAG, Object data) {
+        if (TAG.equals("Fragm_myCourses")){
+            alertDialogOkay("Clicked Something");
+            MaterialClickDialog(true, "Title", "10000", 2);
+            //Do something with 'data' that comes from fragment1
+        }
+        else if (TAG.equals("TAGFragment2")){
+            //Do something with 'data' that comes from fragment2
+        }
+    }
+
+    @Override
+    public void onCourseOpenMessage(String TAG, Object data) {
+        //alertDialogOkay("Clicked Something");
+        MaterialClickDialog(true,"title","id",2);
+    }
+
     //// Opening Resource Types //
     class downloadSpecificResourceToDisk extends AsyncTask<String, Void, Boolean> {
         @Override
@@ -1066,6 +1077,155 @@ public class User_Dashboard extends FragmentActivity implements Fragm_course_inf
             }
             return null;
         }
+    }
+
+
+    public void MaterialClickDialog(boolean online, String title, String resId, int buttonPressedId) {
+        final boolean clicked_rs_status = online;
+        final String clicked_rs_title = title;
+        final String clicked_rs_ID = resId;
+        int resButtonId = buttonPressedId;
+        AlertDialog.Builder dialogB2 = new AlertDialog.Builder(this);
+        // custom dialog
+        dialogB2.setView(R.layout.dialog_prompt_resource_location);
+        dialogB2.setCancelable(true);
+        dialog2 = dialogB2.create();
+        dialog2.show();
+        TextView txtResourceId = (TextView) dialog2.findViewById(R.id.txtResourceID);
+        txtResourceId.setText(title);
+        //// Open material online
+        dialogBtnOpenFileOnline = (Button) dialog2.findViewById(R.id.btnOpenOnline);
+        dialogBtnOpenFileOnline.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Todo Open resource in a browser
+               /* dialog2.dismiss();
+                OneByOneResID = clicked_rs_ID;
+                Fuel ful = new Fuel();
+                String onlinecouchresource = sys_oldSyncServerURL + "/resources/" + OneByOneResID;
+                ful.get(sys_oldSyncServerURL + "/resources/" + OneByOneResID).responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
+                    @Override
+                    public void success(Request request, Response response, String s) {
+                        try {
+                            try {
+                                /// alertDialogOkay(OneByOneResID+"");
+                                ///////openFromOnlineServer = true;
+                                JSONObject jsonData = new JSONObject(s);
+                                String openWith = (String) jsonData.get("openWith");
+                                Log.e("MyCouch", "Open With -- " + openWith);
+                                JSONObject _attachments = (JSONObject) jsonData.get("_attachments");
+                                if (!openWith.equalsIgnoreCase("HTML")) {
+                                    Iterator<String> keys = _attachments.keys();
+                                    if (keys.hasNext()) {
+                                        String key = (String) keys.next();
+                                        String encodedkey = URLEncoder.encode(key, "utf-8");
+                                        /////// onlinecouchresource = onlinecouchresource + "/" + encodedkey;
+                                        mDialog.dismiss();
+                                        ///////openHTML(onlinecouchresource);
+                                    }
+                                } else {
+                                    if (_attachments.length() <= 1) {
+                                        Iterator<String> keys = _attachments.keys();
+                                        if (keys.hasNext()) {
+                                            String key = (String) keys.next();
+                                            String encodedkey = URLEncoder.encode(key, "utf-8");
+                                            ///////onlinecouchresource = onlinecouchresource + "/" + encodedkey;
+                                            mDialog.dismiss();
+                                            ///////openHTML(onlinecouchresource);
+                                        }
+                                    } else {
+                                        ///////onlinecouchresource = onlinecouchresource + "/index.html";
+                                        mDialog.dismiss();
+                                        ///////openHTML(onlinecouchresource);
+                                    }
+
+                                }
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void failure(Request request, Response response, FuelError fuelError) {
+                        alertDialogOkay("Error downloading file");
+                        Log.e("MyCouch", " " + fuelError);
+                    }
+                });*/
+            }
+        });
+
+        //// Download Only selected file
+        dialogBtnDownoadFile = (Button) dialog2.findViewById(R.id.btnDownloadFile);
+        dialogBtnDownoadFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                /*dialog2.dismiss();
+                OneByOneResID = clicked_rs_ID;
+                try {
+                    mDialog = new ProgressDialog(context);
+                    mDialog.setMessage("Please wait...");
+                    mDialog.setCancelable(false);
+                    mDialog.show();
+
+                    ///syncThreadHandler();
+
+                    //// Todo Decide which option is best
+                    //singleFiledownload = true;
+                    ///new User_Dashboard().downloadSpecificResourceToDisk().execute();
+                    //final AsyncTask<String, Void, Boolean> execute = new SyncResource().execute();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    mDialog = new ProgressDialog(context);
+                    mDialog.setMessage("Error Downloading Resource. Check connection to server and try again");
+                    mDialog.setCancelable(true);
+                    mDialog.show();
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+
+                }*/
+            }
+        });
+
+        //// Download all resources on button click
+        dialogBtnDownoadAll = (Button) dialog2.findViewById(R.id.btnDownloadAll);
+        dialogBtnDownoadAll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+               /* dialog2.dismiss();
+                OneByOneResID = clicked_rs_ID;
+                try {
+                    //String root = Environment.getExternalStorageDirectory().toString();
+                    //File myDir = new File(root + "/ole_temp");
+                    //deleteDirectory(myDir);
+                    //myDir.mkdirs();
+                    mDialog = new ProgressDialog(context);
+                    ///mDialog.setMessage("Downloading resource, please wait..." + resourceIdTobeOpened[allresDownload]);
+                    mDialog.setMessage("Downloading resource, please wait..." );
+                    mDialog.setCancelable(true);
+                    mDialog.show();
+                    ///////htmlResourceList.clear();
+                    ///////allhtmlDownload = 0;
+                    //// Todo Decide which option is best
+                    ///////singleFiledownload = false;
+                    ///////new FullscreenActivity.downloadAllResourceToDisk().execute();
+                    //new SyncAllResource().execute();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+
+                }*/
+            }
+        });
+        mDialog = new ProgressDialog(context);
+        mDialog.setMessage("This resource is not downloaded on this device. \n Please wait. Establishing connection with to server so you can download it...");
+        mDialog.setCancelable(false);
+        mDialog.show();
+        ///////new FullscreenActivity.AsyncCheckConnection().execute();
     }
 
 }

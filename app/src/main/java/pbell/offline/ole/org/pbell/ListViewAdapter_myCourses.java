@@ -22,13 +22,11 @@ import android.graphics.drawable.LayerDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Environment;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewParent;
 import android.view.WindowManager;
 import android.widget.BaseAdapter;
 import android.widget.Button;
@@ -55,11 +53,9 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class ListViewAdapter_myCourses extends BaseAdapter {
 
@@ -102,13 +98,13 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
     private DownloadManager dm;
     Cursor c;
 
+    private OnCourseListListener mListener;
     public ListViewAdapter_myCourses(final List<String> resIDsList, Activity a, Context cont, ArrayList<HashMap<String, String>> d) {
         activity = a;
         data = d;
         context = cont.getApplicationContext();
         inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         imageLoader = new ImageLoader(activity.getApplicationContext());
-
 
         ///  initialActivityLoad = true;
         BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -161,9 +157,8 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
             }
         };
         context.registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
-
-
-
+        this.mListener = null;
+        mListener = (OnCourseListListener) cont;
     }
 
     public int getCount() {
@@ -200,13 +195,13 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
         HashMap<String, String> material = new HashMap<String, String>();
         material = data.get(position);
 
-        // Setting all values in ListView_myCourses
-        title.setText(material.get(ListView_myCourses.KEY_TITLE));
-        description.setText(material.get(ListView_myCourses.KEY_DESCRIPTION));
+        // Setting all values in Fragm_myCourses
+        title.setText(material.get(Fragm_myCourses.KEY_TITLE));
+        description.setText(material.get(Fragm_myCourses.KEY_DESCRIPTION));
 
-        if (material.get(ListView_myCourses.KEY_RESOURCE_STATUS).equalsIgnoreCase("downloaded")) {
+        if (material.get(Fragm_myCourses.KEY_RESOURCE_STATUS).equalsIgnoreCase("downloaded")) {
             open.setText("Open");
-            open.setTag(material.get(ListView_myCourses.KEY_ID));
+            open.setTag(material.get(Fragm_myCourses.KEY_ID));
             open.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -215,7 +210,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
             });
         } else {
             open.setText("Download");
-            open.setTag(material.get(ListView_myCourses.KEY_ID));
+            open.setTag(material.get(Fragm_myCourses.KEY_ID));
             open.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -226,14 +221,14 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
             });
         }
 
-        ratingAvgNum.setText("" + material.get(ListView_myCourses.KEY_RATING));
-        ratingStars.setRating( Float.parseFloat((material.get(ListView_myCourses.KEY_RATING) == null) ? "2.2" : material.get(ListView_myCourses.KEY_RATING)));
-        totalNum.setText(material.get(ListView_myCourses.KEY_TOTALNUM_RATING));
+        ratingAvgNum.setText("" + material.get(Fragm_myCourses.KEY_RATING));
+        ratingStars.setRating( Float.parseFloat((material.get(Fragm_myCourses.KEY_RATING) == null) ? "2.2" : material.get(Fragm_myCourses.KEY_RATING)));
+        totalNum.setText(material.get(Fragm_myCourses.KEY_TOTALNUM_RATING));
         femalerating.setProgress(Integer.parseInt("1"));
-        //femalerating.setProgress(Integer.parseInt(material.get(ListView_myCourses.KEY_FEMALE_RATING)));
+        //femalerating.setProgress(Integer.parseInt(material.get(Fragm_myCourses.KEY_FEMALE_RATING)));
         malerating.setProgress(Integer.parseInt("1"));
-        //malerating.setProgress(Integer.parseInt(material.get(ListView_myCourses.KEY_MALE_RATING)));
-        imageLoader.DisplayImage(material.get(ListView_myCourses.KEY_THUMB_URL), thumb_image);
+        //malerating.setProgress(Integer.parseInt(material.get(Fragm_myCourses.KEY_MALE_RATING)));
+        imageLoader.DisplayImage(material.get(Fragm_myCourses.KEY_THUMB_URL), thumb_image);
         return vi;
     }
 
@@ -315,14 +310,16 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
             case "Delete":
                 break;
             case "Open":
-                mDialog = new ProgressDialog(activity.getWindow().getContext());
+                /*mDialog = new ProgressDialog(activity.getWindow().getContext());
                 mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
                 mDialog.setMessage("Please wait...");
                 mDialog.setCancelable(false);
-                mDialog.show();
+                mDialog.show();*/
                 if (openCourse(courseId)) {
+                    mListener.onCourseOpenMessage(TAG,action);
                     Log.i(TAG, "Open Clicked ********** " + courseId);
                 } else {
+                    mListener.onCourseOpenMessage(TAG,action);
                     Log.i(TAG, "Open  ********** " + courseId);
                 }
                 break;
@@ -413,6 +410,9 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
         downloadManager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
         enqueue = downloadManager.enqueue(request);
     }
+    public interface OnCourseListListener {
+        void onCourseOpenMessage(String TAG, Object data);
+    }
 
     class downloadSpecificResourceToDisk extends AsyncTask<String, Void, Boolean> {
         @Override
@@ -483,7 +483,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
         }
     }
     public Boolean openCourse(String id) {
-        Fragm_course_information fragment2=new Fragm_course_information();
+        Fragm_TakeCourse fragment2=new Fragm_TakeCourse();
         FragmentManager fragmentManager= activity.getFragmentManager();
         FragmentTransaction fragmentTransaction=fragmentManager.beginTransaction();
         //fragmentTransaction.replace(R.id.fmlt_container,fragment2,"tag");
