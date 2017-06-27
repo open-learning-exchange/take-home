@@ -17,6 +17,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.Manager;
@@ -116,12 +117,14 @@ public class Fragm_myCourses extends Fragment {
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
+
         return fragment;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
@@ -153,7 +156,6 @@ public class Fragm_myCourses extends Fragment {
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                mListener.onFragmentMessage("Fragm_myCourses", view);
             }
         });
 
@@ -197,14 +199,13 @@ public class Fragm_myCourses extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
-        void onFragmentMessage(String TAG, Object data);
     }
 
 
     public void LoadMyCourses() {
         try {
             /// Todo remove bellow code
-            /*
+/*
             try {
                 AndroidContext androidContext = new AndroidContext(context);
                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
@@ -222,8 +223,8 @@ public class Fragm_myCourses extends Fragment {
             }catch(Exception err){
                 err.printStackTrace();
             }
-            */
 
+              */
 
             //maximus
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
@@ -250,9 +251,6 @@ public class Fragm_myCourses extends Fragment {
                         mycourseId = ((String) properties.get("_id"));
                         mycourseForgndColor = ((String) properties.get("foregroundColor"));
                         mycourseBackgndColor = ((String) properties.get("backgroundColor"));
-                        courseIdList[csLstCnt] = mycourseId;
-                        courseTitleList[csLstCnt] = mycourseTitile;
-                        courseIDArrayList.add(mycourseId);
 
                         //// Get Steps
                         manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
@@ -260,75 +258,87 @@ public class Fragm_myCourses extends Fragment {
                         orderedQuery = chViews.ReadCourseSteps(coursestep_Db).createQuery();
                         orderedQuery.setDescending(true);
                         results = orderedQuery.run();
-                        int courseStepsCounter =0;
+                        int courseStepsCounter = 0;
+                        ArrayList course_step_resourceId = null;
                         for (Iterator<QueryRow> item = results; item.hasNext(); ) {
                             row = item.next();
                             docId = (String) row.getValue();
                             doc = coursestep_Db.getExistingDocument(docId);
                             Map<String, Object> coursestep_properties = doc.getProperties();
                             if (mycourseId.equals((String) coursestep_properties.get("courseId"))) {
-                              /*  ArrayList course_step_resourceId = (ArrayList) coursestep_properties.get("resourceId");
-                                ArrayList course_step_resourceTitles = (ArrayList) coursestep_properties.get("resourceTitles");
+                               course_step_resourceId = (ArrayList) coursestep_properties.get("resourceId");
+                              /*  ArrayList course_step_resourceTitles = (ArrayList) coursestep_properties.get("resourceTitles");
                                 String course_step_title = (String) coursestep_properties.get("title");
                                 String course_step_id = (String) coursestep_properties.get("_id");
                                 String course_step_descr = (String) coursestep_properties.get("description");
                                 int course_step_No = (Integer) coursestep_properties.get("step");*/
-                                Log.e(TAG, "Course Step title " + ((String) coursestep_properties.get("title")) + " ");
+                                Log.e(TAG, "Course Step title " + ((String) coursestep_properties.get("title")) + " Step ID "+ docId);
+                                Log.e(TAG, "Course Step Resources - " + course_step_resourceId.size() + " ");
                                 courseStepsCounter++;
                             }
                         }
+                        if (courseStepsCounter > 0) {
+                            courseIdList[csLstCnt] = mycourseId;
+                            courseTitleList[csLstCnt] = mycourseTitile;
+                            courseIDArrayList.add(mycourseId);
 
-                        HashMap<String, String> map = new HashMap<String, String>();
-                        map.put(KEY_ID, ((String) properties.get("_id")));
-                        map.put(KEY_TITLE, ((String) properties.get("CourseTitle")));
-                        Log.e(TAG, "Course item title " + ((String) properties.get("CourseTitle")) + " ");
-                        String desc = (String) properties.get("description");
-                        if(desc.length() > 100){
-                            desc = desc.substring(0,100);
-                        }
-                        String dateFrom,dateTo,timeFrom,timeTo,buildDescription;
-                        try{
-                            dateFrom = ((String) properties.get("startDate") == "") ? "" : ("Date : " +((String) properties.get("startDate")));
-                        }catch(Exception err){
-                            dateFrom="";
-                        }
-                        try{
-                            dateTo=((String) properties.get("endDate") == "") ? "" : (" - " + ((String) properties.get("endDate")));
-                        }catch(Exception err){
-                            dateTo="";
-                        }
-                        try{
-                            timeFrom=((String) properties.get("startTime") == "") ? "" :  ("       Time : " +((String) properties.get("startTime")));
-                        }catch(Exception err){
-                            timeFrom="";
-                        }
-                        try{
-                            timeTo=((String) properties.get("endTime") == "") ? "" : (" - " + ((String) properties.get("endTime")));
-                        }catch(Exception err){
-                            timeTo="";
-                        }
-                        buildDescription = "Description : " + desc + " \n" +
-                                "Number Of Steps : " + courseStepsCounter + "  " +  dateFrom  + dateTo + timeFrom +  timeTo + "\n";
+                            HashMap<String, String> map = new HashMap<String, String>();
+                            map.put(KEY_ID, ((String) properties.get("_id")));
+                            map.put(KEY_TITLE, ((String) properties.get("CourseTitle")));
+                            Log.e(TAG, "Course item title " + ((String) properties.get("CourseTitle")) + " ");
+                            String desc = (String) properties.get("description");
+                            if (desc.length() > 100) {
+                                desc = desc.substring(0, 100);
+                            }
+                            String dateFrom, dateTo, timeFrom, timeTo, buildDescription;
+                            try {
+                                dateFrom = ((String) properties.get("startDate") == "") ? "" : ("Date : " + ((String) properties.get("startDate")));
+                            } catch (Exception err) {
+                                dateFrom = "";
+                            }
+                            try {
+                                dateTo = ((String) properties.get("endDate") == "") ? "" : (" - " + ((String) properties.get("endDate")));
+                            } catch (Exception err) {
+                                dateTo = "";
+                            }
+                            try {
+                                timeFrom = ((String) properties.get("startTime") == "") ? "" : ("  Time : " + ((String) properties.get("startTime")));
+                            } catch (Exception err) {
+                                timeFrom = "";
+                            }
+                            try {
+                                timeTo = ((String) properties.get("endTime") == "") ? "" : (" - " + ((String) properties.get("endTime")));
+                            } catch (Exception err) {
+                                timeTo = "";
+                            }
+                            buildDescription = "Description : " + desc + " \n" +
+                                    "Number of steps : " + courseStepsCounter + "  " + dateFrom + dateTo + timeFrom + timeTo + "\n";
 
-                        map.put(KEY_DESCRIPTION, buildDescription);
-                        map.put(KEY_DETAILS, ((String) properties.get("_id")));
-                        map.put(KEY_FEEDBACK, ((String) properties.get("_id")));
-                        map.put(KEY_DELETE, ((String) properties.get("_id")));
-                        map.put(KEY_RATING, (((String) properties.get("averageRating")) == "") ? "2.2" : (String) properties.get("averageRating"));
-                        map.put(KEY_TOTALNUM_RATING, "Rating  (" + properties.get("averageRating") + ")");
-                        map.put(KEY_FEMALE_RATING, "");
-                        map.put(KEY_MALE_RATING, "");
-                        ///map.put(KEY_THUMB_URL, parser.getValue(e, KEY_THUMB_URL));
-                        Database local_downloaded_courses = manager.getDatabase("offline_courses");
-                        Document local_downloaded_doc = local_downloaded_courses.getExistingDocument((String) properties.get("_id"));
-                        if(local_downloaded_doc!=null){
-                            map.put(KEY_RESOURCE_STATUS,"downloaded");
-                        }else{
-                            map.put(KEY_RESOURCE_STATUS,"not downloaded");
+                            map.put(KEY_DESCRIPTION, buildDescription);
+                            map.put(KEY_DETAILS, ((String) properties.get("_id")));
+                            map.put(KEY_FEEDBACK, ((String) properties.get("_id")));
+                            map.put(KEY_DELETE, ((String) properties.get("_id")));
+                            map.put(KEY_RATING, (((String) properties.get("averageRating")) == "") ? "2.2" : (String) properties.get("averageRating"));
+                            map.put(KEY_TOTALNUM_RATING, "Rating  (" + properties.get("averageRating") + ")");
+                            map.put(KEY_FEMALE_RATING, "");
+                            map.put(KEY_MALE_RATING, "");
+                            ///map.put(KEY_THUMB_URL, parser.getValue(e, KEY_THUMB_URL));
+                            Database local_downloaded_courses = manager.getDatabase("offline_courses");
+                            Document local_downloaded_doc = local_downloaded_courses.getExistingDocument((String) properties.get("_id"));
+                            if (local_downloaded_doc != null) {
+                                map.put(KEY_RESOURCE_STATUS, "downloaded");
+                            } else {
+                                if(course_step_resourceId.size()<1) {
+                                    map.put(KEY_RESOURCE_STATUS, "downloaded");
+                                    createCourseDoc((String) properties.get("_id"), course_step_resourceId.size());
+                                }else{
+                                    map.put(KEY_RESOURCE_STATUS, "not downloaded");
+                                }
+                            }
+                            materialList.add(map);
+                            rsLstCnt++;
+                            csLstCnt++;
                         }
-                        materialList.add(map);
-                        rsLstCnt++;
-                        csLstCnt++;
                         coursestep_Db.close();
                     }
                 }
@@ -365,6 +375,27 @@ public class Fragm_myCourses extends Fragment {
         }
         return img;
     }
+    public void createCourseDoc(String manualCourseId, int numberOfSteps) {
+        Database database = null;
+        try {
+            AndroidContext androidContext = new AndroidContext(context);
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            database = manager.getDatabase("offline_courses");
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put("Steps", numberOfSteps);
+            properties.put("localfile", "yes");
+            Document document = database.getDocument(manualCourseId);
+            try {
+                document.putProperties(properties);
+            } catch (CouchbaseLiteException e) {
+                Log.e(TAG, "Cannot course details in offline courses"+ e.getMessage());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
 
     public void restorePref() {
         // Restore preferences

@@ -18,7 +18,7 @@
     <color name="ole_blue">#3f75a3</color>
     <color name="ole_voulet">#7d609e</color>
     <color name="ole_yellow">#ffa500</color>
-    <color name="ole_green">#2f816f</color>
+    <color name="ole_green">#12af00</color>
     <color name="ole_ash">#e1e1e1</color>
     <color name="ole_white">#ffffff</color>
     <color name="ole_black_blue">#34495e</color>
@@ -27,4 +27,5 @@
     <color name="ole_yellow_btn">#ffd100</color>
     <color name="UI_blue">#4ea2ca</color>
     <color name="ole_blueLine">#0c5ea4</color>
+    <color name="logo_blue">#1761a3</color>
 </resources>

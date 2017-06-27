@@ -66,8 +66,8 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
     Context context;
     User_Dashboard user_dashboard = new User_Dashboard();
     private ProgressDialog mDialog;
-    private long enqueue;
-    DownloadManager downloadManager;
+    private long resources_enqueue;
+    DownloadManager resources_downloadManager;
     boolean singleFileDownload = true;
     public static final String PREFS_NAME = "MyPrefsFile";
 
@@ -93,18 +93,18 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
 
 
         ///  initialActivityLoad = true;
-        BroadcastReceiver receiver = new BroadcastReceiver() {
+        BroadcastReceiver recource_receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
                 if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
                     long downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0);
                     DownloadManager.Query query = new DownloadManager.Query();
-                    query.setFilterById(enqueue);
-                    Cursor c = downloadManager.query(query);
-                    if (c.moveToFirst()) {
-                        int columnIndex = c.getColumnIndex(DownloadManager.COLUMN_STATUS);
-                        if (DownloadManager.STATUS_SUCCESSFUL == c.getInt(columnIndex)) {
+                    query.setFilterById(resources_enqueue);
+                    Cursor resources_c = resources_downloadManager.query(query);
+                    if (resources_c.moveToFirst()) {
+                        int columnIndex = resources_c.getColumnIndex(DownloadManager.COLUMN_STATUS);
+                        if (DownloadManager.STATUS_SUCCESSFUL == resources_c.getInt(columnIndex)) {
                             if (!singleFileDownload) {
                                 if(resIDsList.indexOf(OneByOneResID) < resIDsList.size()){
                                     OneByOneResID = resIDsList.get(resIDsList.indexOf(OneByOneResID)+1);
@@ -113,36 +113,14 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
                                     mDialog.dismiss();
                                     alertDialogOkay("Download Completed");
                                 }
-                                /*libraryButtons[allresDownload].setTextColor(getResources().getColor(R.color.ole_white));
-                                if (allresDownload < libraryButtons.length) {
-                                    allresDownload++;
-                                    if (resourceTitleList[allresDownload] != null) {
-                                        new FullscreenActivity.downloadAllResourceToDisk().execute();
-                                    } else {
-                                        if (allhtmlDownload < htmlResourceList.size()) {
-                                            new FullscreenActivity.SyncAllHTMLResource().execute();
-                                        } else {
-                                            mDialog.dismiss();
-                                            alertDialogOkay("Download Completed");
-                                        }
-                                    }
-                                } else {
-                                    if (allhtmlDownload < htmlResourceList.size()) {
-                                        new FullscreenActivity.SyncSingleHTMLResource().execute();
-                                        openFromDiskDirectly = true;
-                                    } else {
-                                        mDialog.dismiss();
-                                        alertDialogOkay("Download Completed");
-                                    }
 
-                                }*/
                             } else {
                                 ///btnMyLibrary.performClick();
                                 ///libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_white));
                                 mDialog.dismiss();
                                 alertDialogOkay("Download Completed");
                             }
-                        } else if (DownloadManager.STATUS_FAILED == c.getInt(columnIndex)) {
+                        } else if (DownloadManager.STATUS_FAILED == resources_c.getInt(columnIndex)) {
                             alertDialogOkay("Download Failed for");
                             if(resIDsList.indexOf(OneByOneResID) < resIDsList.size()){
                                 OneByOneResID = resIDsList.get(resIDsList.indexOf(OneByOneResID)+1);
@@ -156,7 +134,9 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
                 }
             }
         };
-        context.registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+
+        context.registerReceiver(recource_receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+
     }
 
     public int getCount() {
@@ -359,8 +339,8 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
         request.setDestinationInExternalPublicDir("ole_temp", FileName);
         // get download service and enqueue file
         mDialog.setMessage("Downloading  \" " + OneByOneResTitle + " \" . please wait...");
-        downloadManager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
-        enqueue = downloadManager.enqueue(request);
+        resources_downloadManager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+        resources_enqueue = resources_downloadManager.enqueue(request);
     }
 
     class downloadSpecificResourceToDisk extends AsyncTask<String, Void, Boolean> {

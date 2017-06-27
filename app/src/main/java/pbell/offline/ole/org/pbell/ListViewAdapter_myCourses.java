@@ -115,7 +115,8 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                     long downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0);
                     DownloadManager.Query query = new DownloadManager.Query();
                     query.setFilterById(enqueue);
-                    c = downloadManager.query(query);
+                    downloadManager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+                    Cursor c = downloadManager.query(query);
                     if (c.moveToFirst()) {
                         int columnIndex = c.getColumnIndex(DownloadManager.COLUMN_STATUS);
                         if (DownloadManager.STATUS_SUCCESSFUL == c.getInt(columnIndex)) {
@@ -132,24 +133,28 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                                 }else {
 
                                     mDialog.dismiss();
-                                    alertDialogOkay("Download Completed");
+                                    //alertDialogOkay("Download Completed");
                                     createCourseDoc(OneByOneCourseId,courseStepsCounter);
+                                    mListener.onCourseDownloadCompleted(OneByOneResTitle,resIDArrayList);
+
                                 }
                             } else {
                                 ///btnCourses.performClick();
                                 ///libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_white));
                                 mDialog.dismiss();
-                                alertDialogOkay("Download Completed");
+                                //alertDialogOkay("Download Completed");
                                 createCourseDoc(OneByOneCourseId,courseStepsCounter);
+                                mListener.onCourseDownloadCompleted(OneByOneResTitle,resIDArrayList);
                             }
                         } else if (DownloadManager.STATUS_FAILED == c.getInt(columnIndex)) {
-                            alertDialogOkay("Download Failed for");
+                            //alertDialogOkay("Download Failed for");
                             if(resIDsList.indexOf(OneByOneResID) < resIDArrayList.size()){
                                 OneByOneResID = resIDArrayList.get(resIDArrayList.indexOf(OneByOneResID)+1);
                                 new downloadSpecificResourceToDisk().execute();
                             }else {
                                 mDialog.dismiss();
                                 alertDialogOkay("Download Completed with error");
+                                mListener.onCourseDownloadCompleted(OneByOneResTitle,resIDArrayList);
                             }
                         }
                     }
@@ -307,37 +312,13 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
 
     public void buttonAction(String courseId, String action) {
         switch (action) {
-            case "Delete":
-                break;
             case "Open":
-                /*mDialog = new ProgressDialog(activity.getWindow().getContext());
-                mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-                mDialog.setMessage("Please wait...");
-                mDialog.setCancelable(false);
-                mDialog.show();*/
-                if (openCourse(courseId)) {
-                    mListener.onCourseOpenMessage(TAG,action);
+                    mListener.onTakeCourseOpen(courseId);
                     Log.i(TAG, "Open Clicked ********** " + courseId);
-                } else {
-                    mListener.onCourseOpenMessage(TAG,action);
-                    Log.i(TAG, "Open  ********** " + courseId);
-                }
                 break;
             case "Download":
-
                 restorePreferences(activity);
                 downloadCourseResources(courseId);
-
-                /*OneByOneResID = courseId;
-                restorePreferences(activity);
-                mDialog = new ProgressDialog(activity.getWindow().getContext());
-                mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-                mDialog.setMessage("Please wait...");
-                mDialog.setCancelable(false);
-                mDialog.show();
-                singleFileDownload = true;
-                new downloadSpecificResourceToDisk().execute();
-                Log.i(TAG, "Downloading  ********** " + courseId);*/
                 break;
         }
     }
@@ -347,7 +328,6 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
            resIDArrayList.clear();
            AndroidContext androidContext = new AndroidContext(context);
            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-           manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
            Database coursestep_Db = manager.getExistingDatabase("coursestep");
            Query orderedQuery = chViews.ReadCourseSteps(coursestep_Db).createQuery();
            orderedQuery.setDescending(true);
@@ -363,12 +343,6 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                    for (int cnt = 0; cnt < resourceList.size(); cnt++) {
                        resIDArrayList.add(String.valueOf(resourceList.get(cnt)));
                    }
-                              /*  ArrayList course_step_resourceId = (ArrayList) coursestep_properties.get("resourceId");
-                                ArrayList course_step_resourceTitles = (ArrayList) coursestep_properties.get("resourceTitles");
-                                String course_step_title = (String) coursestep_properties.get("title");
-                                String course_step_id = (String) coursestep_properties.get("_id");
-                                String course_step_descr = (String) coursestep_properties.get("description");
-                                int course_step_No = (Integer) coursestep_properties.get("step");*/
                    Log.e(TAG, "Course Step title " + ((String) coursestep_properties.get("title")) + " ");
                    courseStepsCounter++;
                }
@@ -386,6 +360,8 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                singleFileDownload = false;
                OneByOneCourseId = courseId;
                new downloadSpecificResourceToDisk().execute();
+           }else{
+
            }
 
        }catch(Exception err){
@@ -411,7 +387,8 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
         enqueue = downloadManager.enqueue(request);
     }
     public interface OnCourseListListener {
-        void onCourseOpenMessage(String TAG, Object data);
+        void onTakeCourseOpen(String CourseId);
+        void onCourseDownloadCompleted(String CourseId, Object data);
     }
 
     class downloadSpecificResourceToDisk extends AsyncTask<String, Void, Boolean> {
@@ -457,6 +434,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                             });
                         }
                     } else {
+                        //// HTML Resources not supported
                         /*Log.e("MyCouch", "-- HTML NOT PART OF DOWNLOADS ");
                         htmlResourceList.add(OneByOneResID);
                         if (allhtmlDownload < htmlResourceList.size()) {
@@ -474,21 +452,12 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Download this resource error " + e.getMessage());
-                // mDialog.dismiss();
-               // alertDialogOkay("Error downloading file, check connection and try again");
+                mDialog.dismiss();
+                alertDialogOkay("Error downloading file, check connection and try again");
                 e.printStackTrace();
                 return null;
             }
             return null;
         }
-    }
-    public Boolean openCourse(String id) {
-        Fragm_TakeCourse fragment2=new Fragm_TakeCourse();
-        FragmentManager fragmentManager= activity.getFragmentManager();
-        FragmentTransaction fragmentTransaction=fragmentManager.beginTransaction();
-        //fragmentTransaction.replace(R.id.fmlt_container,fragment2,"tag");
-        fragmentTransaction.addToBackStack(null);
-        fragmentTransaction.commit();
-        return true;
     }
 }

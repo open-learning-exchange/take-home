@@ -48,6 +48,7 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:text="Text title"
+                android:textColor="@color/black"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -60,7 +61,8 @@
                 android:lines="3"
                 android:maxLines="3"
                 android:text="sdhfjahsfashjdfjaskfk sahfbask fjsbhjakf sahfbjkasfdbaksdjf aksf bashjfkasjf kbshjsf abshjkdf hjasbfsahbf kasfbhjsakfdb sa hkasDH da Dk dgDUWUD bdD Kasdhad SAHdk @string/action_abouthfbkas"
-                android:textAlignment="viewStart" />
+                android:textAlignment="viewStart"
+                android:textColor="@color/black" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -77,9 +79,10 @@
                     android:layout_marginLeft="10dp"
                     android:layout_marginRight="10dp"
                     android:layout_weight="1"
-                    android:background="@drawable/listview_selector"
+                    android:background="@drawable/gradient_white_lightblue"
                     android:text="Open"
-                    android:textAllCaps="true" />
+                    android:textAllCaps="true"
+                    android:textColor="@color/ole_blueLine" />
 
             </LinearLayout>
 
@@ -126,7 +129,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Rating (1000)" />
+                    android:text="Rating (1000)"
+                    android:textColor="@color/black" />
 
                 <TextView
                     android:id="@+id/lbl_listAvgRating"

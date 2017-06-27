@@ -49,6 +49,7 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:text="Text title"
+                android:textColor="@color/black"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -61,7 +62,8 @@
                 android:lines="3"
                 android:maxLines="3"
                 android:text="sdhfjahsfashjdfjaskfk sahfbask fjsbhjakf sahfbjkasfdbaksdjf aksf bashjfkasjf kbshjsf abshjkdf hjasbfsahbf kasfbhjsakfdb sa hkasDH da Dk dgDUWUD bdD Kasdhad SAHdk @string/action_abouthfbkas"
-                android:textAlignment="viewStart" />
+                android:textAlignment="viewStart"
+                android:textColor="@color/black" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -76,8 +78,9 @@
                     android:layout_height="30dp"
                     android:layout_marginRight="10dp"
                     android:layout_weight="1"
-                    android:background="@drawable/listview_selector"
-                    android:text="View Details" />
+                    android:background="@drawable/gradient_white_lightblue"
+                    android:text="View Details"
+                    android:textColor="@color/ole_blueLine" />
 
                 <Button
                     android:id="@+id/btn_listFeedback"
@@ -86,8 +89,9 @@
                     android:layout_marginLeft="10dp"
                     android:layout_marginRight="10dp"
                     android:layout_weight="1"
-                    android:background="@drawable/listview_selector"
-                    android:text="Feedback" />
+                    android:background="@drawable/gradient_white_lightblue"
+                    android:text="Feedback"
+                    android:textColor="@color/ole_blueLine" />
 
                 <Button
                     android:id="@+id/btn_listAddToMyLibrary"
@@ -96,9 +100,10 @@
                     android:layout_marginLeft="10dp"
                     android:layout_marginRight="10dp"
                     android:layout_weight="1"
-                    android:background="@drawable/listview_selector"
+                    android:background="@drawable/gradient_white_lightblue"
                     android:text="Add to myLibrary"
-                    android:textAllCaps="false" />
+                    android:textAllCaps="false"
+                    android:textColor="@color/ole_blueLine" />
 
             </LinearLayout>
 
@@ -145,7 +150,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Rating (1000)" />
+                    android:text="Rating (1000)"
+                    android:textColor="@color/black" />
 
                 <TextView
                     android:id="@+id/lbl_listAvgRating"
@@ -166,14 +172,24 @@
                 android:layout_height="0dp"
                 android:layout_marginTop="10dp"
                 android:layout_weight="1"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:weightSum="3">
+
+                <TextView
+                    android:id="@+id/textView41"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Female"
+                    android:textColor="@color/black"
+                    android:textSize="10sp" />
 
                 <ProgressBar
                     android:id="@+id/female_progressbar"
                     style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1" />
+                    android:layout_weight="2" />
             </LinearLayout>
 
             <LinearLayout
@@ -181,14 +197,24 @@
                 android:layout_height="0dp"
                 android:layout_marginTop="10dp"
                 android:layout_weight="1"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:weightSum="3">
+
+                <TextView
+                    android:id="@+id/textView42"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Male"
+                    android:textColor="@color/black"
+                    android:textSize="10sp" />
 
                 <ProgressBar
                     android:id="@+id/male_progressbar"
                     style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1" />
+                    android:layout_weight="2" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
