@@ -126,16 +126,22 @@ public class ListView_Library extends Fragment {
                     } catch (Exception errs) {
                         Log.e("tag", "OBJECT ERROR " + errs.toString());
                     }
-                    HashMap<String, String> map = new HashMap<String, String>();
+                    HashMap<String, String> map = new HashMap<String, String>();;
+                    Log.e("MyCouch", "Number shadow items " + ((String) resource_properties.get("title")) + " ");
+                    String buildDecript ="";
+                    try{
+                        buildDecript = "Author : "+(String) resource_properties.get("author") + "  Language : "+(String) resource_properties.get("language") + " \n" +
+                                "Subject : "+android.text.TextUtils.join(",", (ArrayList) resource_properties.get("subject")) + "  Resource Type : " +(String) resource_properties.get("resourceType") + " \n" +
+                                "Date Uploaded : "+(String) resource_properties.get("uploadDate") + "  ";
+                    }catch(Exception err){
+                        buildDecript = " ";
+                        return;
+                    }
                     resourceTitleList[rsLstCnt] = (String) resource_properties.get("title");
                     resourceIdList[rsLstCnt] = (String) resource_properties.get("_id");
                     resIDArrayList.add((String) resource_properties.get("_id"));
                     map.put(KEY_ID, ((String) resource_properties.get("_id")));
                     map.put(KEY_TITLE, ((String) resource_properties.get("title")));
-                    Log.e("MyCouch", "Number shadow items " + ((String) resource_properties.get("title")) + " ");
-                    String buildDecript = "Author : "+(String) resource_properties.get("author") + "  Language : "+(String) resource_properties.get("language") + " \n" +
-                            "Subject : "+android.text.TextUtils.join(",", (ArrayList) resource_properties.get("subject")) + "  Resource Type : " +(String) resource_properties.get("resourceType") + " \n" +
-                            "Date Uploaded : "+(String) resource_properties.get("uploadDate") + "  ";
                     map.put(KEY_DESCRIPTION, buildDecript);
                     // Button Actions
                     map.put(KEY_DETAILS,((String) resource_properties.get("_id")));

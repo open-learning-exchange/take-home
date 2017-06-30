@@ -12,6 +12,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.PersistableBundle;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.ActionBar;
@@ -141,17 +142,19 @@ public class FullscreenLogin extends AppCompatActivity {
         BecomeMemberButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(context, Home.class);
-                startActivity(intent);
+                alertDialogOkay("This feature has not been activated on this version.");
+                ///Intent intent = new Intent(context, Home.class);
+                //startActivity(intent);
             }
         });
         Button Language = (Button) findViewById(R.id.btnLanguage);
         Language.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                alertDialogOkay("This feature has not been activated on this version.");
                 //Intent intent = new Intent(context, ListView_Library.class);
-                Intent intent = new Intent(context, User_Dashboard.class);
-                startActivity(intent);
+                //Intent intent = new Intent(context, User_Dashboard.class);
+                //startActivity(intent);
             }
         });
         //
@@ -159,20 +162,32 @@ public class FullscreenLogin extends AppCompatActivity {
         SignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (getSystemInfo()){
-                    if (authenticateUser()) {
-                        if (updateActivityLog()) {
-                            Intent intent = new Intent(context, User_Dashboard.class);
-                            startActivity(intent);
-                        } else {
-                            alertDialogOkay("System Error. Please contact administrator");
+                /*mDialog = new ProgressDialog(context);
+                mDialog.setMessage("Please wait. checking your credentials");
+                mDialog.setCancelable(false);
+                mDialog.show();*/
+               /* final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {*/
+                        if (getSystemInfo()){
+                            if (authenticateUser()) {
+                                if (updateActivityLog()) {
+                                   /* mDialog.dismiss();*/
+                                    Intent intent = new Intent(context, User_Dashboard.class);
+                                    startActivity(intent);
+                                } else {
+                                    alertDialogOkay("System Error. Please contact system manager");
+                                }
+                            } else {
+                                /*mDialog.dismiss();*/
+                                alertDialogOkay("Login incorrect / Not found. Check and try again.");
+                            }
+                        }else{
+                            alertDialogOkay("Device not linked to a cummunity/nation. Use the setting button to sync with community/nation.");
                         }
-                    } else {
-                        alertDialogOkay("Login incorrect or Not found. Check and try again.");
-                    }
-                }else{
-                    alertDialogOkay("Device not linked to a cummunity/nation. Use the setting button to sync with community/nation.");
-                }
+                   /* }
+                }, 1000);*/
             }
         });
 
@@ -187,8 +202,8 @@ public class FullscreenLogin extends AppCompatActivity {
         //
 
         restorePref();
-        copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
-        copyAPK(R.raw.firefox_49_0_multi_android, "firefox_49_0_multi_android.apk");
+        //copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
+        //copyAPK(R.raw.firefox_49_0_multi_android, "firefox_49_0_multi_android.apk");
         startServiceCommand();
         btnFeedback = (Button) findViewById(R.id.btnFeedback);
         btnFeedback.setOnClickListener(new View.OnClickListener() {
@@ -469,7 +484,7 @@ public class FullscreenLogin extends AppCompatActivity {
     public boolean authenticateUser() {
         AndroidContext androidContext = new AndroidContext(this);
         Manager manager = null;
-        getSystemInfo();
+       /// getSystemInfo();
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database db = manager.getExistingDatabase("members");

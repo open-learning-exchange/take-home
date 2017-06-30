@@ -57,7 +57,10 @@ import org.lightcouch.CouchDbClientAndroid;
 import java.io.File;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -83,7 +86,7 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
     //// TextView
     TextView lblMyLibrary, lblMyCourses, lblMyTeams, lblMyMeetups, lblLogout,
             lblHome, lblLibrary, lblCourses, lblMeetups, lblMembers, lblReports, lblFeedback,
-            lbl_Name, lbl_Role, lbl_NumMyLibrary, lbl_NumMyCourse, lbl_NumMyTeams, lbl_NumMyMeetups;
+            lbl_Name, lbl_Role, lbl_NumMyLibrary, lbl_NumMyCourse, lbl_NumMyTeams, lbl_NumMyMeetups,lbl_Visits;
     /// String
     String sys_oldSyncServerURL, sys_username, sys_lastSyncDate,
             sys_password, sys_usercouchId, sys_userfirstname, sys_userlastname,
@@ -133,6 +136,7 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
         initiateLayoutMaterials();
         initiateOnClickActions();
         restorePreferences();
+        ///totalVisits(sys_usercouchId);
         loadUIDynamicText();
 
 
@@ -185,6 +189,7 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
 
         lbl_Name = (TextView) findViewById(R.id.lbl_name);
         lbl_Role = (TextView) findViewById(R.id.lbl_role);
+        lbl_Visits = (TextView) findViewById(R.id.lbl_NoOfVisits);
         lbl_NumMyLibrary = (TextView) findViewById(R.id.lbl_NumMyLibrary);
         lbl_NumMyCourse = (TextView) findViewById(R.id.lbl_NumMyCourses);
         lbl_NumMyTeams = (TextView) findViewById(R.id.lbl_NumMyTeams);
@@ -194,6 +199,7 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
         lt_myCourses = (LinearLayout) findViewById(R.id.lt_myCourses);
         lt_myTeams = (LinearLayout) findViewById(R.id.lt_myTeams);
         lt_myMembers = (LinearLayout) findViewById(R.id.lt_myMeetups);
+
     }
 
     public void initiateOnClickActions() {
@@ -455,6 +461,18 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
         lbl_NumMyCourse.setText(String.valueOf(getUserMyCourseNum()));
         lbl_NumMyTeams.setText(getUserMyTeamsNum());
         lbl_NumMyMeetups.setText(getUserMtMeetupsNum());
+        if (sys_uservisits == "") {
+            lbl_Visits.setText( sys_uservisits_Int );
+        } else {
+            lbl_Visits.setText(sys_uservisits);
+        }
+    }
+
+    public String todaysDate(){
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Calendar cal = Calendar.getInstance();
+        System.out.println(dateFormat.format(cal.getTime()));
+        return dateFormat.format(cal.getTime());
     }
 
     public String getUserName() {

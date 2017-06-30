@@ -49,21 +49,54 @@
                         android:orientation="vertical"
                         android:weightSum="3">
 
-                        <com.makeramen.roundedimageview.RoundedImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-                            android:id="@+id/imv_profile_photo"
+                        <FrameLayout
+                            android:id="@+id/lt_left_holder"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:layout_marginLeft="30dp"
-                            android:layout_marginRight="30dp"
-                            android:layout_marginTop="10dp"
-                            android:scaleType="centerCrop"
-                            android:src="@drawable/agnes"
-                            app:riv_border_color="@color/ole_white"
-                            app:riv_border_width="6dip"
-                            app:riv_corner_radius="60dip"
-                            app:riv_mutate_background="true"
-                            app:riv_oval="true"
-                            app:riv_tile_mode="repeat" />
+                            android:layout_height="match_parent">
+
+                            <com.makeramen.roundedimageview.RoundedImageView xmlns:app="http://schemas.android.com/apk/res-auto"
+                                android:id="@+id/imv_profile_photo"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_marginLeft="30dp"
+                                android:layout_marginRight="30dp"
+                                android:layout_marginTop="10dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/agnes"
+                                app:riv_border_color="@color/ole_white"
+                                app:riv_border_width="6dip"
+                                app:riv_corner_radius="60dip"
+                                app:riv_mutate_background="true"
+                                app:riv_oval="true"
+                                app:riv_tile_mode="repeat" />
+
+                            <LinearLayout
+                                android:id="@+id/lt_visits"
+                                android:layout_width="55dp"
+                                android:layout_height="55dp"
+                                android:layout_alignParentEnd="true"
+                                android:layout_alignParentRight="true"
+                                android:layout_alignParentTop="true"
+                                android:layout_gravity="bottom|right|end"
+                                android:layout_margin="4dp"
+                                android:background="@drawable/rounderd_corner_blue_white"
+                                android:scaleType="fitStart"
+                                app:layout_anchorGravity="bottom|right|end">
+
+                                <!--android:layout_alignBottom="@+id/imv_profile_photo"
+                                android:layout_alignLeft="@+id/imv_profile_photo"
+                                android:layout_alignRight="@+id/imv_profile_photo"-->
+                                <TextView
+                                    android:id="@+id/lbl_NoOfVisits"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:gravity="center"
+                                    android:text="200"
+                                    android:textColor="@color/ole_black_blue"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+                        </FrameLayout>
 
                     </LinearLayout>
 
