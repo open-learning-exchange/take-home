@@ -5,18 +5,15 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 
 import com.couchbase.lite.Database;
@@ -29,7 +26,6 @@ import com.couchbase.lite.android.AndroidContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -93,8 +89,17 @@ public class Fragm_TakeCourse extends Fragment {
     TextView lbl_QueStepTitle, lbl_QueStatus;
     int quesionCurrentIndex, totalNumOfQuestions = 0;
     Button btnQueNext, btnQueBack;
-
     CheckBox qn_OptionsCheckbox[];
+
+    ///// Resource Details
+    List<String> rs_Ids = new ArrayList<String>();
+    List<String> rs_OpenWith = new ArrayList<String>();
+    List<String> rs_Title = new ArrayList<String>();
+    List<String> rs_Description = new ArrayList<String>();
+
+    LinearLayout lt_ResListHolder;
+    TextView lbl_ResStepTitle;
+    TextView rs_ResourceTextView[];
 
     // TODO: Rename and change types of parameters
     private String mCourseId;
@@ -349,7 +354,7 @@ public class Fragm_TakeCourse extends Fragment {
                 try {
                     takeTestDialog(crs_StepIds.get(stepCurrentIndex), crs_StepTitles.get(stepCurrentIndex));
                 } catch (Exception except) {
-                    Log.d(TAG, "Back clicked error  " + except.getMessage());
+                    Log.d(TAG, "TakeTest clicked error  " + except.getMessage());
                 }
             }
         });
@@ -357,8 +362,9 @@ public class Fragm_TakeCourse extends Fragment {
             @Override
             public void onClick(View view) {
                 try {
+                    showResourcesDialog(crs_StepIds.get(stepCurrentIndex), crs_StepTitles.get(stepCurrentIndex));
                 } catch (Exception except) {
-                    Log.d(TAG, "Back clicked error " + except.getMessage());
+                    Log.d(TAG, "Resource clicked error " + except.getMessage());
                 }
             }
         });
@@ -367,6 +373,7 @@ public class Fragm_TakeCourse extends Fragment {
         lblStepTitle.setText(crs_StepTitles.get(stepCurrentIndex));
         markdownCourseDescContent.loadMarkdown(crs_StepDescription.get(stepCurrentIndex));
     }
+
 
     public void takeTestDialog(String StepId, String StepTitle) {
         qn_Ids.clear();
@@ -414,7 +421,7 @@ public class Fragm_TakeCourse extends Fragment {
             err.printStackTrace();
         }
         AlertDialog.Builder dialogB2 = new AlertDialog.Builder(getActivity());
-        dialogB2.setView(R.layout.dialog_questions);
+        dialogB2.setView(R.layout.dialog_course_step_questions);
         dialogB2.setCancelable(true);
         dialogTest = dialogB2.create();
         dialogTest.show();
@@ -484,6 +491,7 @@ public class Fragm_TakeCourse extends Fragment {
         lt_QueMultipleChoiceHolder.setVisibility(View.GONE);
         lt_QueMultilineHolder.setVisibility(View.GONE);
         lt_QueSinglelineHolder.setVisibility(View.GONE);
+
         if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Multiple Choice")) {
             lt_QueMultipleChoiceHolder.setVisibility(View.VISIBLE);
             if (((LinearLayout) lt_QueMultipleChoiceHolder).getChildCount() > 0) {
@@ -508,6 +516,56 @@ public class Fragm_TakeCourse extends Fragment {
 
         }
     }
+
+
+    public void showResourcesDialog(String StepId, String StepTitle) {
+        rs_Ids.clear();
+        rs_OpenWith.clear();
+        rs_Description.clear();
+        rs_Title.clear();
+        ArrayList coursestep_ResourceList = null;
+        try {
+            AndroidContext androidContext = new AndroidContext(getContext());
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database coursestep_Db = manager.getExistingDatabase("coursestep");
+            Document stepdoc = coursestep_Db.getExistingDocument(StepId);
+            Map<String, Object> coursestep_properties = stepdoc.getProperties();
+            coursestep_ResourceList = (ArrayList) coursestep_properties.get("resourceId");
+            for (int x = 0; x < coursestep_ResourceList.size(); x++) {
+                Database course_resources_Db = manager.getExistingDatabase("offline_course_resources");
+                Document courseResouceDoc = course_resources_Db.getExistingDocument(coursestep_ResourceList.get(x).toString());
+                Map<String, Object> question_properties = courseResouceDoc.getProperties();
+                rs_Ids.add((String) question_properties.get("_id"));
+                rs_OpenWith.add((String) question_properties.get("openWith"));
+                rs_Title.add((String) question_properties.get("title"));
+            }
+        } catch (Exception err) {
+            err.printStackTrace();
+        }
+        AlertDialog.Builder dialogB2 = new AlertDialog.Builder(getActivity());
+        dialogB2.setView(R.layout.dialog_course_step_resources);
+        dialogB2.setCancelable(true);
+        dialogTest = dialogB2.create();
+        dialogTest.show();
+        try {
+            lbl_ResStepTitle = (TextView) dialogTest.findViewById(R.id.lbl_ResTopTitle);
+            lbl_ResStepTitle.setText("Step : " + StepTitle);
+            lt_ResListHolder = (LinearLayout) dialogTest.findViewById(R.id.lbl_ResListHolder);
+            rs_ResourceTextView = new TextView[rs_Ids.size()];
+            for (int x = 0; x < rs_Ids.size(); x++) {
+                rs_ResourceTextView[x].setTag(rs_Ids.get(x));
+                rs_ResourceTextView[x].setText(rs_Title.get(x));
+                lt_ResListHolder.addView(rs_ResourceTextView[x]);
+            }
+
+        } catch (Exception err) {
+            err.printStackTrace();
+        }
+
+       /// QuestionUILoader(qn_Ids.get(0), course_QuestionList.size());
+
+    }
+
 
 
 }

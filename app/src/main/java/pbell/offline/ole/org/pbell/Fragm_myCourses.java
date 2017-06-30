@@ -1,5 +1,7 @@
 package pbell.offline.ole.org.pbell;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -42,7 +44,6 @@ import java.util.Map;
  * create an instance of this fragment.
  */
 public class Fragm_myCourses extends Fragment {
-    // static final String URL = "http://api.androidhive.info/music/music.xml";
     static final String KEY_MATERIALS = "materials"; // parent node
     static final String KEY_ID = "id";
     static final String KEY_TITLE = "title";
@@ -68,7 +69,6 @@ public class Fragm_myCourses extends Fragment {
     int sys_uservisits_Int = 0;
     AndroidContext androidContext;
     Manager manager;
-    private ProgressDialog mDialog;
 
     CouchViews chViews = new CouchViews();
     String resourceIdList[], resourceTitleList[],courseIdList[],courseTitleList[];
@@ -76,12 +76,17 @@ public class Fragm_myCourses extends Fragment {
     static Intent intent;
     Database database;
     AssetManager assetManager;
+    View rootView;
 
     private List<String> resIDArrayList = new ArrayList<String>();
     private List<String> courseIDArrayList = new ArrayList<String>();
     ListView list;
     ListViewAdapter_myCourses adapter;
     ArrayList<HashMap<String, String>> materialList;
+
+    ////
+    private int mShortAnimationDuration;
+
     Activity mActivity;
     /////////////////////////////////
     // TODO: Rename parameter arguments, choose names that match
@@ -132,12 +137,11 @@ public class Fragm_myCourses extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         context = container.getContext();
         context = this.getActivity().getWindow().getContext();
         assetManager = getActivity().getAssets();
-        View rootView = inflater.inflate(R.layout.listview_universal, container, false);
+        rootView = inflater.inflate(R.layout.listview_universal, container, false);
 
         materialList = new ArrayList<HashMap<String, String>>();
 
@@ -147,6 +151,8 @@ public class Fragm_myCourses extends Fragment {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        mShortAnimationDuration = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
         restorePref();
         LoadMyCourses();
 
@@ -160,13 +166,6 @@ public class Fragm_myCourses extends Fragment {
         });
 
         return rootView;
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
     }
 
     @Override
@@ -186,27 +185,15 @@ public class Fragm_myCourses extends Fragment {
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
-
-
     public void LoadMyCourses() {
         try {
             /// Todo remove bellow code
-/*
-            try {
+
+           /* try {
                 AndroidContext androidContext = new AndroidContext(context);
                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                 Database dbOffline_courses = manager.getDatabase("offline_courses");
@@ -222,9 +209,9 @@ public class Fragm_myCourses extends Fragment {
                 dboffline_course_resources.delete();
             }catch(Exception err){
                 err.printStackTrace();
-            }
+            }*/
 
-              */
+
 
             //maximus
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
@@ -267,11 +254,6 @@ public class Fragm_myCourses extends Fragment {
                             Map<String, Object> coursestep_properties = doc.getProperties();
                             if (mycourseId.equals((String) coursestep_properties.get("courseId"))) {
                                course_step_resourceId = (ArrayList) coursestep_properties.get("resourceId");
-                              /*  ArrayList course_step_resourceTitles = (ArrayList) coursestep_properties.get("resourceTitles");
-                                String course_step_title = (String) coursestep_properties.get("title");
-                                String course_step_id = (String) coursestep_properties.get("_id");
-                                String course_step_descr = (String) coursestep_properties.get("description");
-                                int course_step_No = (Integer) coursestep_properties.get("step");*/
                                 Log.e(TAG, "Course Step title " + ((String) coursestep_properties.get("title")) + " Step ID "+ docId);
                                 Log.e(TAG, "Course Step Resources - " + course_step_resourceId.size() + " ");
                                 courseStepsCounter++;
@@ -349,7 +331,6 @@ public class Fragm_myCourses extends Fragment {
             e.printStackTrace();
         }
     }
-
     public int getIconType(String myresExt) {
 
         int img = R.drawable.web;
@@ -395,8 +376,6 @@ public class Fragm_myCourses extends Fragment {
         }
 
     }
-
-
     public void restorePref() {
         // Restore preferences
         settings = getActivity().getSharedPreferences(PREFS_NAME, 0);
@@ -415,6 +394,34 @@ public class Fragm_myCourses extends Fragment {
         sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload", true);
         sys_servername = settings.getString("pf_server_name", " ");
         sys_serverversion = settings.getString("pf_server_version", " ");
+    }
+
+    private void crossfadeShowLoading(final View fromView,View toView) {
+
+        // Set the content view to 0% opacity but visible, so that it is visible
+        // (but fully transparent) during the animation.
+        fromView.setAlpha(0f);
+        fromView.setVisibility(View.VISIBLE);
+
+        // Animate the content view to 100% opacity, and clear any animation
+        // listener set on the view.
+        fromView.animate()
+                .alpha(1f)
+                .setDuration(mShortAnimationDuration)
+                .setListener(null);
+
+        // Animate the loading view to 0% opacity. After the animation ends,
+        // set its visibility to GONE as an optimization step (it won't
+        // participate in layout passes, etc.)
+        fromView.animate()
+                .alpha(0f)
+                .setDuration(mShortAnimationDuration)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        fromView.setVisibility(View.GONE);
+                    }
+                });
     }
 
 

@@ -88,7 +88,7 @@ public class Fragm_Loading extends Fragment {
             @Override
             public void run() {
                 if(requestedAction.equalsIgnoreCase("myLibrary")){
-                    ListView_myLibrary fg_myLibrary = new ListView_myLibrary();
+                    Fragm_myLibrary fg_myLibrary = new Fragm_myLibrary();
                     mListener.onFinishPageLoad(fg_myLibrary,"myLibrary");
 
                 }else if(requestedAction.equalsIgnoreCase("myCourses")) {

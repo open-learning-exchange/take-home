@@ -1,5 +1,6 @@
 package pbell.offline.ole.org.pbell;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.DownloadManager;
@@ -11,6 +12,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
@@ -27,9 +29,12 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
@@ -64,7 +69,7 @@ import java.util.Set;
  * status bar and navigation/system bar) with user interaction.
  */
 public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse.OnFragmentInteractionListener, ListViewAdapter_myCourses.OnCourseListListener,
-        Fragm_myCourses.OnFragmentInteractionListener, Fragm_Loading.OnFragmentInteractionListener {
+        Fragm_myCourses.OnFragmentInteractionListener, Fragm_Loading.OnFragmentInteractionListener, ListViewAdapter_myLibrary.OnResouceListListener{
     private View mControlsView;
     String TAG = "MYAPP";
     public static final String PREFS_NAME = "MyPrefsFile";
@@ -93,6 +98,9 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
     Object[] sys_membersWithResource;
     Activity activity;
 
+
+    String openedResourceId, openedResourceTitle = "";
+    boolean openedResource = false;
     ////Buttons
     Button dialogBtnDownoadAll, dialogBtnDownoadFile, dialogBtnOpenFileOnline;
 
@@ -276,6 +284,8 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
             @Override
             public void onClick(View view) {
                 try {
+                    Intent intent = new Intent(context, FullscreenLogin.class);
+                    startActivity(intent);
                 } catch (Exception except) {
                     Log.d(TAG, "Logout click action error " + except.getMessage());
                 }
@@ -336,6 +346,8 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
             @Override
             public void onClick(View viewIn) {
                 try {
+                    Intent intent = new Intent(context, FullscreenLogin.class);
+                    startActivity(intent);
                 } catch (Exception except) {
                     Log.d(TAG, "Logout click action error " + except.getMessage());
                 }
@@ -664,6 +676,230 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
         transaction.commit();
         resetActiveButton();
         lt_myCourses.setBackgroundColor(getResources().getColor(R.color.ole_blueLine));
+    }
+
+    @Override
+    public void onCourseDownloadingProgress(String itemTitle, String status, String message) {
+
+    }
+
+    @Override
+    public void onResourceDownloadCompleted(String CourseId, Object data) {
+        Fragm_Loading loading = new Fragm_Loading();
+        Bundle args = new Bundle();
+        args.putString("targetAction", "myLibrary");
+        args.putString("sys_usercouchId", sys_usercouchId);
+        loading.setArguments(args);
+        final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fmlt_container, loading);
+        transaction.addToBackStack(null);
+        transaction.commit();
+        resetActiveButton();
+        lt_myLibrary.setBackgroundColor(getResources().getColor(R.color.ole_blueLine));
+    }
+
+    @Override
+    public void onResourceOpened(String resourceId, String resourceTitle) {
+        openedResource=true;
+        openedResourceId =resourceId;
+        openedResourceTitle = resourceTitle;
+        checkResourceOpened();
+    }
+
+
+    public void checkResourceOpened() {
+        if (openedResource) {
+            rateResourceDialog(openedResourceId, openedResourceTitle);
+            openedResource = false;
+        }
+    }
+    public void rateResourceDialog(String resourceId, String title) {
+        // custom dialog
+        final String resourceID = resourceId;
+        final Dialog dialog = new Dialog(context);
+        dialog.setContentView(R.layout.rate_resource_dialog);
+        dialog.setTitle("Add Feedback For \n");
+
+        final TextView txtResTitle = (TextView) dialog.findViewById(R.id.txtResTitle);
+        txtResTitle.setText(title);
+        final EditText txtComment = (EditText) dialog.findViewById(R.id.editTextComment);
+        final RatingBar ratingBar = (RatingBar) dialog.findViewById(R.id.ratingBar);
+        ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+            public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
+
+            }
+        });
+        Button dialogButton = (Button) dialog.findViewById(R.id.btnRateResource);
+        dialogButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveRating((int) ratingBar.getRating(), String.valueOf(txtComment.getText()), resourceID);
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+    public void saveRating(int rate, String comment, String resourceId) {
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        Database resourceRating;
+        int doc_rating;
+        int doc_timesRated;
+        ArrayList<String> commentList = new ArrayList<String>();
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            resourceRating = manager.getDatabase("resourcerating");
+            Document retrievedDocument = resourceRating.getExistingDocument(resourceId);
+            if (retrievedDocument != null) {
+                Map<String, Object> properties = retrievedDocument.getProperties();
+                if (properties.containsKey("sum")) {
+                    doc_rating = (int) properties.get("sum");
+                    doc_timesRated = (int) properties.get("timesRated");
+                    commentList = (ArrayList<String>) properties.get("comments");
+                    commentList.add(comment);
+                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    newProperties.putAll(retrievedDocument.getProperties());
+                    newProperties.put("sum", (doc_rating + rate));
+                    newProperties.put("timesRated", doc_timesRated + 1);
+                    newProperties.put("comments", commentList);
+                    retrievedDocument.putProperties(newProperties);
+                    updateActivityRatingResources(rate, resourceId);
+                    Toast.makeText(context, String.valueOf(rate), Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Document newdocument = resourceRating.getDocument(resourceId);
+                Map<String, Object> newProperties = new HashMap<String, Object>();
+                newProperties.put("sum", rate);
+                newProperties.put("timesRated", 1);
+                commentList.add(comment);
+                newProperties.put("comments", commentList);
+                newdocument.putProperties(newProperties);
+                /// todo check updating resource to see it works
+                updateActivityRatingResources(rate, resourceId);
+                Toast.makeText(context, String.valueOf(rate), Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception err) {
+            Log.e("MyCouch", "ERR : " + err.getMessage());
+        }
+    }
+    public boolean updateActivityRatingResources(float rate, String resourceid) {
+        AndroidContext androidContext = new AndroidContext(this);
+        Manager manager = null;
+        Database activityLog;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            activityLog = manager.getDatabase("activitylog");
+            @SuppressLint("WifiManagerLeak") WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+            String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+            Document retrievedDocument = activityLog.getDocument(m_WLANMAC);
+            if (retrievedDocument != null) {
+                Map<String, Object> properties = retrievedDocument.getProperties();
+                try {
+                    ArrayList female_rating = (ArrayList<String>) properties.get("female_rating");
+                    ArrayList female_timesRated = (ArrayList<String>) properties.get("female_timesRated");
+                    ArrayList male_rating = (ArrayList<String>) properties.get("male_rating");
+                    ArrayList male_timesRated = (ArrayList<String>) properties.get("male_timesRated");
+                    ArrayList resourcesIds = (ArrayList<String>) properties.get("resourcesIds");
+                    Log.e("MyCouch", "Option Rating 1");
+                    if (sys_usergender.toLowerCase().equalsIgnoreCase("female")) {
+                        female_rating.add(rate);
+                        female_timesRated.add(1);
+                        male_rating.add(0);
+                        male_timesRated.add(0);
+                    } else {
+                        female_rating.add(0);
+                        female_timesRated.add(0);
+                        male_rating.add(rate);
+                        male_timesRated.add(1);
+                    }
+                    resourcesIds.add(resourceid);
+                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    newProperties.putAll(retrievedDocument.getProperties());
+                    newProperties.put("female_rating", female_rating);
+                    newProperties.put("female_timesRated", female_timesRated);
+                    newProperties.put("male_rating", male_rating);
+                    newProperties.put("male_timesRated", male_timesRated);
+                    newProperties.put("resourcesIds", resourcesIds);
+                    retrievedDocument.putProperties(newProperties);
+                    Log.e("MyCouch", "Saved resource rating in local Activity Log ");
+                    return true;
+                } catch (Exception err) {
+                    Log.e("MyCouch", "Option Rating 1 Failed " + err.getMessage());
+                    try {
+                        Log.e("MyCouch", "Option 2");
+                        Map<String, Object> newProperties = new HashMap<String, Object>();
+                        newProperties.putAll(retrievedDocument.getProperties());
+                        ArrayList female_rating = new ArrayList<String>();
+                        ArrayList female_timesRated = new ArrayList<String>();
+                        ArrayList male_rating = new ArrayList<String>();
+                        ArrayList male_timesRated = new ArrayList<String>();
+                        ArrayList resourcesIds = new ArrayList<String>();
+                        if (sys_usergender.toLowerCase().equalsIgnoreCase("female")) {
+                            female_rating.add(rate);
+                            female_timesRated.add(1);
+                            male_rating.add(0);
+                            male_timesRated.add(0);
+                        } else {
+                            female_rating.add(0);
+                            female_timesRated.add(0);
+                            male_rating.add(rate);
+                            male_timesRated.add(1);
+                        }
+                        resourcesIds.add(resourceid);
+                        newProperties.putAll(retrievedDocument.getProperties());
+                        newProperties.put("female_rating", female_rating);
+                        newProperties.put("female_timesRated", female_timesRated);
+                        newProperties.put("male_rating", male_rating);
+                        newProperties.put("male_timesRated", male_timesRated);
+                        newProperties.put("resourcesIds", resourcesIds);
+                        retrievedDocument.putProperties(newProperties);
+                        Log.e("MyCouch", "Saved resource rating in local Activity Log ");
+                        return true;
+                    } catch (Exception er) {
+                        Log.e("MyCouch", "Option Rating 2 Failed" + er.getMessage());
+                        return false;
+                    }
+                }
+            } else {
+                try {
+                    Log.e("MyCouch", "Option Rating 1b");
+                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    newProperties.putAll(retrievedDocument.getProperties());
+                    ArrayList female_rating = new ArrayList<String>();
+                    ArrayList female_timesRated = new ArrayList<String>();
+                    ArrayList male_rating = new ArrayList<String>();
+                    ArrayList male_timesRated = new ArrayList<String>();
+                    ArrayList resourcesIds = new ArrayList<String>();
+                    if (sys_usergender.toLowerCase().equalsIgnoreCase("female")) {
+                        female_rating.add(rate);
+                        female_timesRated.add(1);
+                        male_rating.add(0);
+                        male_timesRated.add(0);
+                    } else {
+                        female_rating.add(0);
+                        female_timesRated.add(0);
+                        male_rating.add(rate);
+                        male_timesRated.add(1);
+                    }
+                    resourcesIds.add(resourceid);
+                    newProperties.putAll(retrievedDocument.getProperties());
+                    newProperties.put("female_rating", female_rating);
+                    newProperties.put("female_timesRated", female_timesRated);
+                    newProperties.put("male_rating", male_rating);
+                    newProperties.put("male_timesRated", male_timesRated);
+                    newProperties.put("resourcesIds", resourcesIds);
+                    retrievedDocument.putProperties(newProperties);
+                    Log.e("MyCouch", "Saved resource rating in local Activity Log ");
+                    return true;
+                } catch (Exception err) {
+                    Log.e("MyCouch", "Option Rating 1b Failed : " + err.getMessage());
+                    return false;
+                }
+            }
+        } catch (Exception err) {
+            Log.e("MyCouch", "Updating Activity Rating Log : " + err.getMessage());
+            return false;
+        }
     }
 
 }

@@ -4,10 +4,14 @@ package pbell.offline.ole.org.pbell;
  * Created by leonardmensah on 06/06/2017.
  */
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.app.DownloadManager;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -23,6 +27,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -65,7 +70,6 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
     public ImageLoader imageLoader;
     private static final String TAG = "MYAPP";
     Context context;
-    User_Dashboard user_dashboard = new User_Dashboard();
     private ProgressDialog mDialog;
     private long enqueue;
     private DownloadManager downloadManager;
@@ -89,6 +93,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
     RatingBar ratingStars;
     LayerDrawable stars;
     ProgressBar femalerating, malerating;
+    String activityName ="myCourses";
 
     LogHouse logHouse = new LogHouse();
     protected int _splashTime = 5000;
@@ -116,45 +121,53 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                     DownloadManager.Query query = new DownloadManager.Query();
                     query.setFilterById(enqueue);
                     downloadManager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
-                    Cursor c = downloadManager.query(query);
-                    if (c.moveToFirst()) {
-                        int columnIndex = c.getColumnIndex(DownloadManager.COLUMN_STATUS);
-                        if (DownloadManager.STATUS_SUCCESSFUL == c.getInt(columnIndex)) {
-                            if (!singleFileDownload) {
-                                Log.e(TAG, "Current downloaded file index -- " + resIDArrayList.indexOf(OneByOneResID));
-                                Log.e(TAG, "Total Resource Size -- " + resIDArrayList.size());
-                                if((resIDArrayList.indexOf(OneByOneResID)+1) < resIDArrayList.size()){
-                                    int nextResID = resIDArrayList.indexOf(OneByOneResID)+1;
-                                    Log.e(TAG, "Next to Download  -- " + OneByOneResID);
-                                    Log.e(TAG, "Index of download is to Download  -- " + resIDArrayList.indexOf(OneByOneResID));
-                                    OneByOneResID = resIDArrayList.get(nextResID);
-                                    Log.e(TAG, "New Download trigger  -- " + OneByOneResID);
-                                    new downloadSpecificResourceToDisk().execute();
-                                }else {
+                    if(activityName.equalsIgnoreCase("myCourses")) {
+                        c = downloadManager.query(query);
+                        if (c.moveToFirst()) {
+                            int columnIndex = c.getColumnIndex(DownloadManager.COLUMN_STATUS);
+                            if (DownloadManager.STATUS_SUCCESSFUL == c.getInt(columnIndex)) {
+                                if (!singleFileDownload) {
+                                    Log.e(TAG, "Current downloaded file index -- " + resIDArrayList.indexOf(OneByOneResID));
+                                    Log.e(TAG, "Total Resource Size -- " + resIDArrayList.size());
+                                    if ((resIDArrayList.indexOf(OneByOneResID) + 1) < resIDArrayList.size()) {
+                                        int nextResID = resIDArrayList.indexOf(OneByOneResID) + 1;
+                                        Log.e(TAG, "Next to Download  -- " + OneByOneResID);
+                                        Log.e(TAG, "Index of download is to Download  -- " + resIDArrayList.indexOf(OneByOneResID));
+                                        OneByOneResID = resIDArrayList.get(nextResID);
+                                        Log.e(TAG, "New Download trigger  -- " + OneByOneResID);
+                                        new downloadSpecificResourceToDisk().execute();
+                                    } else {
 
+                                        mDialog.dismiss();
+
+                                        mListener.onCourseDownloadingProgress(OneByOneResTitle, "Please Wait", "Downloading item");
+                                        //alertDialogOkay("Download Completed");
+                                        createCourseDoc(OneByOneCourseId, courseStepsCounter);
+                                        mListener.onCourseDownloadCompleted(OneByOneResTitle, resIDArrayList);
+
+                                    }
+                                } else {
+                                    ///btnCourses.performClick();
+                                    ///libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_white));
                                     mDialog.dismiss();
-                                    //alertDialogOkay("Download Completed");
-                                    createCourseDoc(OneByOneCourseId,courseStepsCounter);
-                                    mListener.onCourseDownloadCompleted(OneByOneResTitle,resIDArrayList);
 
+                                    mListener.onCourseDownloadingProgress(OneByOneResTitle, "Please Wait", "Downloading item");
+                                    //alertDialogOkay("Download Completed");
+                                    createCourseDoc(OneByOneCourseId, courseStepsCounter);
+                                    mListener.onCourseDownloadCompleted(OneByOneResTitle, resIDArrayList);
                                 }
-                            } else {
-                                ///btnCourses.performClick();
-                                ///libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_white));
-                                mDialog.dismiss();
-                                //alertDialogOkay("Download Completed");
-                                createCourseDoc(OneByOneCourseId,courseStepsCounter);
-                                mListener.onCourseDownloadCompleted(OneByOneResTitle,resIDArrayList);
-                            }
-                        } else if (DownloadManager.STATUS_FAILED == c.getInt(columnIndex)) {
-                            //alertDialogOkay("Download Failed for");
-                            if(resIDsList.indexOf(OneByOneResID) < resIDArrayList.size()){
-                                OneByOneResID = resIDArrayList.get(resIDArrayList.indexOf(OneByOneResID)+1);
-                                new downloadSpecificResourceToDisk().execute();
-                            }else {
-                                mDialog.dismiss();
-                                alertDialogOkay("Download Completed with error");
-                                mListener.onCourseDownloadCompleted(OneByOneResTitle,resIDArrayList);
+                            } else if (DownloadManager.STATUS_FAILED == c.getInt(columnIndex)) {
+                                //alertDialogOkay("Download Failed for");
+                                if (resIDsList.indexOf(OneByOneResID) < resIDArrayList.size()) {
+                                    OneByOneResID = resIDArrayList.get(resIDArrayList.indexOf(OneByOneResID) + 1);
+                                    new downloadSpecificResourceToDisk().execute();
+                                } else {
+                                    mDialog.dismiss();
+
+                                    mListener.onCourseDownloadingProgress(OneByOneResTitle, "Please Wait", "Downloading item");
+                                    alertDialogOkay("Download Completed with error");
+                                    mListener.onCourseDownloadCompleted(OneByOneResTitle, resIDArrayList);
+                                }
                             }
                         }
                     }
@@ -351,7 +364,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                Log.e(TAG, "Resources for course ( "+courseId+" ) step " + resIDArrayList.get(x));
            }
            if(resIDArrayList.size()>0) {
-               OneByOneResID = resIDArrayList.get(0);
+              OneByOneResID = resIDArrayList.get(0);
                mDialog = new ProgressDialog(activity.getWindow().getContext());
                mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
                mDialog.setMessage("Please wait...");
@@ -360,6 +373,9 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                singleFileDownload = false;
                OneByOneCourseId = courseId;
                new downloadSpecificResourceToDisk().execute();
+
+               Log.e(TAG, "Clicked Showing wait");
+               ///mListener.onCourseDownloadingProgress(OneByOneResTitle,"Please Wait","Downloading item");
            }else{
 
            }
@@ -383,12 +399,16 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
         request.setDestinationInExternalPublicDir("ole_temp", FileName);
         // get download service and enqueue file
         mDialog.setMessage("Downloading  \" " + OneByOneResTitle + " \" . please wait...");
+
+        mListener.onCourseDownloadingProgress(OneByOneResTitle,"Please Wait","Downloading item");
         downloadManager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
         enqueue = downloadManager.enqueue(request);
     }
+
     public interface OnCourseListListener {
         void onTakeCourseOpen(String CourseId);
         void onCourseDownloadCompleted(String CourseId, Object data);
+        void onCourseDownloadingProgress(String itemTitle, String status, String message);
     }
 
     class downloadSpecificResourceToDisk extends AsyncTask<String, Void, Boolean> {
@@ -452,6 +472,8 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Download this resource error " + e.getMessage());
+
+                mListener.onCourseDownloadingProgress(OneByOneResTitle,"Please Wait","Downloading item");
                 mDialog.dismiss();
                 alertDialogOkay("Error downloading file, check connection and try again");
                 e.printStackTrace();

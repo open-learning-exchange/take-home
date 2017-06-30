@@ -4,6 +4,7 @@ package pbell.offline.ole.org.pbell;
  * Created by leonardmensah on 06/06/2017.
  */
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.DownloadManager;
@@ -19,6 +20,7 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.LayerDrawable;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
@@ -30,10 +32,12 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
@@ -53,8 +57,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.logging.Handler;
 
 public class ListViewAdapter_myLibrary extends BaseAdapter {
 
@@ -67,7 +69,6 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
     User_Dashboard user_dashboard = new User_Dashboard();
     private ProgressDialog mDialog;
     private long resources_enqueue;
-    DownloadManager resources_downloadManager;
     boolean singleFileDownload = true;
     public static final String PREFS_NAME = "MyPrefsFile";
 
@@ -83,6 +84,15 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
     protected int _splashTime = 5000;
     private Thread splashTread;
 
+    String openedResourceId, openedResourceTitle = "";
+    boolean openedResource = false;
+
+
+
+    private String downloadCompleteIntentName = DownloadManager.ACTION_DOWNLOAD_COMPLETE;
+    private IntentFilter downloadCompleteIntentFilter = new IntentFilter(downloadCompleteIntentName);
+    private  OnResouceListListener mListener;
+
     public ListViewAdapter_myLibrary(final List<String> resIDsList, Activity a, Context cont, ArrayList<HashMap<String, String>> d) {
         resIDArrayList.addAll(resIDsList);
         activity = a;
@@ -92,52 +102,52 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
         imageLoader = new ImageLoader(activity.getApplicationContext());
 
 
-        ///  initialActivityLoad = true;
-        BroadcastReceiver recource_receiver = new BroadcastReceiver() {
+        BroadcastReceiver downloadCompleteReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                String action = intent.getAction();
-                if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
-                    long downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0);
-                    DownloadManager.Query query = new DownloadManager.Query();
-                    query.setFilterById(resources_enqueue);
-                    Cursor resources_c = resources_downloadManager.query(query);
-                    if (resources_c.moveToFirst()) {
-                        int columnIndex = resources_c.getColumnIndex(DownloadManager.COLUMN_STATUS);
-                        if (DownloadManager.STATUS_SUCCESSFUL == resources_c.getInt(columnIndex)) {
-                            if (!singleFileDownload) {
-                                if(resIDsList.indexOf(OneByOneResID) < resIDsList.size()){
-                                    OneByOneResID = resIDsList.get(resIDsList.indexOf(OneByOneResID)+1);
-                                    new downloadSpecificResourceToDisk().execute();
-                                }else {
-                                    mDialog.dismiss();
-                                    alertDialogOkay("Download Completed");
-                                }
-
-                            } else {
-                                ///btnMyLibrary.performClick();
-                                ///libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_white));
-                                mDialog.dismiss();
-                                alertDialogOkay("Download Completed");
-                            }
-                        } else if (DownloadManager.STATUS_FAILED == resources_c.getInt(columnIndex)) {
-                            alertDialogOkay("Download Failed for");
-                            if(resIDsList.indexOf(OneByOneResID) < resIDsList.size()){
-                                OneByOneResID = resIDsList.get(resIDsList.indexOf(OneByOneResID)+1);
-                                new downloadSpecificResourceToDisk().execute();
-                            }else {
-                                mDialog.dismiss();
-                                alertDialogOkay("Download Completed");
-                            }
-                        }
-                    }
+                long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0L);
+                if (id != resources_enqueue) {
+                    Log.v(TAG, "Ingnoring unrelated download " + id);
+                    return;
                 }
+                DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+                DownloadManager.Query query = new DownloadManager.Query();
+                query.setFilterById(id);
+                Cursor cursor = downloadManager.query(query);
+                // it shouldn't be empty, but just in case
+                if (!cursor.moveToFirst()) {
+                    mDialog.dismiss();
+                    alertDialogOkay("Download not responding, check WiFi connection");
+                    mListener.onResourceDownloadCompleted(OneByOneResTitle, resIDArrayList);
+                    return;
+                }
+                int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
+                if (DownloadManager.STATUS_SUCCESSFUL != cursor.getInt(statusIndex)) {
+                    Log.w(TAG, "Download Failed");
+                    mDialog.dismiss();
+                    alertDialogOkay("Download failed check WiFi connection");
+                    mListener.onResourceDownloadCompleted(OneByOneResTitle, resIDArrayList);
+                    return;
+                }
+                if (DownloadManager.STATUS_SUCCESSFUL == cursor.getInt(statusIndex)) {
+                    Log.w(TAG, "Download successfully");
+                    mDialog.dismiss();
+                    alertDialogOkay("Download Completed");
+                    mListener.onResourceDownloadCompleted(OneByOneResTitle, resIDArrayList);
+                    return;
+                }
+
+                int uriIndex = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
+                String downloadedPackageUriString = cursor.getString(uriIndex);
             }
         };
 
-        context.registerReceiver(recource_receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
-
+        context.registerReceiver(downloadCompleteReceiver, downloadCompleteIntentFilter);
+        this.mListener = null;
+        mListener = (OnResouceListListener) cont;
     }
+
+
 
     public int getCount() {
         return data.size();
@@ -176,11 +186,11 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
         HashMap<String, String> material = new HashMap<String, String>();
         material = data.get(position);
 
-        // Setting all values in ListView_myLibrary
-        title.setText(material.get(ListView_myLibrary.KEY_TITLE));
-        description.setText(material.get(ListView_myLibrary.KEY_DESCRIPTION));
+        // Setting all values in Fragm_myLibrary
+        title.setText(material.get(Fragm_myLibrary.KEY_TITLE));
+        description.setText(material.get(Fragm_myLibrary.KEY_DESCRIPTION));
         details.setText("Details");
-        details.setTag(material.get(ListView_myLibrary.KEY_DETAILS));
+        details.setTag(material.get(Fragm_myLibrary.KEY_DETAILS));
         details.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -189,7 +199,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             }
         });
         feedback.setText("Feedback");
-        feedback.setTag(material.get(ListView_myLibrary.KEY_FEEDBACK));
+        feedback.setTag(material.get(Fragm_myLibrary.KEY_FEEDBACK));
         feedback.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -198,7 +208,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             }
         });
         delete.setText("Delete");
-        delete.setTag(material.get(ListView_myLibrary.KEY_DELETE));
+        delete.setTag(material.get(Fragm_myLibrary.KEY_DELETE));
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -207,9 +217,9 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             }
         });
 
-        if (material.get(ListView_myLibrary.KEY_RESOURCE_STATUS).equalsIgnoreCase("downloaded")) {
+        if (material.get(Fragm_myLibrary.KEY_RESOURCE_STATUS).equalsIgnoreCase("downloaded")) {
             open.setText("Open");
-            open.setTag(material.get(ListView_myLibrary.KEY_ID));
+            open.setTag(material.get(Fragm_myLibrary.KEY_ID));
             open.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -218,7 +228,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             });
         } else {
             open.setText("Download");
-            open.setTag(material.get(ListView_myLibrary.KEY_ID));
+            open.setTag(material.get(Fragm_myLibrary.KEY_ID));
             open.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -227,14 +237,14 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             });
         }
 
-        ratingAvgNum.setText("" + material.get(ListView_myLibrary.KEY_RATING));
-        ratingStars.setRating(Float.parseFloat("" + material.get(ListView_myLibrary.KEY_RATING)));
-        totalNum.setText(material.get(ListView_myLibrary.KEY_TOTALNUM_RATING));
+        ratingAvgNum.setText("" + material.get(Fragm_myLibrary.KEY_RATING));
+        ratingStars.setRating(Float.parseFloat("" + material.get(Fragm_myLibrary.KEY_RATING)));
+        totalNum.setText(material.get(Fragm_myLibrary.KEY_TOTALNUM_RATING));
         femalerating.setProgress(Integer.parseInt("1"));
-        //femalerating.setProgress(Integer.parseInt(material.get(ListView_myLibrary.KEY_FEMALE_RATING)));
+        //femalerating.setProgress(Integer.parseInt(material.get(Fragm_myLibrary.KEY_FEMALE_RATING)));
         malerating.setProgress(Integer.parseInt("1"));
-        //malerating.setProgress(Integer.parseInt(material.get(ListView_myLibrary.KEY_MALE_RATING)));
-        imageLoader.DisplayImage(material.get(ListView_myLibrary.KEY_THUMB_URL), thumb_image);
+        //malerating.setProgress(Integer.parseInt(material.get(Fragm_myLibrary.KEY_MALE_RATING)));
+        imageLoader.DisplayImage(material.get(Fragm_myLibrary.KEY_THUMB_URL), thumb_image);
         return vi;
     }
 
@@ -251,6 +261,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
         AlertDialog alert11 = builder1.create();
         alert11.show();
     }
+
 
     public void restorePreferences(Activity activity) {
         settings = activity.getSharedPreferences(PREFS_NAME, 0);
@@ -297,6 +308,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             case "Details":
                 break;
             case "Feedback":
+                sendResourceRatingFeedback(resourceId);
                 break;
             case "Open":
                 mDialog = new ProgressDialog(activity.getWindow().getContext());
@@ -339,8 +351,16 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
         request.setDestinationInExternalPublicDir("ole_temp", FileName);
         // get download service and enqueue file
         mDialog.setMessage("Downloading  \" " + OneByOneResTitle + " \" . please wait...");
-        resources_downloadManager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
-        resources_enqueue = resources_downloadManager.enqueue(request);
+ //       resources_downloadManager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+ //       resources_enqueue = resources_downloadManager.enqueue(request);
+
+        DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+        resources_enqueue = downloadManager.enqueue(request);
+    }
+
+    public interface OnResouceListListener {
+        void onResourceDownloadCompleted(String CourseId, Object data);
+        void onResourceOpened(String resourceId, String resourceTitle);
     }
 
     class downloadSpecificResourceToDisk extends AsyncTask<String, Void, Boolean> {
@@ -399,16 +419,21 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
                             alertDialogOkay("Download Completed");
                         }*/
                     }
+                }else{
+                    mDialog.dismiss();
+                    alertDialogOkay("This item wasn't found on the server, check connection and try again");
                 }
             } catch (Exception e) {
+                mDialog.dismiss();
+                e.printStackTrace();
                 Log.e(TAG, "Download this resource error " + e.getMessage());
-                // mDialog.dismiss();
-                alertDialogOkay("Error downloading file, check connection and try again");
+                ///alertDialogOkay("Error downloading file, check connection and try again");
                 return null;
             }
             return null;
         }
     }
+
     public Boolean openResources(String id) {
         String resourceIdTobeOpened = id;
         Log.d(TAG, "Trying to open resource " + id);
@@ -419,6 +444,8 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             Document res_doc = res_Db.getExistingDocument(resourceIdTobeOpened);
             String openwith = (String) res_doc.getProperty("openWith");
             String openResName = (String) res_doc.getProperty("title");
+            openedResourceId = resourceIdTobeOpened;
+            openedResourceTitle = openResName;
             ///openFromDiskDirectly = true;
             logHouse.updateActivityOpenedResources(context, sys_usercouchId, resourceIdTobeOpened, openResName);
             Log.e("MYAPP", " member opening resource  = " + resourceIdTobeOpened + " and Open with " + openwith);
@@ -523,10 +550,29 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             }
              else if (openwith.equalsIgnoreCase("BeLL Video Book Player")) {
              }
+            sendResourceRatingFeedback(openedResourceId);
         } catch (Exception Er) {
             Log.d("MyCouch", "Opening resource error " + Er.getMessage());
         }
         return true;
+    }
+
+
+
+    ////////// Rating
+    public void sendResourceRatingFeedback(String id){
+        try {
+            AndroidContext androidContext = new AndroidContext(context);
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database res_Db = manager.getExistingDatabase("resources");
+            Document res_doc = res_Db.getExistingDocument(id);
+            String openResName = (String) res_doc.getProperty("title");
+            openedResourceId = id;
+            openedResourceTitle = openResName;
+            mListener.onResourceOpened(openedResourceId,openedResourceTitle);
+        }catch(Exception err){
+            Log.d("MyCouch", "Sending feedback on resource error " + err.getMessage());
+        }
     }
 
 

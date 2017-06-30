@@ -1,6 +1,7 @@
 package pbell.offline.ole.org.pbell;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -13,8 +14,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RatingBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.Manager;
@@ -30,7 +37,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class ListView_myLibrary extends Fragment {
+public class Fragm_myLibrary extends Fragment {
     // static final String URL = "http://api.androidhive.info/music/music.xml";
     static final String KEY_MATERIALS = "materials"; // parent node
     static final String KEY_ID = "id";
@@ -103,6 +110,17 @@ public class ListView_myLibrary extends Fragment {
     }
 
     public void LoadMyLibraryList() {
+        /*
+        try {
+            AndroidContext androidContext = new AndroidContext(context);
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            database = manager.getDatabase("resources");
+            database.delete();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        */
+
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database shelf_db = manager.getExistingDatabase("shelf");
@@ -223,5 +241,7 @@ public class ListView_myLibrary extends Fragment {
         sys_servername = settings.getString("pf_server_name", " ");
         sys_serverversion = settings.getString("pf_server_version", " ");
     }
+
+
 
 }

@@ -32,7 +32,7 @@
                     android:id="@+id/lt_3"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="10.5"
+                    android:layout_weight="10"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:paddingLeft="10dp"
