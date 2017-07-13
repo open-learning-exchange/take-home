@@ -12,6 +12,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.PersistableBundle;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.ActionBar;
@@ -78,6 +79,8 @@ import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ImageButton;
+
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
@@ -125,7 +128,8 @@ public class FullscreenLogin extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_fullscreen_login_new);
+        ///setContentView(R.layout.activity_fullscreen_login_new);
+        setContentView(R.layout.new_activity_login);
         mContentView = findViewById(R.id.fullscreen_content2);
         ActionBar actionBar = getSupportActionBar();
         actionBar.hide();
@@ -133,33 +137,73 @@ public class FullscreenLogin extends AppCompatActivity {
         // Todo - : Decide on either to clear resource database and file storage anytime user syncs or rather keep old resources only if user doesn't change server url
         mUsername = (EditText) mContentView.findViewById(R.id.txtUsername);
         mPasswordView = (EditText) findViewById(R.id.txtPassword);
+        // New UI
+        Button BecomeMemberButton = (Button) findViewById(R.id.btnBecomeMember);
+        BecomeMemberButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                alertDialogOkay("This feature has not been activated on this version.");
+                ///Intent intent = new Intent(context, Home.class);
+                //startActivity(intent);
+            }
+        });
+        Button Language = (Button) findViewById(R.id.btnLanguage);
+        Language.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                alertDialogOkay("This feature has not been activated on this version.");
+                //Intent intent = new Intent(context, ListView_Library.class);
+                //Intent intent = new Intent(context, User_Dashboard.class);
+                //startActivity(intent);
+            }
+        });
+        //
         Button SignInButton = (Button) findViewById(R.id.btnSignIn);
         SignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (authenticateUser()) {
-                    if (updateActivityLog()) {
-                        Intent intent = new Intent(context, FullscreenActivity.class);
-                        startActivity(intent);
-                    } else {
-                        alertDialogOkay("System Error. Please contact administrator");
-                    }
-                } else {
-                    alertDialogOkay("Login incorrect or Not found. Check and try again.");
-                }
+                /*mDialog = new ProgressDialog(context);
+                mDialog.setMessage("Please wait. checking your credentials");
+                mDialog.setCancelable(false);
+                mDialog.show();*/
+               /* final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {*/
+                        if (getSystemInfo()){
+                            if (authenticateUser()) {
+                                if (updateActivityLog()) {
+                                   /* mDialog.dismiss();*/
+                                    Intent intent = new Intent(context, User_Dashboard.class);
+                                    startActivity(intent);
+                                } else {
+                                    alertDialogOkay("System Error. Please contact system manager");
+                                }
+                            } else {
+                                /*mDialog.dismiss();*/
+                                alertDialogOkay("Login incorrect / Not found. Check and try again.");
+                            }
+                        }else{
+                            alertDialogOkay("Device not linked to a cummunity/nation. Use the setting button to sync with community/nation.");
+                        }
+                   /* }
+                }, 1000);*/
             }
         });
-        Button SetupButton = (Button) findViewById(R.id.btnSetup);
+
+        // New UI
+        ImageButton SetupButton = (ImageButton) findViewById(R.id.btnSetup);
         SetupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 getSyncURLDialog();
             }
         });
+        //
 
         restorePref();
-        copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
-        copyAPK(R.raw.firefox_49_0_multi_android, "firefox_49_0_multi_android.apk");
+        //copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
+        //copyAPK(R.raw.firefox_49_0_multi_android, "firefox_49_0_multi_android.apk");
         startServiceCommand();
         btnFeedback = (Button) findViewById(R.id.btnFeedback);
         btnFeedback.setOnClickListener(new View.OnClickListener() {
@@ -266,8 +310,8 @@ public class FullscreenLogin extends AppCompatActivity {
                      nwUpdateMemberVisits.setSumVisits(numOfVisits);
                      nwUpdateMemberVisits.execute("");
                  }
-                 Database dbResources = manager.getDatabase("visits");
-                 dbResources.delete();
+                 Database visitsdb = manager.getDatabase("visits");
+                 visitsdb.delete();
              } catch (Exception err) {
                  feedbackDialog.dismiss();
                  alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
@@ -440,7 +484,7 @@ public class FullscreenLogin extends AppCompatActivity {
     public boolean authenticateUser() {
         AndroidContext androidContext = new AndroidContext(this);
         Manager manager = null;
-        getSystemInfo();
+       /// getSystemInfo();
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database db = manager.getExistingDatabase("members");
@@ -454,7 +498,55 @@ public class FullscreenLogin extends AppCompatActivity {
                 Map<String, Object> properties = doc.getProperties();
                 String doc_loginId = (String) properties.get("login");
                 String doc_password = (String) properties.get("password");
-                if (mUsername.getText().toString().equals(doc_loginId)) {
+                 if (doc_password == "" && !mPasswordView.getText().toString().equals("")) {
+                     if (mUsername.getText().toString().equals(doc_loginId)) {
+                     try {
+                         Map<String, Object> doc_credentials = (Map<String, Object>) properties.get("credentials");
+                         AndroidDecrypter adc = new AndroidDecrypter();
+                         SharedPreferences.Editor editor = settings.edit();
+                         String ServerName = settings.getString("pf_server_code", "");
+
+                         Log.e("MYAPP", " User Login  " + (String) properties.get("login"));
+                         Log.e("MYAPP", " User id  " + (String) properties.get("_id"));
+                         Log.e("MYAPP", " User ServerName  " + ServerName);
+                         if (adc.AndroidDecrypter(doc_loginId, mPasswordView.getText().toString(), doc_credentials.get("value").toString())) {
+                             if (ServerName.equalsIgnoreCase((String) properties.get("community"))) {
+
+                                 editor.putString("pf_username", (String) properties.get("login"));
+                                 editor.putString("pf_password", (String) properties.get("password"));
+                                 editor.putString("pf_usercouchId", (String) properties.get("_id"));
+                                 editor.putString("pf_userfirstname", (String) properties.get("firstName"));
+                                 editor.putString("pf_userlastname", (String) properties.get("lastName"));
+                                 editor.putString("pf_usergender", (String) properties.get("Gender"));
+                                 sys_usergender = (String) properties.get("Gender");
+                                 try {
+                                     String noOfVisits = properties.get("visits").toString();
+                                     int currentTotalVisits = Integer.parseInt(noOfVisits) + totalVisits((String) properties.get("_id"));
+                                     editor.putInt("pf_uservisits_Int", currentTotalVisits);
+                                     editor.putString("pf_uservisits", currentTotalVisits + "");
+                                     editor.putString("pf_lastVisitDate", doc_lastVisit);
+                                 } catch (Exception err) {
+                                     alertDialogOkay(err.getMessage());
+                                 }
+                                 Set<String> stgSet = settings.getStringSet("pf_userroles", new HashSet<String>());
+                                 ArrayList roleList = (ArrayList<String>) properties.get("roles");
+                                 for (int cnt = 0; cnt < roleList.size(); cnt++) {
+                                     stgSet.add(String.valueOf(roleList.get(cnt)));
+                                 }
+                                 editor.putStringSet("pf_userroles", stgSet);
+                                 editor.commit();
+                                 Log.e("MYAPP", " RowChipsView Login Id: " + doc_loginId + " Password: " + doc_password);
+                                 restorePref();
+                                 return true;
+                             }
+                         }
+
+                     } catch (Exception err) {
+                         Log.e("MYAPP", " Encryption Err  " + err.getMessage());
+                         return false;
+                     }
+                 }
+                } else if (mUsername.getText().toString().equals(doc_loginId)) {
                     if (mPasswordView.getText().toString().equals(doc_password) && !properties.containsKey("credentials")) {
                         SharedPreferences.Editor editor = settings.edit();
                         editor.putString("pf_username", (String) properties.get("login"));
@@ -483,43 +575,6 @@ public class FullscreenLogin extends AppCompatActivity {
                         editor.commit();
                         Log.e("MYAPP", " RowChipsView Login OLD encryption: " + doc_loginId + " Password: " + doc_password);
                         return true;
-                    } else if (doc_password == "" && !mPasswordView.getText().toString().equals("")) {
-                        try {
-                            Map<String, Object> doc_credentials = (Map<String, Object>) properties.get("credentials");
-                            AndroidDecrypter adc = new AndroidDecrypter();
-                            if (adc.AndroidDecrypter(doc_loginId, mPasswordView.getText().toString(), doc_credentials.get("value").toString())) {
-                                SharedPreferences.Editor editor = settings.edit();
-                                editor.putString("pf_username", (String) properties.get("login"));
-                                editor.putString("pf_password", (String) properties.get("password"));
-                                editor.putString("pf_usercouchId", (String) properties.get("_id"));
-                                editor.putString("pf_userfirstname", (String) properties.get("firstName"));
-                                editor.putString("pf_userlastname", (String) properties.get("lastName"));
-                                editor.putString("pf_usergender", (String) properties.get("Gender"));
-                                sys_usergender = (String) properties.get("Gender");
-                                try {
-                                    String noOfVisits = properties.get("visits").toString();
-                                    int currentTotalVisits = Integer.parseInt(noOfVisits) + totalVisits((String) properties.get("_id"));
-                                    editor.putInt("pf_uservisits_Int", currentTotalVisits);
-                                    editor.putString("pf_uservisits", currentTotalVisits + "");
-                                    editor.putString("pf_lastVisitDate", doc_lastVisit);
-                                } catch (Exception err) {
-                                    alertDialogOkay(err.getMessage());
-                                }
-                                Set<String> stgSet = settings.getStringSet("pf_userroles", new HashSet<String>());
-                                ArrayList roleList = (ArrayList<String>) properties.get("roles");
-                                for (int cnt = 0; cnt < roleList.size(); cnt++) {
-                                    stgSet.add(String.valueOf(roleList.get(cnt)));
-                                }
-                                editor.putStringSet("pf_userroles", stgSet);
-                                editor.commit();
-                                Log.e("MYAPP", " RowChipsView Login Id: " + doc_loginId + " Password: " + doc_password);
-                                restorePref();
-                                return true;
-                            }
-                        } catch (Exception err) {
-                            Log.e("MYAPP", " Encryption Err  " + err.getMessage());
-                            return false;
-                        }
                     } else {
                         return false;
                     }
@@ -551,18 +606,20 @@ public class FullscreenLogin extends AppCompatActivity {
                 String Server_name = (String) properties.get("name");
                 String Server_nationName = (String) properties.get("nationName");
                 String Server_version = (String) properties.get("version");
+                String Server_code = (String) properties.get("code");
 
                 //////alertDialogOkay(Server_name+" Names");
                 SharedPreferences.Editor editor = settings.edit();
                 editor.putString("pf_server_name", Server_name);
                 editor.putString("pf_server_nation", Server_nationName);
                 editor.putString("pf_server_version", Server_version);
+                editor.putString("pf_server_code", Server_code);
                 editor.commit();
-
             }
             db.close();
             return true;
         } catch (Exception e) {
+            e.printStackTrace();
             return true;
         }
     }
@@ -657,7 +714,7 @@ public class FullscreenLogin extends AppCompatActivity {
     public String todaysDate(){
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Calendar cal = Calendar.getInstance();
-        System.out.println(dateFormat.format(cal.getTime()));
+        Log.e("MyCouch", "System Date : " + dateFormat.format(cal.getTime()));
         return dateFormat.format(cal.getTime());
 
     }
@@ -854,21 +911,25 @@ public class FullscreenLogin extends AppCompatActivity {
         }catch(Exception err){
             Log.e("MYAPP", err.getMessage());
         }
-        startSyncProcess();
+        ResourcesJson rsj = new ResourcesJson();
+        if(rsj.ResourcesJson(sys_oldSyncServerURL,"resources",androidContext)){
+            startSyncProcess();
+        }
         ///// End creating design Document
     }
     public void emptyAllDbs() {
         if(wipeClean) {
-
             for (int cnt = 0; cnt < databaseList.length; cnt++) {
                 try {
                     Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                    Database dbResources = manager.getDatabase(databaseList[cnt]);
-                    dbResources.delete();
+                    Database db = manager.getDatabase(databaseList[cnt]);
+                    Log.e("MYAPP","Deleting "+databaseList[cnt]);
+                    db.delete();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
+            //// Delete Device Created Databases
             try {
                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                 Database dbResources = manager.getDatabase("resources");
@@ -876,6 +937,21 @@ public class FullscreenLogin extends AppCompatActivity {
             }catch(Exception err){
                 err.printStackTrace();
             }
+            try {
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbResources = manager.getDatabase("shadowresources");
+                dbResources.delete();
+            }catch(Exception err){
+                err.printStackTrace();
+            }
+            try {
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbOffline_courses = manager.getDatabase("offline_courses");
+                dbOffline_courses.delete();
+            }catch(Exception err){
+                err.printStackTrace();
+            }
+
             try{
                 String root = Environment.getExternalStorageDirectory().toString();
                 File myDir = new File(root + "/ole_temp");
@@ -1437,7 +1513,12 @@ public class FullscreenLogin extends AppCompatActivity {
                             Log.e("MyCouch", "Ended New Activity Resource -- ");
                             JsonArray resources_opened_Array = new JsonArray();
                             JsonElement resources_opened_Element = parser.parse(gson.toJson(cls_resources_opened));
-                            resources_opened_Array.addAll(resources_opened_Element.getAsJsonArray());
+                            try{
+                                resources_opened_Array.addAll(resources_opened_Element.getAsJsonArray());
+                            }catch (Exception err){
+                                Log.e("MyCouch", "Opened resources null " + err.getMessage());
+                                err.printStackTrace();
+                            }
                             Log.e("MyCouch", "Rating " + female_opened_Array);
                             jsonObject.addProperty("logDate", Serverdate);
                             jsonObject.addProperty("male_visits", cls_male_visits);
@@ -1454,6 +1535,7 @@ public class FullscreenLogin extends AppCompatActivity {
                             dbClient.save(jsonObject);
                         }catch(Exception err){
                             Log.e("MyCouch", "Error writing new activity log data "+ err.getMessage());
+                            err.printStackTrace();
                         }
                     }
                 }
@@ -1527,7 +1609,12 @@ public class FullscreenLogin extends AppCompatActivity {
             cls_View = view;
         }
         protected String doInBackground(String... urls) {
-            try {
+            Calendar c = Calendar.getInstance();
+            SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+            Serverdate = df.format(c.getTime());
+            Log.e("MyCouch", "Current Date: "+Serverdate.toString());
+
+            /*try {
                 URI uri = URI.create(sys_oldSyncServerURL);
                 String url_Scheme = uri.getScheme();
                 String url_Host = uri.getHost();
@@ -1554,6 +1641,8 @@ public class FullscreenLogin extends AppCompatActivity {
                 Log.e("MyCouch", "error getting date "+e.getMessage());
                 return null;
             }
+            */
+            return "";
         }
         protected void onPostExecute(String message) {
             // TODO: check this.exception

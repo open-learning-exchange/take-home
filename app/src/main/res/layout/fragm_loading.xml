@@ -1,0 +1,38 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="pbell.offline.ole.org.pbell.Fragm_Loading">
+
+    <!-- TODO: Update blank fragment layout -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@null"
+        android:gravity="center_vertical|center_horizontal|center"
+        android:orientation="vertical">
+
+        <pl.droidsonroids.gif.GifTextView
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:background="@drawable/logo_spinning" />
+
+        <TextView
+            android:id="@+id/textView36"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="loading"
+            android:textColor="@color/logo_blue"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+        <!--
+
+            <ImageView
+                android:id="@+id/imageView5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/logo_spinning" /> -->
+    </LinearLayout>
+</FrameLayout>

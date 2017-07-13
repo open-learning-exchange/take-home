@@ -179,8 +179,8 @@ public class TabFragment1 extends Fragment {
         }
 
         //////copyAssets();
-        copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
-        copyAPK(R.raw.firefox_49_0_multi_android, "firefox_49_0_multi_android.apk");
+        //copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
+        //copyAPK(R.raw.firefox_49_0_multi_android, "firefox_49_0_multi_android.apk");
         //getActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#1b1b1b")));
         return rootView;
 
