@@ -74,7 +74,7 @@ public class ListView_Library extends Fragment {
     Database database;
     AssetManager assetManager;
 
-    private List<String> resIDArrayList = new ArrayList<String>();
+    private List<String> resIDArrayList = new ArrayList<>();
     ListView list;
     ListViewAdapter_Library adapter;
     ArrayList<HashMap<String, String>> materialList;
@@ -85,7 +85,7 @@ public class ListView_Library extends Fragment {
         assetManager = getActivity().getAssets();
         View rootView = inflater.inflate(R.layout.listview_universal, container, false);
 
-        materialList = new ArrayList<HashMap<String, String>>();
+        materialList = new ArrayList<>();
 
         androidContext = new AndroidContext(container.getContext());
         try {
@@ -126,7 +126,7 @@ public class ListView_Library extends Fragment {
                     } catch (Exception errs) {
                         Log.e("tag", "OBJECT ERROR " + errs.toString());
                     }
-                    HashMap<String, String> map = new HashMap<String, String>();;
+                    HashMap<String, String> map = new HashMap<>();
                     Log.e("MyCouch", "Number shadow items " + ((String) resource_properties.get("title")) + " ");
                     String buildDecript ="";
                     try{
@@ -198,7 +198,7 @@ public class ListView_Library extends Fragment {
         sys_userfirstname = settings.getString("pf_userfirstname","");
         sys_userlastname = settings.getString("pf_userlastname","");
         sys_usergender = settings.getString("pf_usergender","");
-        sys_uservisits = settings.getString("pf_uservisits","");;
+        sys_uservisits = settings.getString("pf_uservisits","");
         sys_uservisits_Int = settings.getInt("pf_uservisits_Int",0);
         sys_singlefilestreamdownload =settings.getBoolean("pf_singlefilestreamdownload",true);
         sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload",true);

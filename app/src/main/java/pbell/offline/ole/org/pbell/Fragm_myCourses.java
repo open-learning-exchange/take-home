@@ -3,7 +3,6 @@ package pbell.offline.ole.org.pbell;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -17,7 +16,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
@@ -78,8 +76,8 @@ public class Fragm_myCourses extends Fragment {
     AssetManager assetManager;
     View rootView;
 
-    private List<String> resIDArrayList = new ArrayList<String>();
-    private List<String> courseIDArrayList = new ArrayList<String>();
+    private List<String> resIDArrayList = new ArrayList<>();
+    private List<String> courseIDArrayList = new ArrayList<>();
     ListView list;
     ListViewAdapter_myCourses adapter;
     ArrayList<HashMap<String, String>> materialList;
@@ -143,7 +141,7 @@ public class Fragm_myCourses extends Fragment {
         assetManager = getActivity().getAssets();
         rootView = inflater.inflate(R.layout.listview_universal, container, false);
 
-        materialList = new ArrayList<HashMap<String, String>>();
+        materialList = new ArrayList<>();
 
         androidContext = new AndroidContext(container.getContext());
         try {
@@ -264,7 +262,7 @@ public class Fragm_myCourses extends Fragment {
                             courseTitleList[csLstCnt] = mycourseTitile;
                             courseIDArrayList.add(mycourseId);
 
-                            HashMap<String, String> map = new HashMap<String, String>();
+                            HashMap<String, String> map = new HashMap<>();
                             map.put(KEY_ID, ((String) properties.get("_id")));
                             map.put(KEY_TITLE, ((String) properties.get("CourseTitle")));
                             Log.e(TAG, "Course item title " + ((String) properties.get("CourseTitle")) + " ");
@@ -362,7 +360,7 @@ public class Fragm_myCourses extends Fragment {
             AndroidContext androidContext = new AndroidContext(context);
             Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             database = manager.getDatabase("offline_courses");
-            Map<String, Object> properties = new HashMap<String, Object>();
+            Map<String, Object> properties = new HashMap<>();
             properties.put("Steps", numberOfSteps);
             properties.put("localfile", "yes");
             Document document = database.getDocument(manualCourseId);
@@ -388,7 +386,6 @@ public class Fragm_myCourses extends Fragment {
         sys_userlastname = settings.getString("pf_userlastname", "");
         sys_usergender = settings.getString("pf_usergender", "");
         sys_uservisits = settings.getString("pf_uservisits", "");
-        ;
         sys_uservisits_Int = settings.getInt("pf_uservisits_Int", 0);
         sys_singlefilestreamdownload = settings.getBoolean("pf_singlefilestreamdownload", true);
         sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload", true);

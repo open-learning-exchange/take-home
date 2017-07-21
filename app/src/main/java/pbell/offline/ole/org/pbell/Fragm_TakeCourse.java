@@ -51,37 +51,37 @@ public class Fragm_TakeCourse extends Fragment {
     CouchViews chViews = new CouchViews();
     String resourceIdList[], resourceTitleList[], courseIdList[], courseTitleList[];
     int rsLstCnt, csLstCnt = 0;
-    private List<String> resIDArrayList = new ArrayList<String>();
-    private List<String> courseIDArrayList = new ArrayList<String>();
+    private List<String> resIDArrayList = new ArrayList<>();
+    private List<String> courseIDArrayList = new ArrayList<>();
     Dialog dialogTest;
 
     ///////////////////////////////////////////
 
     private String crs_MainTId, crs_MainTitle, crs_MainName, crs_MainDescription, crs_MainMethod, crs_MainGradeLevel, crs_MainLocation = "";
-    private List<String> crs_StepIds = new ArrayList<String>();
-    private List<String> crs_tempStepIds = new ArrayList<String>();
-    private List<String> crs_StepTitles = new ArrayList<String>();
-    private List<String> crs_tempStepTitles = new ArrayList<String>();
-    private List<String> crs_StepDescription = new ArrayList<String>();
-    private List<String> crs_tempStepDescription = new ArrayList<String>();
-    private List<String> crs_StepSeqNum = new ArrayList<String>();
-    private List<String> crs_tempStepSeqNum = new ArrayList<String>();
-    private List<String> crs_tempAidStepSeqNum = new ArrayList<String>();
-    private List<Integer> crs_StepNumOfResources = new ArrayList<Integer>();
-    private List<Integer> crs_tempStepNumOfResources = new ArrayList<Integer>();
-    private List<Integer> crs_StepNumOfQuestions = new ArrayList<Integer>();
-    private List<Integer> crs_tempStepNumOfQuestions = new ArrayList<Integer>();
+    private List<String> crs_StepIds = new ArrayList<>();
+    private List<String> crs_tempStepIds = new ArrayList<>();
+    private List<String> crs_StepTitles = new ArrayList<>();
+    private List<String> crs_tempStepTitles = new ArrayList<>();
+    private List<String> crs_StepDescription = new ArrayList<>();
+    private List<String> crs_tempStepDescription = new ArrayList<>();
+    private List<String> crs_StepSeqNum = new ArrayList<>();
+    private List<String> crs_tempStepSeqNum = new ArrayList<>();
+    private List<String> crs_tempAidStepSeqNum = new ArrayList<>();
+    private List<Integer> crs_StepNumOfResources = new ArrayList<>();
+    private List<Integer> crs_tempStepNumOfResources = new ArrayList<>();
+    private List<Integer> crs_StepNumOfQuestions = new ArrayList<>();
+    private List<Integer> crs_tempStepNumOfQuestions = new ArrayList<>();
     int crs_NumberOfSteps, stepCurrentIndex = 0;
 
 
     //////Step Questions Items /
-    List<String> qn_Ids = new ArrayList<String>();
-    List<String> qn_Type = new ArrayList<String>();
-    List<String> qn_Statement = new ArrayList<String>();
-    List<String> qn_Marks = new ArrayList<String>();
-    List<String> qn_CorrectAnswer = new ArrayList<String>();
-    List<Integer> qn_NoOptions = new ArrayList<Integer>();
-    List<String[]> qn_StepOptions = new ArrayList<String[]>();
+    List<String> qn_Ids = new ArrayList<>();
+    List<String> qn_Type = new ArrayList<>();
+    List<String> qn_Statement = new ArrayList<>();
+    List<String> qn_Marks = new ArrayList<>();
+    List<String> qn_CorrectAnswer = new ArrayList<>();
+    List<Integer> qn_NoOptions = new ArrayList<>();
+    List<String[]> qn_StepOptions = new ArrayList<>();
 
     MarkdownView markdownQueDescContent;
     EditText txt_QueSinglelineAns, txt_QueMultilineAns;
@@ -92,10 +92,10 @@ public class Fragm_TakeCourse extends Fragment {
     CheckBox qn_OptionsCheckbox[];
 
     ///// Resource Details
-    List<String> rs_Ids = new ArrayList<String>();
-    List<String> rs_OpenWith = new ArrayList<String>();
-    List<String> rs_Title = new ArrayList<String>();
-    List<String> rs_Description = new ArrayList<String>();
+    List<String> rs_Ids = new ArrayList<>();
+    List<String> rs_OpenWith = new ArrayList<>();
+    List<String> rs_Title = new ArrayList<>();
+    List<String> rs_Description = new ArrayList<>();
 
     LinearLayout lt_ResListHolder;
     TextView lbl_ResStepTitle;

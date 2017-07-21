@@ -4,14 +4,8 @@ package pbell.offline.ole.org.pbell;
  * Created by leonardmensah on 06/06/2017.
  */
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.app.DownloadManager;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -27,7 +21,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -85,7 +78,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
     int courseStepsCounter =0;
     int action_button_id = 0;
     SharedPreferences settings;
-    List<String> resIDArrayList = new ArrayList<String>();
+    List<String> resIDArrayList = new ArrayList<>();
     View vi;
 
     TextView title,description,ratingAvgNum,totalNum;
@@ -210,7 +203,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
         malerating = (ProgressBar) vi.findViewById(R.id.male_progressbar); //
         ImageView thumb_image = (ImageView) vi.findViewById(R.id.list_image); //  image
 
-        HashMap<String, String> material = new HashMap<String, String>();
+        HashMap<String, String> material = new HashMap<>();
         material = data.get(position);
 
         // Setting all values in Fragm_myCourses
@@ -285,7 +278,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
             AndroidContext androidContext = new AndroidContext(context);
             Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             database = manager.getDatabase("offline_course_resources");
-            Map<String, Object> properties = new HashMap<String, Object>();
+            Map<String, Object> properties = new HashMap<>();
             properties.put("title", manualResTitle);
             properties.put("openWith", manualResopenWith);
             properties.put("localfile", "yes");
@@ -308,7 +301,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
             AndroidContext androidContext = new AndroidContext(context);
             Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             database = manager.getDatabase("offline_courses");
-            Map<String, Object> properties = new HashMap<String, Object>();
+            Map<String, Object> properties = new HashMap<>();
             properties.put("Steps", numberOfSteps);
             properties.put("localfile", "yes");
             Document document = database.getDocument(manualCourseId);

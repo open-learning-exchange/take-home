@@ -1,7 +1,6 @@
 package pbell.offline.ole.org.pbell;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -14,14 +13,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.RatingBar;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.Manager;
@@ -73,7 +66,7 @@ public class Fragm_myLibrary extends Fragment {
     Database database;
     AssetManager assetManager;
 
-    private List<String> resIDArrayList = new ArrayList<String>();
+    private List<String> resIDArrayList = new ArrayList<>();
     ListView list;
     ListViewAdapter_myLibrary adapter;
     ArrayList<HashMap<String, String>> materialList;
@@ -86,7 +79,7 @@ public class Fragm_myLibrary extends Fragment {
         assetManager = getActivity().getAssets();
         View rootView = inflater.inflate(R.layout.listview_universal, container, false);
 
-        materialList = new ArrayList<HashMap<String, String>>();
+        materialList = new ArrayList<>();
 
         androidContext = new AndroidContext(container.getContext());
         try {
@@ -158,7 +151,7 @@ public class Fragm_myLibrary extends Fragment {
                         rsLstCnt++;
                     }
 
-                    HashMap<String, String> map = new HashMap<String, String>();
+                    HashMap<String, String> map = new HashMap<>();
                     resourceTitleList[rsLstCnt] = ((String) resource_properties.get("title"));
                     resourceIdList[rsLstCnt] = ((String) resource_properties.get("_id"));
                     resIDArrayList.add(((String) resource_properties.get("_id")));
@@ -234,7 +227,6 @@ public class Fragm_myLibrary extends Fragment {
         sys_userlastname = settings.getString("pf_userlastname", "");
         sys_usergender = settings.getString("pf_usergender", "");
         sys_uservisits = settings.getString("pf_uservisits", "");
-        ;
         sys_uservisits_Int = settings.getInt("pf_uservisits_Int", 0);
         sys_singlefilestreamdownload = settings.getBoolean("pf_singlefilestreamdownload", true);
         sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload", true);

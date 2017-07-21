@@ -22,7 +22,7 @@ public class MemoryCache {
     }
 
     public void put(String id, Bitmap bitmap){
-        cache.put(id, new SoftReference<Bitmap>(bitmap));
+        cache.put(id, new SoftReference<>(bitmap));
     }
 
     public void clear() {

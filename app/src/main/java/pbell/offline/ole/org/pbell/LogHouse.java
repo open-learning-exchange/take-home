@@ -12,9 +12,6 @@ import android.util.Log;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.Manager;
-import com.couchbase.lite.Query;
-import com.couchbase.lite.QueryEnumerator;
-import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
 
 import java.text.SimpleDateFormat;
@@ -22,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,16 +29,13 @@ import java.util.Set;
 public class LogHouse {
     String userId, userPlanetId, userName, userGender, userVisitSessionNumber, userDateOfBirth, userEmail, userNation, userPhone, userRegion, userServerAddress, userServerName, userServerVersion, userServersParent;
     String deviceLastSyncedWithParent, deviceParentName, deviceMacAddress, deviceDate, deviceManufacturer, deviceModel, deviceAndroidVersionRelease;
-    ArrayList<String> userRoles = new ArrayList<String>();
+    ArrayList<String> userRoles = new ArrayList<>();
     long deviceFreeStorage, deviceTotalStorage;
     int deviceAndroidVersion;
     CouchViews chViews = new CouchViews();
     SharedPreferences settings;
     public static final String PREFS_NAME = "MyPrefsFile";
 
-    public void LogHouse() {
-
-    }
 
     public void basicLogInfo(Context context) {
         AndroidContext androidContext = new AndroidContext(context);
@@ -151,7 +144,7 @@ public class LogHouse {
                     }
                     resources_names.add(resource_name);
                     resources_opened.add(resourceid);
-                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    Map<String, Object> newProperties = new HashMap<>();
                     newProperties.putAll(retrievedDocument.getProperties());
                     newProperties.put("female_opened", female_opened);
                     newProperties.put("male_opened", male_opened);
@@ -168,12 +161,12 @@ public class LogHouse {
                 try {
                     Log.e("MyCouch", "Option 2 gender is " + userGender.toLowerCase());
                     Document newdocument = activityLog.getDocument(deviceMacAddress);
-                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    Map<String, Object> newProperties = new HashMap<>();
                     newProperties.putAll(retrievedDocument.getProperties());
-                    ArrayList female_opened = new ArrayList<String>();
-                    ArrayList male_opened = new ArrayList<String>();
-                    ArrayList resources_names = new ArrayList<String>();
-                    ArrayList resources_opened = new ArrayList<String>();
+                    ArrayList female_opened = new ArrayList<>();
+                    ArrayList male_opened = new ArrayList<>();
+                    ArrayList resources_names = new ArrayList<>();
+                    ArrayList resources_opened = new ArrayList<>();
                     if (userGender.toLowerCase().equalsIgnoreCase("female")) {
                         female_opened.add(1);
                         male_opened.add(0);
@@ -262,7 +255,7 @@ public class LogHouse {
                         male_timesRated.add(1);
                     }
                     resourcesIds.add(resourceid);
-                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    Map<String, Object> newProperties = new HashMap<>();
                     newProperties.putAll(retrievedDocument.getProperties());
                     newProperties.put("female_rating", female_rating);
                     newProperties.put("female_timesRated", female_timesRated);
@@ -276,13 +269,13 @@ public class LogHouse {
                     Log.e("MyCouch", "Option Rating 1 Failed " + err.getMessage());
                     try {
                         Log.e("MyCouch", "Option 2");
-                        Map<String, Object> newProperties = new HashMap<String, Object>();
+                        Map<String, Object> newProperties = new HashMap<>();
                         newProperties.putAll(retrievedDocument.getProperties());
-                        ArrayList female_rating = new ArrayList<String>();
-                        ArrayList female_timesRated = new ArrayList<String>();
-                        ArrayList male_rating = new ArrayList<String>();
-                        ArrayList male_timesRated = new ArrayList<String>();
-                        ArrayList resourcesIds = new ArrayList<String>();
+                        ArrayList female_rating = new ArrayList<>();
+                        ArrayList female_timesRated = new ArrayList<>();
+                        ArrayList male_rating = new ArrayList<>();
+                        ArrayList male_timesRated = new ArrayList<>();
+                        ArrayList resourcesIds = new ArrayList<>();
                         if (userGender.toLowerCase().equalsIgnoreCase("female")) {
                             female_rating.add(rate);
                             female_timesRated.add(1);
@@ -312,13 +305,13 @@ public class LogHouse {
             } else {
                 try {
                     Log.e("MyCouch", "Option Rating 1b");
-                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    Map<String, Object> newProperties = new HashMap<>();
                     newProperties.putAll(retrievedDocument.getProperties());
-                    ArrayList female_rating = new ArrayList<String>();
-                    ArrayList female_timesRated = new ArrayList<String>();
-                    ArrayList male_rating = new ArrayList<String>();
-                    ArrayList male_timesRated = new ArrayList<String>();
-                    ArrayList resourcesIds = new ArrayList<String>();
+                    ArrayList female_rating = new ArrayList<>();
+                    ArrayList female_timesRated = new ArrayList<>();
+                    ArrayList male_rating = new ArrayList<>();
+                    ArrayList male_timesRated = new ArrayList<>();
+                    ArrayList resourcesIds = new ArrayList<>();
                     if (userGender.toLowerCase().equalsIgnoreCase("female")) {
                         female_rating.add(rate);
                         female_timesRated.add(1);

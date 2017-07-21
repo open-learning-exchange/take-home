@@ -20,7 +20,6 @@ package pbell.offline.ole.org.pbell;
         import android.graphics.Bitmap;
         import android.graphics.Color;
         import android.graphics.RectF;
-        import android.graphics.Bitmap.Config;
         import android.net.Uri;
         import android.os.Bundle;
         import android.os.Environment;
