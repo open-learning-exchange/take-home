@@ -71,6 +71,7 @@ public class Fragm_myLibrary extends Fragment {
     ListViewAdapter_myLibrary adapter;
     ArrayList<HashMap<String, String>> materialList;
     Activity mActivity;
+    LogHouse logHouse = new LogHouse();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

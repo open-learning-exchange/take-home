@@ -43,6 +43,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:paddingBottom="10dp"
+                        android:paddingTop="10dp"
                         android:text="Step : Pneumonia and Fast Breathing"
                         android:textColor="@color/white"
                         android:textSize="18sp"
@@ -58,22 +60,14 @@
             android:layout_height="0dp"
             android:layout_margin="3dp"
             android:layout_weight="8.5"
-            android:orientation="vertical"
+            android:orientation="horizontal"
             android:weightSum="8">
 
-            <ScrollView
+            <ListView
+                android:id="@+id/course_resource_list"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="4">
-
-                <LinearLayout
-                    android:id="@+id/lbl_ResListHolder"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
-
-                </LinearLayout>
-            </ScrollView>
+                android:layout_weight="8" />
 
         </LinearLayout>
 

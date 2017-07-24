@@ -88,14 +88,14 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
     ProgressBar femalerating, malerating;
     String activityName ="myCourses";
 
-    LogHouse logHouse = new LogHouse();
+
     protected int _splashTime = 5000;
     private Thread splashTread;
 
     private long enqueues;
     private DownloadManager dm;
     Cursor c;
-
+    LogHouse logHouse = new LogHouse();
     private OnCourseListListener mListener;
     public ListViewAdapter_myCourses(final List<String> resIDsList, Activity a, Context cont, ArrayList<HashMap<String, String>> d) {
         activity = a;
