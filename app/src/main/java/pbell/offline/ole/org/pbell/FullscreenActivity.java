@@ -22,9 +22,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.StrictMode;
 import android.support.v4.content.IntentCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
@@ -47,7 +44,6 @@ import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import com.couchbase.lite.Attachment;
 import com.couchbase.lite.CouchbaseLiteException;
@@ -60,19 +56,13 @@ import com.couchbase.lite.QueryOptions;
 import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.Revision;
 import com.couchbase.lite.android.AndroidContext;
-import com.couchbase.lite.auth.Authenticator;
 import com.couchbase.lite.replicator.Replication;
 import com.github.kittinunf.fuel.Fuel;
 import com.github.kittinunf.fuel.core.FuelError;
 import com.github.kittinunf.fuel.core.Request;
 import com.github.kittinunf.fuel.core.Response;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.lightcouch.CouchDbClientAndroid;
@@ -99,7 +89,6 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-import static pbell.offline.ole.org.pbell.R.id.ratingBar;
 
 @SuppressWarnings("ALL")
 public class FullscreenActivity extends AppCompatActivity {

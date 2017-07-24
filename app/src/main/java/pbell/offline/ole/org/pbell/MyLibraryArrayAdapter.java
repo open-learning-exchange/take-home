@@ -1,24 +1,17 @@
 package pbell.offline.ole.org.pbell;
 
 import android.content.Context;
-import android.content.res.Resources;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
-import static android.widget.Toast.*;
 
 /**
  * Created by leonardmensah on 17/05/16.

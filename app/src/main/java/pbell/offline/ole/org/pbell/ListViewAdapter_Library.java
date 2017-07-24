@@ -69,7 +69,7 @@ public class ListViewAdapter_Library extends BaseAdapter {
         ProgressBar malerating = (ProgressBar)vi.findViewById(R.id.male_progressbar); // delete
         ImageView thumb_image=(ImageView)vi.findViewById(R.id.list_image); //  image
 
-        HashMap<String, String> material = new HashMap<String, String>();
+        HashMap<String, String> material = new HashMap<>();
         material = data.get(position);
 
                 // Setting all values in listview

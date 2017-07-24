@@ -10,24 +10,16 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
-import android.os.Build;
-import android.os.Environment;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.text.Layout;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -36,7 +28,6 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.Manager;
@@ -44,26 +35,13 @@ import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
-import com.github.kittinunf.fuel.Fuel;
-import com.github.kittinunf.fuel.core.FuelError;
-import com.github.kittinunf.fuel.core.Request;
-import com.github.kittinunf.fuel.core.Response;
-import com.google.gson.JsonObject;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.lightcouch.CouchDbClientAndroid;
-
-import java.io.File;
-import java.net.URI;
-import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -154,12 +132,6 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
 
     }
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-
-
-    }
 
     public void initiateLayoutMaterials() {
         btnBadges = (ImageButton) findViewById(R.id.ibtn_Badges);
@@ -763,7 +735,7 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
         Database resourceRating;
         int doc_rating;
         int doc_timesRated;
-        ArrayList<String> commentList = new ArrayList<String>();
+        ArrayList<String> commentList = new ArrayList<>();
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             resourceRating = manager.getDatabase("resourcerating");
@@ -775,7 +747,7 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
                     doc_timesRated = (int) properties.get("timesRated");
                     commentList = (ArrayList<String>) properties.get("comments");
                     commentList.add(comment);
-                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    Map<String, Object> newProperties = new HashMap<>();
                     newProperties.putAll(retrievedDocument.getProperties());
                     newProperties.put("sum", (doc_rating + rate));
                     newProperties.put("timesRated", doc_timesRated + 1);
@@ -786,7 +758,7 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
                 }
             } else {
                 Document newdocument = resourceRating.getDocument(resourceId);
-                Map<String, Object> newProperties = new HashMap<String, Object>();
+                Map<String, Object> newProperties = new HashMap<>();
                 newProperties.put("sum", rate);
                 newProperties.put("timesRated", 1);
                 commentList.add(comment);
@@ -831,7 +803,7 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
                         male_timesRated.add(1);
                     }
                     resourcesIds.add(resourceid);
-                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    Map<String, Object> newProperties = new HashMap<>();
                     newProperties.putAll(retrievedDocument.getProperties());
                     newProperties.put("female_rating", female_rating);
                     newProperties.put("female_timesRated", female_timesRated);
@@ -845,13 +817,13 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
                     Log.e("MyCouch", "Option Rating 1 Failed " + err.getMessage());
                     try {
                         Log.e("MyCouch", "Option 2");
-                        Map<String, Object> newProperties = new HashMap<String, Object>();
+                        Map<String, Object> newProperties = new HashMap<>();
                         newProperties.putAll(retrievedDocument.getProperties());
-                        ArrayList female_rating = new ArrayList<String>();
-                        ArrayList female_timesRated = new ArrayList<String>();
-                        ArrayList male_rating = new ArrayList<String>();
-                        ArrayList male_timesRated = new ArrayList<String>();
-                        ArrayList resourcesIds = new ArrayList<String>();
+                        ArrayList female_rating = new ArrayList<>();
+                        ArrayList female_timesRated = new ArrayList<>();
+                        ArrayList male_rating = new ArrayList<>();
+                        ArrayList male_timesRated = new ArrayList<>();
+                        ArrayList resourcesIds = new ArrayList<>();
                         if (sys_usergender.toLowerCase().equalsIgnoreCase("female")) {
                             female_rating.add(rate);
                             female_timesRated.add(1);
@@ -881,13 +853,13 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
             } else {
                 try {
                     Log.e("MyCouch", "Option Rating 1b");
-                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    Map<String, Object> newProperties = new HashMap<>();
                     newProperties.putAll(retrievedDocument.getProperties());
-                    ArrayList female_rating = new ArrayList<String>();
-                    ArrayList female_timesRated = new ArrayList<String>();
-                    ArrayList male_rating = new ArrayList<String>();
-                    ArrayList male_timesRated = new ArrayList<String>();
-                    ArrayList resourcesIds = new ArrayList<String>();
+                    ArrayList female_rating = new ArrayList<>();
+                    ArrayList female_timesRated = new ArrayList<>();
+                    ArrayList male_rating = new ArrayList<>();
+                    ArrayList male_timesRated = new ArrayList<>();
+                    ArrayList resourcesIds = new ArrayList<>();
                     if (sys_usergender.toLowerCase().equalsIgnoreCase("female")) {
                         female_rating.add(rate);
                         female_timesRated.add(1);

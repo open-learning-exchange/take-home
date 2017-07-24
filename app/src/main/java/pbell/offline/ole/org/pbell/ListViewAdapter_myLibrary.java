@@ -4,9 +4,7 @@ package pbell.offline.ole.org.pbell;
  * Created by leonardmensah on 06/06/2017.
  */
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.Dialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -20,7 +18,6 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.LayerDrawable;
 import android.net.Uri;
-import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
@@ -32,12 +29,10 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
@@ -78,7 +73,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             sys_usergender, sys_uservisits, sys_servername, sys_serverversion = "";
     String OneByOneResID, OneByOneResTitle;
     SharedPreferences settings;
-    List<String> resIDArrayList = new ArrayList<String>();
+    List<String> resIDArrayList = new ArrayList<>();
 
     LogHouse logHouse = new LogHouse();
     protected int _splashTime = 5000;
@@ -183,7 +178,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
         ProgressBar malerating = (ProgressBar) vi.findViewById(R.id.male_progressbar); // delete
         ImageView thumb_image = (ImageView) vi.findViewById(R.id.list_image); //  image
 
-        HashMap<String, String> material = new HashMap<String, String>();
+        HashMap<String, String> material = new HashMap<>();
         material = data.get(position);
 
         // Setting all values in Fragm_myLibrary
@@ -284,7 +279,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             AndroidContext androidContext = new AndroidContext(context);
             Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             database = manager.getDatabase("resources");
-            Map<String, Object> properties = new HashMap<String, Object>();
+            Map<String, Object> properties = new HashMap<>();
             properties.put("title", manualResTitle);
             properties.put("openWith", manualResopenWith);
             properties.put("localfile", "yes");

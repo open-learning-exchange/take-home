@@ -1,7 +1,5 @@
 package pbell.offline.ole.org.pbell;
 
-import android.util.Log;
-
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Emitter;
 import com.couchbase.lite.Mapper;

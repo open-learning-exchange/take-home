@@ -2,12 +2,6 @@ package pbell.offline.ole.org.pbell;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
-
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
 
 import de.rtner.misc.BinTools;
 import de.rtner.security.auth.spi.PBKDF2Engine;
