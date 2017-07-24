@@ -97,7 +97,7 @@ public class Fragm_myCourses extends Fragment {
     private String mParam2;
 
 
-
+    LogHouse logHouse = new LogHouse();
 
     private OnFragmentInteractionListener mListener;
 
