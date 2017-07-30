@@ -130,11 +130,11 @@ public class ServerSearchService extends Service {
                     showNotificationMessage("Failed connection","You can not receive data from Planet ("+sys_oldSyncServerURL +") " +
                             "because Wi-Fi is OFF. Turn Wi-Fi on when you want to update Take-Home");
                 }
-                handler.postDelayed(runnable, 10000);
+                handler.postDelayed(runnable, 60000);
             }
         };
 
-        handler.postDelayed(runnable, 60000);
+        handler.postDelayed(runnable, 120000);
     }
 
     @Override

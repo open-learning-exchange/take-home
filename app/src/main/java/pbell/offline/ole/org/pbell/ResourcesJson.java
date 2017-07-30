@@ -1,7 +1,11 @@
 package pbell.offline.ole.org.pbell;
 
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
+import android.view.View;
 
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
@@ -32,6 +36,7 @@ public class ResourcesJson {
     public static final String PREFS_NAME = "MyPrefsFile";
     SharedPreferences settings;
     AndroidContext query_context;
+    Context context;
     String query_serverURL;
     String query_databaseName;
     String url_Scheme ,url_Host;
@@ -39,8 +44,9 @@ public class ResourcesJson {
     String url_user, url_pwd;
     JsonObject json;
     CouchViews chViews = new CouchViews();
-    public Boolean ResourcesJson(String serverURL, String databaseName, final AndroidContext context){
-        query_context = context;
+    public Boolean ResourcesJson(String serverURL, String databaseName, final AndroidContext android_context){
+        query_context = android_context;
+
         query_serverURL= serverURL;
         query_databaseName = databaseName;
         try {
@@ -108,24 +114,7 @@ public class ResourcesJson {
                                         }
                                     }
                                     shadowresdocument.putProperties(properties);
-                                    /*
-                                    try {
-                                        Database shadowres = manager.getDatabase("shadowresources");
-                                        Query orderedQuery = chViews.ReadMemberVisitsId(shadowres).createQuery();
-                                        orderedQuery.setDescending(true);
-                                        QueryEnumerator results = orderedQuery.run();
-                                        for (Iterator<QueryRow> shr = results; shr.hasNext(); ) {
-                                            QueryRow row = shr.next();
-                                            String docId = (String) row.getValue();
-                                            Document doc = shadowres.getExistingDocument(docId);
-                                            Map<String, Object> properties2 = doc.getProperties();
-                                            String doc_id = ((String) properties2.get("_id"));
-                                            Log.e("MyCouch", "Number shadow items " + doc_id + " ");
-                                            // Update server members with visits
-                                        }
-                                    } catch (Exception err) {
-                                        Log.e("MyCouch", "reading visits error " + err);
-                                    }*/
+
                                 } catch (Exception e) {
                                     Log.e("MyCouch", "its a json object: = " + e.toString());
                                     e.printStackTrace();
@@ -146,5 +135,4 @@ public class ResourcesJson {
             return false;
         }
     }
-
 }
