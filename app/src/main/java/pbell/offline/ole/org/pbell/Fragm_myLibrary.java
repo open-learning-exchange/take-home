@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 
 public class Fragm_myLibrary extends Fragment {
-    // static final String URL = "http://api.androidhive.info/music/music.xml";
     static final String KEY_MATERIALS = "materials"; // parent node
     static final String KEY_ID = "id";
     static final String KEY_TITLE = "title";
@@ -177,6 +176,7 @@ public class Fragm_myLibrary extends Fragment {
                        // rsLstCnt++;
                     }
 
+                    Document local_downloaded_doc = local_downloaded_resources.getExistingDocument(myresId);
                     if(resourceDownloaded){
                         map.put(KEY_RESOURCE_STATUS,"downloaded");
                     }else{

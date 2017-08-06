@@ -386,6 +386,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
         @Override
         protected Boolean doInBackground(String... params) {
             try {
+                Log.e(TAG,"URL " + sys_oldSyncServerURL);
                 URI uri = URI.create(sys_oldSyncServerURL);
                 String url_Scheme = uri.getScheme();
                 String url_Host = uri.getHost();
