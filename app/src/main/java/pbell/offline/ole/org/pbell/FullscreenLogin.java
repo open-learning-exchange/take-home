@@ -121,7 +121,7 @@ public class FullscreenLogin extends AppCompatActivity {
         ///setContentView(R.layout.activity_fullscreen_login_new);
         setContentView(R.layout.new_activity_login);
         mContentView = findViewById(R.id.fullscreen_content2);
-        ActionBar actionBar = getSupportActionBar();
+        final ActionBar actionBar = getSupportActionBar();
         actionBar.hide();
         androidContext = new AndroidContext(this);
         // Todo - : Decide on either to clear resource database and file storage anytime user syncs or rather keep old resources only if user doesn't change server url
@@ -132,7 +132,14 @@ public class FullscreenLogin extends AppCompatActivity {
         BecomeMemberButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                alertDialogOkay("This feature has not been activated on this version.");
+               /// alertDialogOkay("This feature has not been activated on this version.");
+
+                /// Demo Mode Code
+                mUsername.setText("learner");
+                mPasswordView.setText("learner");
+                DemoDataLoader demoDataLoader = new DemoDataLoader(context);
+                alertDialogOkay("Device configured for Demo. Click Sign-in");
+
                 ///Intent intent = new Intent(context, Home.class);
                 //startActivity(intent);
             }
@@ -496,12 +503,16 @@ public class FullscreenLogin extends AppCompatActivity {
                          SharedPreferences.Editor editor = settings.edit();
                          String ServerName = settings.getString("pf_server_code", "");
 
-                         Log.e("MYAPP", " User Login  " + (String) properties.get("login"));
-                         Log.e("MYAPP", " User id  " + (String) properties.get("_id"));
-                         Log.e("MYAPP", " User ServerName  " + ServerName);
-                         if (adc.AndroidDecrypter(doc_loginId, mPasswordView.getText().toString(), doc_credentials.get("value").toString())) {
-                             if (ServerName.equalsIgnoreCase((String) properties.get("community"))) {
+                         Log.e(TAG, " User Login  " + (String) properties.get("login"));
+                         Log.e(TAG, " User id  " + (String) properties.get("_id"));
+                         Log.e(TAG, " User ServerName  " + ServerName);
+                         Log.e(TAG, " User Value  " + doc_credentials.get("value").toString());
+                         Log.e(TAG, " User Community  " + (String) properties.get("community"));
 
+                         if (adc.AndroidDecrypter(doc_loginId, mPasswordView.getText().toString(), doc_credentials.get("value").toString())) {
+                             Log.e(TAG, " Got Here 1");
+                             if (ServerName.equalsIgnoreCase((String) properties.get("community"))) {
+                                 Log.e(TAG, " Got Here 2");
                                  editor.putString("pf_username", (String) properties.get("login"));
                                  editor.putString("pf_password", (String) properties.get("password"));
                                  editor.putString("pf_usercouchId", (String) properties.get("_id"));
@@ -517,6 +528,7 @@ public class FullscreenLogin extends AppCompatActivity {
                                      editor.putString("pf_lastVisitDate", doc_lastVisit);
                                  } catch (Exception err) {
                                      alertDialogOkay(err.getMessage());
+                                     err.printStackTrace();
                                  }
                                  Set<String> stgSet = settings.getStringSet("pf_userroles", new HashSet<String>());
                                  ArrayList roleList = (ArrayList<String>) properties.get("roles");
@@ -533,11 +545,14 @@ public class FullscreenLogin extends AppCompatActivity {
 
                      } catch (Exception err) {
                          Log.e("MYAPP", " Encryption Err  " + err.getMessage());
+                         err.printStackTrace();
                          return false;
                      }
                  }
                 } else if (mUsername.getText().toString().equals(doc_loginId)) {
+                     Log.e(TAG, " Got Here 3");
                     if (mPasswordView.getText().toString().equals(doc_password) && !properties.containsKey("credentials")) {
+                        Log.e(TAG, " Got Here 4");
                         SharedPreferences.Editor editor = settings.edit();
                         editor.putString("pf_username", (String) properties.get("login"));
                         editor.putString("pf_password", (String) properties.get("password"));

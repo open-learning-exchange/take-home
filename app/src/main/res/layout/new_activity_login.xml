@@ -280,7 +280,7 @@
                                     android:layout_weight="1.3"
                                     android:background="@null"
                                     android:gravity="bottom|center_horizontal"
-                                    android:text="@string/txtBecomeMember"
+                                    android:text="@string/txtDemo"
                                     android:textAllCaps="false"
                                     android:textColor="@color/ole_white" />
                             </LinearLayout>
