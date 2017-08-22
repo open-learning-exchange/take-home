@@ -133,7 +133,6 @@ public class FullscreenLogin extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                /// alertDialogOkay("This feature has not been activated on this version.");
-
                 /// Demo Mode Code
                 mUsername.setText("learner");
                 mPasswordView.setText("learner");
