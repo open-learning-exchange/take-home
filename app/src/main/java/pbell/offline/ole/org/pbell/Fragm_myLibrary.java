@@ -53,6 +53,7 @@ public class Fragm_myLibrary extends Fragment {
             sys_password, sys_usercouchId, sys_userfirstname, sys_userlastname,
             sys_usergender, sys_uservisits, sys_servername, sys_serverversion = "";
     Boolean sys_singlefilestreamdownload, sys_multiplefilestreamdownload;
+    Boolean sys_appInDemoMode;
     int sys_uservisits_Int = 0;
     AndroidContext androidContext;
     Manager manager;
@@ -117,7 +118,12 @@ public class Fragm_myLibrary extends Fragment {
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database shelf_db = manager.getExistingDatabase("shelf");
-            Database shadowresources_db = manager.getExistingDatabase("shadowresources");
+            Database shadowresources_db;
+            if(sys_appInDemoMode){
+                shadowresources_db = manager.getExistingDatabase("shadowresources_demo");
+            }else{
+                shadowresources_db = manager.getExistingDatabase("shadowresources");
+            }
             Database local_downloaded_resources = manager.getDatabase("resources");
             Query orderedQuery = chViews.ReadShelfByIdView(shelf_db).createQuery();
             orderedQuery.setDescending(true);
@@ -180,7 +186,11 @@ public class Fragm_myLibrary extends Fragment {
                     if(resourceDownloaded){
                         map.put(KEY_RESOURCE_STATUS,"downloaded");
                     }else{
-                        map.put(KEY_RESOURCE_STATUS,"not downloaded");
+                        if(sys_appInDemoMode) {
+                            map.put(KEY_RESOURCE_STATUS, "downloaded");
+                        }else{
+                            map.put(KEY_RESOURCE_STATUS, "not downloaded");
+                        }
                     }
                     map.put(KEY_DESCRIPTION, buildDecript);
                     map.put(KEY_DETAILS, myresId);
@@ -241,6 +251,7 @@ public class Fragm_myLibrary extends Fragment {
         sys_usergender = settings.getString("pf_usergender", "");
         sys_uservisits = settings.getString("pf_uservisits", "");
         sys_uservisits_Int = settings.getInt("pf_uservisits_Int", 0);
+        sys_appInDemoMode = settings.getBoolean("pf_appindemomode", false);
         sys_singlefilestreamdownload = settings.getBoolean("pf_singlefilestreamdownload", true);
         sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload", true);
         sys_servername = settings.getString("pf_server_name", " ");

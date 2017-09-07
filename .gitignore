@@ -58,7 +58,7 @@ adobe_reader.apk
 *firefox_49_0_multi_android.apk
 firefox_49_0_multi_android.apk
 
-
+assets/*
 # Android Studio Navigation editor temp files
 .navigation/
 

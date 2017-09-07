@@ -9,6 +9,7 @@ package pbell.offline.ole.org.pbell;
     import android.content.Intent;
     import android.content.SharedPreferences;
     import android.os.Bundle;
+    import android.os.StrictMode;
     import android.support.annotation.IdRes;
     import android.support.v4.app.Fragment;
     import android.support.v4.app.FragmentManager;
@@ -75,6 +76,8 @@ public class Dashboard extends AppCompatActivity {
 
             Toolbar toolbar = (Toolbar) findViewById(R.id.mytoolbar);
             setSupportActionBar(toolbar);
+            StrictMode.VmPolicy.Builder stModeBuilder = new StrictMode.VmPolicy.Builder();
+            StrictMode.setVmPolicy(stModeBuilder.build());
 
             ///settings = context.getSharedPreferences("PREFS_NAME", Context.MODE_PRIVATE);
             settings = getSharedPreferences(PREFS_NAME, 0);

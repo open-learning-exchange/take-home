@@ -6,11 +6,14 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
@@ -70,6 +73,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -90,6 +94,7 @@ public class FullscreenLogin extends AppCompatActivity {
             sys_password, sys_usercouchId, sys_userfirstname, sys_userlastname,
             sys_usergender, sys_uservisits, sys_servername, sys_serverversion, sys_NewDate = "";
     Boolean sys_singlefilestreamdownload, sys_multiplefilestreamdownload;
+    Boolean sys_appInDemoMode = false;
     Object[] sys_membersWithResource;
     int sys_uservisits_Int;
     String Serverdate = null;
@@ -113,6 +118,8 @@ public class FullscreenLogin extends AppCompatActivity {
     Boolean wipeClean =false;
     Intent serviceIntent;
     private static final String TAG = "LoginActivity";
+    Button SignInButton;
+    private static final int REQUEST_WRITE_STORAGE = 112;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -127,17 +134,52 @@ public class FullscreenLogin extends AppCompatActivity {
         // Todo - : Decide on either to clear resource database and file storage anytime user syncs or rather keep old resources only if user doesn't change server url
         mUsername = (EditText) mContentView.findViewById(R.id.txtUsername);
         mPasswordView = (EditText) findViewById(R.id.txtPassword);
+
+        SignInButton = (Button) findViewById(R.id.btnSignIn);
+        SignInButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                /*mDialog = new ProgressDialog(context);
+                mDialog.setMessage("Please wait. checking your credentials");
+                mDialog.setCancelable(false);
+                mDialog.show();*/
+               /* final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {*/
+                if (getSystemInfo()){
+                    if (authenticateUser()) {
+                        if (updateActivityLog()) {
+                                   /* mDialog.dismiss();*/
+                            Intent intent = new Intent(context, User_Dashboard.class);
+                            startActivity(intent);
+                        } else {
+                            alertDialogOkay("System Error. Please contact system manager");
+                        }
+                    } else {
+                                /*mDialog.dismiss();*/
+                        alertDialogOkay("Login incorrect / Not found. Check and try again.");
+                    }
+                }else{
+                    alertDialogOkay("Device not linked to a cummunity/nation. Use the setting button to sync with community/nation.");
+                }
+                   /* }
+                }, 1000);*/
+            }
+        });
         // New UI
-        Button BecomeMemberButton = (Button) findViewById(R.id.btnBecomeMember);
-        BecomeMemberButton.setOnClickListener(new View.OnClickListener() {
+        Button DemoModeButton = (Button) findViewById(R.id.btnBecomeMember);
+        DemoModeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                /// alertDialogOkay("This feature has not been activated on this version.");
                 /// Demo Mode Code
+                sys_appInDemoMode = true;
                 mUsername.setText("learner");
                 mPasswordView.setText("learner");
-                DemoDataLoader demoDataLoader = new DemoDataLoader(context);
-                alertDialogOkay("Device configured for Demo. Click Sign-in");
+                DemoDataLoader demoDataLoader = new DemoDataLoader(context,SignInButton);
+
+                //alertDialogOkay("Device configured for Demo. Click Sign-in");
 
                 ///Intent intent = new Intent(context, Home.class);
                 //startActivity(intent);
@@ -154,38 +196,7 @@ public class FullscreenLogin extends AppCompatActivity {
             }
         });
         //
-        Button SignInButton = (Button) findViewById(R.id.btnSignIn);
-        SignInButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                /*mDialog = new ProgressDialog(context);
-                mDialog.setMessage("Please wait. checking your credentials");
-                mDialog.setCancelable(false);
-                mDialog.show();*/
-               /* final Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {*/
-                        if (getSystemInfo()){
-                            if (authenticateUser()) {
-                                if (updateActivityLog()) {
-                                   /* mDialog.dismiss();*/
-                                    Intent intent = new Intent(context, User_Dashboard.class);
-                                    startActivity(intent);
-                                } else {
-                                    alertDialogOkay("System Error. Please contact system manager");
-                                }
-                            } else {
-                                /*mDialog.dismiss();*/
-                                alertDialogOkay("Login incorrect / Not found. Check and try again.");
-                            }
-                        }else{
-                            alertDialogOkay("Device not linked to a cummunity/nation. Use the setting button to sync with community/nation.");
-                        }
-                   /* }
-                }, 1000);*/
-            }
-        });
+
 
         // New UI
         ImageButton SetupButton = (ImageButton) findViewById(R.id.btnSetup);
@@ -198,8 +209,6 @@ public class FullscreenLogin extends AppCompatActivity {
         //
 
         restorePref();
-        //copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
-        //copyAPK(R.raw.firefox_49_0_multi_android, "firefox_49_0_multi_android.apk");
         startServiceCommand();
         btnFeedback = (Button) findViewById(R.id.btnFeedback);
         btnFeedback.setOnClickListener(new View.OnClickListener() {
@@ -241,11 +250,33 @@ public class FullscreenLogin extends AppCompatActivity {
                 });
             }
         });
+
+        boolean hasPermission = (ContextCompat.checkSelfPermission(this,android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
+        if (!hasPermission) {
+            ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE},REQUEST_WRITE_STORAGE);
+        }
     }
     @Override
     public void onResume() {
         super.onResume();
         updateUI();
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode)
+        {
+            case REQUEST_WRITE_STORAGE: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                {
+                    //reload my activity with permission granted or use the features what required the permission
+                } else
+                {
+                    Toast.makeText(this, "The app was not allowed to write to your storage. Hence, it cannot function properly. Please consider granting it this permission", Toast.LENGTH_LONG).show();
+                }
+            }
+        }
+
     }
      public void sendfeedbackToServer(ProgressDialog feedbackDialog){
          Database resourceRating, activitylog, visits;
@@ -518,6 +549,7 @@ public class FullscreenLogin extends AppCompatActivity {
                                  editor.putString("pf_userfirstname", (String) properties.get("firstName"));
                                  editor.putString("pf_userlastname", (String) properties.get("lastName"));
                                  editor.putString("pf_usergender", (String) properties.get("Gender"));
+                                 editor.putBoolean("pf_appindemomode", sys_appInDemoMode);
                                  sys_usergender = (String) properties.get("Gender");
                                  try {
                                      String noOfVisits = properties.get("visits").toString();
@@ -559,6 +591,7 @@ public class FullscreenLogin extends AppCompatActivity {
                         editor.putString("pf_userfirstname", (String) properties.get("firstName"));
                         editor.putString("pf_userlastname", (String) properties.get("lastName"));
                         editor.putString("pf_usergender", (String) properties.get("Gender"));
+                        editor.putBoolean("pf_appindemomode", sys_appInDemoMode);
                         sys_usergender = (String) properties.get("Gender");
                         try {
                             String noOfVisits = properties.get("visits").toString();

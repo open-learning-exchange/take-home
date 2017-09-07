@@ -5,10 +5,13 @@ import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.drawable.LayerDrawable;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,7 +27,9 @@ import com.couchbase.lite.Manager;
 import com.couchbase.lite.android.AndroidContext;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -79,12 +84,13 @@ public class DemoDataLoader {
     Cursor c;
     LogHouse logHouse = new LogHouse();
     private ListViewAdapter_myCourses.OnCourseListListener mListener;
-
+    Button  SignInButton;
     String[] databaseList = {"members", "meetups", "usermeetups", "assignments",
             "assignmentpaper","courseanswer","coursequestion","courses","courseschedule","coursestep","membercourseprogress",
             "calendar", "groups", "invitations", "configurations", "requests", "shelf", "languages"};
 
-    public DemoDataLoader(Context context){
+    public DemoDataLoader(Context context,Button btn){
+        SignInButton = btn;
         this.context = context;
         androidContext = new AndroidContext(this.context);
 
@@ -131,12 +137,48 @@ public class DemoDataLoader {
             createCourses();
             createCoursestep();
             createMembercourseprogress();
-            if(rsj.ResourcesJson(sys_oldSyncServerURL,"resources",androidContext)){
-
-            }
+            shadowresources_demo();
+            listAssetFiles();
+            //if(rsj.ResourcesJson(sys_oldSyncServerURL,"resources",androidContext)){
+            //}
+            SignInButton.performClick();
 
         }
     }
+    private boolean listAssetFiles() {
+        try {
+            String [] list = context.getAssets().list("");
+            String root = Environment.getExternalStorageDirectory().toString();
+            File myDir = new File(root + "/ole_temp");
+            if (!myDir.exists()){
+                myDir.mkdirs();
+                Log.v(TAG,"Had to create ole tamp folder "+myDir.getAbsolutePath());
+            }
+            for(String file : list){
+                Log.v(TAG,"Files in assets folder include "+file);
+                InputStream in = context.getAssets().open(file);
+                File dst = new File(myDir,file);
+                try {
+                    FileOutputStream out = new FileOutputStream(dst);
+                    byte[] buff = new byte[1024];
+                    int read = 0;
+                    while ((read = in.read(buff)) > 0) {
+                        out.write(buff, 0, read);
+                    }
+                    in.close();
+                    out.close();
+                    Log.e("tag", file+" Copied "+ dst.toString());
+                }catch(Exception err){
+                    err.printStackTrace();
+                }
+            }
+        } catch (IOException e) {
+            return false;
+        }
+
+        return true;
+    }
+
 
     public void emptyAllDbs() {
         for (int cnt = 0; cnt < databaseList.length; cnt++) {
@@ -327,7 +369,6 @@ public class DemoDataLoader {
             newProperties9.put("resourceTitle", "Gender Awareness Workshop (en)");
             newdocument9.putProperties(newProperties9);
 
-
             Document newdocument10 = shelf.getDocument("e3d7ca503eef922213e36bf3d601c3c5");
             Map<String, Object> newProperties10 = new HashMap<String, Object>();
             newProperties10.put("memberId", "e3d7ca503eef922213e36bf3d60080c2");
@@ -340,6 +381,124 @@ public class DemoDataLoader {
         }
     }
 
+    public void shadowresources_demo(){
+        Manager manager = null;
+        Database shadowresources_demo;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            shadowresources_demo = manager.getDatabase("shadowresources_demo");
+            Document newdocument1 = shadowresources_demo.getDocument("d3f3756c79722902f983267053025c21");
+            Map<String, Object> newProperties1 = new HashMap<String, Object>();
+            newProperties1.put("author", "كامل كيلاني");
+            newProperties1.put("language", "Arabic");
+            newProperties1.put("Medium", "النص");
+            newProperties1.put("uploadDate", "2015-12-02T05:00:00.000Z");
+            newProperties1.put("averageRating", "");
+            newProperties1.put("openWith", "PDF.js");
+            newdocument1.putProperties(newProperties1);
+
+            Document newdocument2 = shadowresources_demo.getDocument("3a162fea1d56beb7a4441a4a8018e5b0");
+            Map<String, Object> newProperties2 = new HashMap<String, Object>();
+            newProperties2.put("author", "Clea McNeely, et al.");
+            newProperties2.put("language", "English");
+            newProperties2.put("Medium", "Text");
+            newProperties2.put("uploadDate", "2014-08-14T04:00:00.000Z");
+            newProperties2.put("averageRating", "");
+            newProperties2.put("openWith", "PDF.js");
+            newdocument2.putProperties(newProperties2);
+
+            Document newdocument3 = shadowresources_demo.getDocument("61461c3cf80877891652a143c3c77fed");
+            Map<String, Object> newProperties3 = new HashMap<String, Object>();
+            newProperties3.put("title", "Education in Emergency");
+            newProperties3.put("author", "");
+            newProperties3.put("language", "English");
+            newProperties3.put("Medium", "Text");
+            newProperties3.put("uploadDate", "2014-08-27T04:00:00.000Z");
+            newProperties3.put("averageRating", "");
+            newProperties3.put("openWith", "PDF.js");
+            newdocument3.putProperties(newProperties3);
+
+            Document newdocument4 = shadowresources_demo.getDocument("a28c81eac20e23529a5eda8e850eaeb3");
+            Map<String, Object> newProperties4 = new HashMap<String, Object>();
+            newProperties4.put("title", "Emergency Preparedness Plans");
+            newProperties4.put("author", "");
+            newProperties4.put("language", "English");
+            newProperties4.put("Medium", "Text");
+            newProperties4.put("uploadDate", "2015-05-01T04:00:00.000Z");
+            newProperties4.put("averageRating", "");
+            newProperties4.put("openWith", "PDF.js");
+            newdocument4.putProperties(newProperties4);
+
+            Document newdocument5 = shadowresources_demo.getDocument("68ec3d6c83989920cb75df8e5d01c449");
+            Map<String, Object> newProperties5 = new HashMap<String, Object>();
+            newProperties5.put("title", "Healthy Child Uganda VHT Training Manual: Paring a Community Emergency Transport Plan (CETP)");
+            newProperties5.put("author", "");
+            newProperties5.put("language", "English");
+            newProperties5.put("Medium", "Text");
+            newProperties5.put("uploadDate", "2015-05-01T04:00:00.000Z");
+            newProperties5.put("averageRating", "");
+            newProperties5.put("openWith", "PDF.js");
+            newdocument5.putProperties(newProperties5);
+
+          /*  Document newdocument6 = shadowresources_demo.getDocument("68ec3d6c83989920cb75df8e5d01c449");
+            Map<String, Object> newProperties6 = new HashMap<String, Object>();
+            newProperties6.put("title", "Healthy Child Uganda VHT Training Manual: Paring a Community Emergency Transport Plan (CETP)");
+            newProperties6.put("author", "");
+            newProperties6.put("language", "English");
+            newProperties6.put("Medium", "Text");
+            newProperties6.put("uploadDate", "2015-05-01T04:00:00.000Z");
+            newProperties6.put("averageRating", "");
+            newdocument6.putProperties(newProperties6);*/
+
+            Document newdocument7 = shadowresources_demo.getDocument("86ba8cb7d819aa7068748640fb347ab1");
+            Map<String, Object> newProperties7 = new HashMap<String, Object>();
+            newProperties7.put("title", "Children in War: The role of Child to Child Activities in the Therapy and Care of Displaced Unaccompanied Children");
+            newProperties7.put("author", "");
+            newProperties7.put("language", "English");
+            newProperties7.put("Medium", "Text");
+            newProperties7.put("uploadDate", "2014-05-19T04:00:00.000Z");
+            newProperties7.put("averageRating", "");
+            newProperties7.put("openWith", "PDF.js");
+            newdocument7.putProperties(newProperties7);
+
+            Document newdocument8 = shadowresources_demo.getDocument("326b61c2ae2be1b31cb65891cbbf1536");
+            Map<String, Object> newProperties8 = new HashMap<String, Object>();
+            newProperties8.put("title", "Because I Am a Girl");
+            newProperties8.put("author", "");
+            newProperties8.put("language", "English");
+            newProperties8.put("Medium", "Text");
+            newProperties8.put("uploadDate", "2014-08-27T04:00:00.000Z");
+            newProperties8.put("averageRating", "");
+            newProperties8.put("openWith", "PDF.js");
+            newdocument8.putProperties(newProperties8);
+
+            Document newdocument9 = shadowresources_demo.getDocument("78c923afd67a7dc59b3f68b03b63bb17");
+            Map<String, Object> newProperties9 = new HashMap<String, Object>();
+            newProperties9.put("title", "Because I Am a Girl: A Year of Action and Innovation / Parce que je suis une fille: Une annee d’action et d’innovation (French)");
+            newProperties9.put("author", "");
+            newProperties9.put("language", "English");
+            newProperties9.put("Medium", "Text");
+            newProperties9.put("uploadDate", "2014-08-20T04:00:00.000Z");
+            newProperties9.put("averageRating", "");
+            newProperties9.put("openWith", "PDF.js");
+            newdocument9.putProperties(newProperties9);
+
+            Document newdocument10 = shadowresources_demo.getDocument("242a13d826420075a3ece5f0ea31b1fb");
+            Map<String, Object> newProperties10 = new HashMap<String, Object>();
+            newProperties10.put("title", "Gender Awareness Workshop (en)");
+            newProperties10.put("author", "");
+            newProperties10.put("language", "English");
+            newProperties10.put("Medium", "Text");
+            newProperties10.put("uploadDate", "2014-08-20T04:00:00.000Z");
+            newProperties10.put("averageRating", "");
+            newProperties10.put("openWith", "PDF.js");
+            newdocument10.putProperties(newProperties10);
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 
     public void createMeetups(){
@@ -383,7 +542,6 @@ public class DemoDataLoader {
         }*/
     }
     public void createUsermeetups(){
-
     }
     public void createAssignments(){
 
@@ -825,6 +983,9 @@ public class DemoDataLoader {
             e.printStackTrace();
         }
     }
+
+
+
     public void createCalendar(){
 
     }
