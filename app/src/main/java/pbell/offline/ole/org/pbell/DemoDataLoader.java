@@ -62,18 +62,18 @@ public class DemoDataLoader {
     AndroidContext androidContext;
 
     String OneByOneResID, OneByOneResTitle, OneByOneCourseId;
-    int courseStepsCounter =0;
+    int courseStepsCounter = 0;
     int action_button_id = 0;
     SharedPreferences settings;
     List<String> resIDArrayList = new ArrayList<>();
     View vi;
 
-    TextView title,description,ratingAvgNum,totalNum;
+    TextView title, description, ratingAvgNum, totalNum;
     Button open;
     RatingBar ratingStars;
     LayerDrawable stars;
     ProgressBar femalerating, malerating;
-    String activityName ="myCourses";
+    String activityName = "myCourses";
 
 
     protected int _splashTime = 5000;
@@ -84,12 +84,12 @@ public class DemoDataLoader {
     Cursor c;
     LogHouse logHouse = new LogHouse();
     private ListViewAdapter_myCourses.OnCourseListListener mListener;
-    Button  SignInButton;
+    Button SignInButton;
     String[] databaseList = {"members", "meetups", "usermeetups", "assignments",
-            "assignmentpaper","courseanswer","coursequestion","courses","courseschedule","coursestep","membercourseprogress",
+            "assignmentpaper", "courseanswer", "coursequestion", "courses", "courseschedule", "coursestep", "membercourseprogress",
             "calendar", "groups", "invitations", "configurations", "requests", "shelf", "languages"};
 
-    public DemoDataLoader(Context context,Button btn){
+    public DemoDataLoader(Context context, Button btn) {
         SignInButton = btn;
         this.context = context;
         androidContext = new AndroidContext(this.context);
@@ -113,20 +113,21 @@ public class DemoDataLoader {
         sys_servername = settings.getString("pf_server_name", "demo");
         sys_serverversion = settings.getString("pf_server_version", " ");
         sys_serverversion = settings.getString("pf_server_code", "demo");
-        sys_demoMode = settings.getBoolean("sys_demoMode",true);
+        sys_demoMode = settings.getBoolean("sys_demoMode", true);
 
         sys_oldSyncServerURL = "http://demo:oleoleole@demo.ole.org:5995";
         SharedPreferences.Editor editor = settings.edit();
         editor.putString("pf_sysncUrl", sys_oldSyncServerURL);
         editor.commit();
     }
-    private class startHere extends AsyncTask<Void, Void, Void>
-    {
+
+    private class startHere extends AsyncTask<Void, Void, Void> {
         @Override
         protected Void doInBackground(Void... params) {
             emptyAllDbs();
             return null;
         }
+
         @Override
         protected void onPostExecute(Void result) {
             ResourcesJson rsj = new ResourcesJson();
@@ -145,19 +146,20 @@ public class DemoDataLoader {
 
         }
     }
+
     private boolean listAssetFiles() {
         try {
-            String [] list = context.getAssets().list("");
+            String[] list = context.getAssets().list("");
             String root = Environment.getExternalStorageDirectory().toString();
             File myDir = new File(root + "/ole_temp");
-            if (!myDir.exists()){
+            if (!myDir.exists()) {
                 myDir.mkdirs();
-                Log.v(TAG,"Had to create ole tamp folder "+myDir.getAbsolutePath());
+                Log.v(TAG, "Had to create ole tamp folder " + myDir.getAbsolutePath());
             }
-            for(String file : list){
-                Log.v(TAG,"Files in assets folder include "+file);
+            for (String file : list) {
+                Log.v(TAG, "Files in assets folder include " + file);
                 InputStream in = context.getAssets().open(file);
-                File dst = new File(myDir,file);
+                File dst = new File(myDir, file);
                 try {
                     FileOutputStream out = new FileOutputStream(dst);
                     byte[] buff = new byte[1024];
@@ -167,8 +169,8 @@ public class DemoDataLoader {
                     }
                     in.close();
                     out.close();
-                    Log.e("tag", file+" Copied "+ dst.toString());
-                }catch(Exception err){
+                    Log.e("tag", file + " Copied " + dst.toString());
+                } catch (Exception err) {
                     err.printStackTrace();
                 }
             }
@@ -182,59 +184,59 @@ public class DemoDataLoader {
 
     public void emptyAllDbs() {
         for (int cnt = 0; cnt < databaseList.length; cnt++) {
-                try {
-                    Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                    Database db = manager.getDatabase(databaseList[cnt]);
-                    Log.e("MYAPP","Deleting "+databaseList[cnt]);
-                    db.delete();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            //// Delete Device Created Databases
             try {
                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                Database dbResources = manager.getDatabase("resources");
-                dbResources.delete();
-            }catch(Exception err){
-                err.printStackTrace();
+                Database db = manager.getDatabase(databaseList[cnt]);
+                Log.e("MYAPP", "Deleting " + databaseList[cnt]);
+                db.delete();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            try {
-                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                Database dbResources = manager.getDatabase("shadowresources");
-                dbResources.delete();
-            }catch(Exception err){
-                err.printStackTrace();
-            }
-            try {
-                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                Database dbOffline_courses = manager.getDatabase("offline_courses");
-                dbOffline_courses.delete();
-            }catch(Exception err){
-                err.printStackTrace();
-            }
+        }
+        //// Delete Device Created Databases
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database dbResources = manager.getDatabase("resources");
+            dbResources.delete();
+        } catch (Exception err) {
+            err.printStackTrace();
+        }
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database dbResources = manager.getDatabase("shadowresources");
+            dbResources.delete();
+        } catch (Exception err) {
+            err.printStackTrace();
+        }
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database dbOffline_courses = manager.getDatabase("offline_courses");
+            dbOffline_courses.delete();
+        } catch (Exception err) {
+            err.printStackTrace();
+        }
 
-            try{
-                String root = Environment.getExternalStorageDirectory().toString();
-                File myDir = new File(root + "/ole_temp");
-                String[] flist = myDir.list();
-                for (int i = 0; i < flist.length; i++) {
-                    System.out.println(" " + myDir.getAbsolutePath());
-                    File temp = new File(myDir.getAbsolutePath() + "/" + flist[i]);
-                    if (temp.isDirectory()) {
-                        Log.d("Delete ", " Deleting " + temp.getName());
-                        temp.delete();
-                    } else {
-                        temp.delete();
-                    }
+        try {
+            String root = Environment.getExternalStorageDirectory().toString();
+            File myDir = new File(root + "/ole_temp");
+            String[] flist = myDir.list();
+            for (int i = 0; i < flist.length; i++) {
+                System.out.println(" " + myDir.getAbsolutePath());
+                File temp = new File(myDir.getAbsolutePath() + "/" + flist[i]);
+                if (temp.isDirectory()) {
+                    Log.d("Delete ", " Deleting " + temp.getName());
+                    temp.delete();
+                } else {
+                    temp.delete();
                 }
-            }catch (Exception err){
-                Log.e("MYAPP", " Deleting materials from ole_temp directory ");
             }
+        } catch (Exception err) {
+            Log.e("MYAPP", " Deleting materials from ole_temp directory ");
+        }
 
     }
 
-    public void createConfigurations(){
+    public void createConfigurations() {
         Manager manager = null;
         Database configuration;
         try {
@@ -258,7 +260,7 @@ public class DemoDataLoader {
         }
     }
 
-    public void createMembers(){
+    public void createMembers() {
         Manager manager = null;
         Database members;
         ArrayList<String> rolesList = new ArrayList<String>();
@@ -275,20 +277,20 @@ public class DemoDataLoader {
             newProperties.put("password", "");
             newProperties.put("phone", "234562345");
             newProperties.put("kind", "Member");
-            newProperties.put("language","English");
+            newProperties.put("language", "English");
             newProperties.put("BirthDate", "1988-04-20T00:00:00.000Z");
             newProperties.put("visits", 5);
             newProperties.put("Gender", "Female");
             newProperties.put("levels", "Higher");
             newProperties.put("community", "demo");
             newProperties.put("nation", "earthbell");
-            newProperties.put("login","learner");
+            newProperties.put("login", "learner");
             rolesList.add("Learner");
             rolesList.add("Leader");
             newProperties.put("roles", rolesList);
-            credentialMap.put("salt","c0a24b98e089b6b0f5d3674430cebe0c");
-            credentialMap.put("value","53580b4213093aa7bda95c597d3eddfd7d5005d5");
-            credentialMap.put("login","learner");
+            credentialMap.put("salt", "c0a24b98e089b6b0f5d3674430cebe0c");
+            credentialMap.put("value", "53580b4213093aa7bda95c597d3eddfd7d5005d5");
+            credentialMap.put("login", "learner");
             newProperties.put("credentials", credentialMap);
             newdocument.putProperties(newProperties);
         } catch (Exception e) {
@@ -296,7 +298,7 @@ public class DemoDataLoader {
         }
     }
 
-    public void createShelf(){
+    public void createShelf() {
         Manager manager = null;
         Database shelf;
         try {
@@ -381,7 +383,7 @@ public class DemoDataLoader {
         }
     }
 
-    public void shadowresources_demo(){
+    public void shadowresources_demo() {
         Manager manager = null;
         Database shadowresources_demo;
         try {
@@ -501,7 +503,7 @@ public class DemoDataLoader {
     }
 
 
-    public void createMeetups(){
+    public void createMeetups() {
         /*AndroidContext androidContext = new AndroidContext(context);
         Manager manager = null;
         Database resourceRating;
@@ -541,21 +543,27 @@ public class DemoDataLoader {
             Log.e("MyCouch", "ERR : " + err.getMessage());
         }*/
     }
-    public void createUsermeetups(){
+
+    public void createUsermeetups() {
     }
-    public void createAssignments(){
+
+    public void createAssignments() {
 
     }
-    public void createAssignmentpaper(){
+
+    public void createAssignmentpaper() {
 
     }
-    public void createCourseanswer(){
+
+    public void createCourseanswer() {
 
     }
-    public void createCoursequestion(){
+
+    public void createCoursequestion() {
 
     }
-    public void createCourses(){
+
+    public void createCourses() {
         Manager manager = null;
         Database course;
         ArrayList<String> courseLeaderList = new ArrayList<String>();
@@ -626,10 +634,12 @@ public class DemoDataLoader {
         }*/
 
     }
-    public void createCourseschedule(){
+
+    public void createCourseschedule() {
 
     }
-    public void createCoursestep(){
+
+    public void createCoursestep() {
         Manager manager = null;
         Database coursestep;
         ArrayList<String> resourceIdList = new ArrayList<String>();
@@ -649,7 +659,7 @@ public class DemoDataLoader {
             newProperties.put("description", "This is Ekua. She was born a few weeks early and is very small. What can you do to improve Ekua’s chances?");
             newProperties.put("stepGoals", "");
             newProperties.put("step", "1");
-            newProperties.put("resourceId",resourceIdList );
+            newProperties.put("resourceId", resourceIdList);
             newProperties.put("resourceTitles", resourceTitlesList);
             newProperties.put("questionslist", null);
             newProperties.put("passingPercentage", "10");
@@ -666,7 +676,7 @@ public class DemoDataLoader {
             newProperties.put("description", "In this learning object you will practice identifying babies that need kangaroo mother care and describe components of kangaroo mother care.\\n\\nThis lesson supports Physiology and Management of the High Risk Neonate in the Nursing Midwifery course.");
             newProperties.put("stepGoals", "");
             newProperties.put("step", "2");
-            newProperties.put("resourceId",resourceIdList );
+            newProperties.put("resourceId", resourceIdList);
             newProperties.put("resourceTitles", resourceTitlesList);
             newProperties.put("questionslist", null);
             newProperties.put("passingPercentage", "10");
@@ -684,7 +694,7 @@ public class DemoDataLoader {
             newProperties.put("stepGoals", "");
             newProperties.put("step", "3");
             resourceIdList.add("58a9ffe3ead5d4f48866867f02002dc6");
-            newProperties.put("resourceId",resourceIdList );
+            newProperties.put("resourceId", resourceIdList);
             resourceTitlesList.add("KMC_WHO_What_is_KMC");
             newProperties.put("resourceTitles", resourceTitlesList);
             newProperties.put("questionslist", null);
@@ -703,7 +713,7 @@ public class DemoDataLoader {
             newProperties.put("stepGoals", "");
             newProperties.put("step", "4");
             resourceIdList.add("58a9ffe3ead5d4f48866867f0200385d");
-            newProperties.put("resourceId",resourceIdList );
+            newProperties.put("resourceId", resourceIdList);
             resourceTitlesList.add("Kangaroo Mother Care job");
             newProperties.put("resourceTitles", resourceTitlesList);
             newProperties.put("questionslist", null);
@@ -721,7 +731,7 @@ public class DemoDataLoader {
             newProperties.put("description", "Low birth weight (LBW) is defined as birth weight of less than 2500 grams.  There are three types of LBW babies: \\nPreterm: born before 37 completed weeks\\nVery preterm: born before 32 completed weeks\\nSmall for Gestational Age (SGA) or Small For Date (SFD): birth weight lower than expected for gestational age (may be term or preterm).\\nLBW infants may be born at any term.");
             newProperties.put("stepGoals", "");
             newProperties.put("step", "5");
-            newProperties.put("resourceId",resourceIdList );
+            newProperties.put("resourceId", resourceIdList);
             newProperties.put("resourceTitles", resourceTitlesList);
             newProperties.put("questionslist", null);
             newProperties.put("passingPercentage", "10");
@@ -738,7 +748,7 @@ public class DemoDataLoader {
             newProperties.put("description", "Remember the main components of KMC from the video and job aid? What are the three main components?");
             newProperties.put("stepGoals", "");
             newProperties.put("step", "6");
-            newProperties.put("resourceId",resourceIdList );
+            newProperties.put("resourceId", resourceIdList);
             newProperties.put("resourceTitles", resourceTitlesList);
             newProperties.put("questionslist", null);
             newProperties.put("passingPercentage", "10");
@@ -755,7 +765,7 @@ public class DemoDataLoader {
             newProperties.put("description", "What did you say were the main components? Your answer should have included the following: \\nskin-to-skin positioning of a baby on the mother’s chest;\\nadequate nutrition through breastfeeding;\\nambulatory care as a result of earlier discharge from hospital; and support for the mother and her family in caring for the baby.");
             newProperties.put("stepGoals", "");
             newProperties.put("step", "7");
-            newProperties.put("resourceId",resourceIdList );
+            newProperties.put("resourceId", resourceIdList);
             newProperties.put("resourceTitles", resourceTitlesList);
             newProperties.put("questionslist", null);
             newProperties.put("passingPercentage", "10");
@@ -772,7 +782,7 @@ public class DemoDataLoader {
             newProperties.put("description", "Practice assessing a baby for gestational age and size in the simulation lab, use this checklist.\\n\\nNEED TO GET NEWBORN ASSESSMENT CHECKLIST FROM NMC");
             newProperties.put("stepGoals", "");
             newProperties.put("step", "8");
-            newProperties.put("resourceId",resourceIdList );
+            newProperties.put("resourceId", resourceIdList);
             newProperties.put("resourceTitles", resourceTitlesList);
             newProperties.put("questionslist", null);
             newProperties.put("passingPercentage", "10");
@@ -783,7 +793,8 @@ public class DemoDataLoader {
         }
 
     }
-    public void createMembercourseprogress(){
+
+    public void createMembercourseprogress() {
         Manager manager = null;
         Database membercourseprogress;
         ArrayList<String> stepsIdsList = new ArrayList<String>();
@@ -985,21 +996,23 @@ public class DemoDataLoader {
     }
 
 
-
-    public void createCalendar(){
-
-    }
-    public void createGroups(){
-
-    }
-    public void createInvitations(){
-
-    }
-    public void createRequests(){
+    public void createCalendar() {
 
     }
 
-    public void createLanguages(){
+    public void createGroups() {
+
+    }
+
+    public void createInvitations() {
+
+    }
+
+    public void createRequests() {
+
+    }
+
+    public void createLanguages() {
 
     }
 

@@ -103,7 +103,7 @@ public class FullscreenLogin extends AppCompatActivity {
     JSONObject jsonServerData;
     final Context context = this;
     String[] databaseList = {"members", "meetups", "usermeetups", "assignments",
-            "assignmentpaper","courseanswer","coursequestion","courses","courseschedule","coursestep","membercourseprogress",
+            "assignmentpaper", "courseanswer", "coursequestion", "courses", "courseschedule", "coursestep", "membercourseprogress",
             "calendar", "groups", "invitations", "configurations", "requests", "shelf", "languages"};
     Replication[] push = new Replication[databaseList.length];
     Replication[] pull = new Replication[databaseList.length];
@@ -114,8 +114,8 @@ public class FullscreenLogin extends AppCompatActivity {
     AndroidContext androidContext;
     Database database;
     Replication pullReplication;
-    Button dialogSyncButton,btnFeedback;
-    Boolean wipeClean =false;
+    Button dialogSyncButton, btnFeedback;
+    Boolean wipeClean = false;
     Intent serviceIntent;
     private static final String TAG = "LoginActivity";
     Button SignInButton;
@@ -147,7 +147,7 @@ public class FullscreenLogin extends AppCompatActivity {
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {*/
-                if (getSystemInfo()){
+                if (getSystemInfo()) {
                     if (authenticateUser()) {
                         if (updateActivityLog()) {
                                    /* mDialog.dismiss();*/
@@ -160,7 +160,7 @@ public class FullscreenLogin extends AppCompatActivity {
                                 /*mDialog.dismiss();*/
                         alertDialogOkay("Login incorrect / Not found. Check and try again.");
                     }
-                }else{
+                } else {
                     alertDialogOkay("Device not linked to a cummunity/nation. Use the setting button to sync with community/nation.");
                 }
                    /* }
@@ -172,12 +172,12 @@ public class FullscreenLogin extends AppCompatActivity {
         DemoModeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-               /// alertDialogOkay("This feature has not been activated on this version.");
+                /// alertDialogOkay("This feature has not been activated on this version.");
                 /// Demo Mode Code
                 sys_appInDemoMode = true;
                 mUsername.setText("learner");
                 mPasswordView.setText("learner");
-                DemoDataLoader demoDataLoader = new DemoDataLoader(context,SignInButton);
+                DemoDataLoader demoDataLoader = new DemoDataLoader(context, SignInButton);
 
                 //alertDialogOkay("Device configured for Demo. Click Sign-in");
 
@@ -251,219 +251,220 @@ public class FullscreenLogin extends AppCompatActivity {
             }
         });
 
-        boolean hasPermission = (ContextCompat.checkSelfPermission(this,android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
+        boolean hasPermission = (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
         if (!hasPermission) {
-            ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE},REQUEST_WRITE_STORAGE);
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_STORAGE);
         }
     }
+
     @Override
     public void onResume() {
         super.onResume();
         updateUI();
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode)
-        {
+        switch (requestCode) {
             case REQUEST_WRITE_STORAGE: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     //reload my activity with permission granted or use the features what required the permission
-                } else
-                {
+                } else {
                     Toast.makeText(this, "The app was not allowed to write to your storage. Hence, it cannot function properly. Please consider granting it this permission", Toast.LENGTH_LONG).show();
                 }
             }
         }
 
     }
-     public void sendfeedbackToServer(ProgressDialog feedbackDialog){
-         Database resourceRating, activitylog, visits;
-             try {
-                 // Get server date for activitylog update
-                 GetServerDate gtSvDt = new GetServerDate();
-                 gtSvDt.setdbName("activitylog");
-                 gtSvDt.setView("date_now");
-                 gtSvDt.execute("");
-             } catch (Exception err) {
-                 feedbackDialog.dismiss();
-                 alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-                 Log.e("MyCouch", "Getting date from server" + err);
-             }
-             try {
-                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                 resourceRating = manager.getDatabase("resourcerating");
-                 Query orderedQuery = chViews.ReadResourceRatingByIdView(resourceRating).createQuery();
-                 orderedQuery.setDescending(true);
-                 QueryEnumerator results = orderedQuery.run();
-                 for (Iterator<QueryRow> it = results; it.hasNext(); ) {
-                     QueryRow row = it.next();
-                     String docId = (String) row.getValue();
-                     Document doc = resourceRating.getExistingDocument(docId);
-                     Map<String, Object> properties = doc.getProperties();
-                     int sum = ((int) properties.get("sum"));
-                     int timesRated = ((Integer) properties.get("timesRated"));
-                     // Update server resources with new ratings
-                     UpdateResourceDocument nwUpdateResDoc = new UpdateResourceDocument();
-                     nwUpdateResDoc.setResourceId(docId);
-                     nwUpdateResDoc.setSum(sum);
-                     nwUpdateResDoc.setTimesRated(timesRated);
-                     nwUpdateResDoc.execute("");
-                 }
-                 Database dbResources = manager.getDatabase("resourcerating");
-                 dbResources.delete();
-             } catch (Exception err) {
-                 feedbackDialog.dismiss();
-                 alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-                 Log.e("MyCouch", "reading resource rating error " + err);
-             }
-             try {
-                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                 visits = manager.getDatabase("visits");
-                 Query orderedQuery = chViews.ReadMemberVisitsId(visits).createQuery();
-                 orderedQuery.setDescending(true);
-                 QueryEnumerator results = orderedQuery.run();
-                 for (Iterator<QueryRow> it = results; it.hasNext(); ) {
-                     QueryRow row = it.next();
-                     String docId = (String) row.getValue();
-                     Document doc = visits.getExistingDocument(docId);
-                     Map<String, Object> properties = doc.getProperties();
-                     int numOfVisits = ((Integer) properties.get("noOfVisits"));
-                     Log.e("MyCouch", "Number Of visits for " + docId + " is " + numOfVisits);
-                     // Update server members with visits
-                     UpdateMemberVisitsDocument nwUpdateMemberVisits = new UpdateMemberVisitsDocument();
-                     nwUpdateMemberVisits.setMemberId(docId);
-                     nwUpdateMemberVisits.setSumVisits(numOfVisits);
-                     nwUpdateMemberVisits.execute("");
-                 }
-                 Database visitsdb = manager.getDatabase("visits");
-                 visitsdb.delete();
-             } catch (Exception err) {
-                 feedbackDialog.dismiss();
-                 alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-                 Log.e("MyCouch", "reading visits error " + err);
-             }
-             //// Read activitylog database details
-             try {
-                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                 activitylog = manager.getDatabase("activitylog");
-                 @SuppressLint("WifiManagerLeak") WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-                 String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
-                 Document doc = activitylog.getExistingDocument(m_WLANMAC);
-                 Map<String, Object> properties = doc.getProperties();
-                 // Update server resources with new ratings
-                 UpdateActivityLogDatabase nwActivityLog = new UpdateActivityLogDatabase();
-                 if (properties.get("female_visits") != null) {
-                     nwActivityLog.set_female_visits(((Integer) properties.get("female_visits")));
-                 } else {
-                     nwActivityLog.set_female_visits(0);
-                 }
-                 if (properties.get("male_visits") != null) {
-                     nwActivityLog.set_male_visits(((Integer) properties.get("male_visits")));
-                 } else {
-                     nwActivityLog.set_male_visits(0);
-                 }
-             } catch (Exception err) {
-                 feedbackDialog.dismiss();
-                 alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-                 Log.e("MyCouch", "reading activity log " + err);
-             }
 
-                 try {
-                     Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                     resourceRating = manager.getDatabase("resourcerating");
-                     Query orderedQuery = chViews.ReadResourceRatingByIdView(resourceRating).createQuery();
-                     orderedQuery.setDescending(true);
-                     QueryEnumerator results = orderedQuery.run();
-                     for (Iterator<QueryRow> it = results; it.hasNext(); ) {
-                         QueryRow row = it.next();
-                         String docId = (String) row.getValue();
-                         Document doc = resourceRating.getExistingDocument(docId);
-                         Map<String, Object> properties = doc.getProperties();
-                         int sum = ((int) properties.get("sum"));
-                         int timesRated = ((Integer) properties.get("timesRated"));
-                         // Update server resources with new ratings
-                         UpdateResourceDocument nwUpdateResDoc = new UpdateResourceDocument();
-                         nwUpdateResDoc.setResourceId(docId);
-                         nwUpdateResDoc.setSum(sum);
-                         nwUpdateResDoc.setTimesRated(timesRated);
-                         nwUpdateResDoc.execute("");
-                     }
-                     Database dbResources = manager.getDatabase("resourcerating");
-                     dbResources.delete();
-                 } catch (Exception err) {
-                     feedbackDialog.dismiss();
-                     alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-                     Log.e("MyCouch", "reading resource rating error " + err);
-                 }
-                 try {
-                     Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                     visits = manager.getDatabase("visits");
-                     Query orderedQuery = chViews.ReadMemberVisitsId(visits).createQuery();
-                     orderedQuery.setDescending(true);
-                     QueryEnumerator results = orderedQuery.run();
-                     for (Iterator<QueryRow> it = results; it.hasNext(); ) {
-                         QueryRow row = it.next();
-                         String docId = (String) row.getValue();
-                         Document doc = visits.getExistingDocument(docId);
-                         Map<String, Object> properties = doc.getProperties();
-                         int numOfVisits = ((Integer) properties.get("noOfVisits"));
-                         Log.e("MyCouch", "Number Of visits for " + docId + " is " + numOfVisits);
-                         // Update server members with visits
-                         UpdateMemberVisitsDocument nwUpdateMemberVisits = new UpdateMemberVisitsDocument();
-                         nwUpdateMemberVisits.setMemberId(docId);
-                         nwUpdateMemberVisits.setSumVisits(numOfVisits);
-                         nwUpdateMemberVisits.execute("");
-                     }
-                     Database dbResources = manager.getDatabase("visits");
-                     dbResources.delete();
-                 } catch (Exception err) {
-                     feedbackDialog.dismiss();
-                     alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-                     Log.e("MyCouch", "reading visits error " + err);
-                 }
-                 //// Read activitylog database details
-                 try {
-                     Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                     activitylog = manager.getDatabase("activitylog");
-                     @SuppressLint("WifiManagerLeak") WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-                     String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
-                     Document doc = activitylog.getExistingDocument(m_WLANMAC);
-                     Map<String, Object> properties = doc.getProperties();
-                     // Update server resources with new ratings
-                     UpdateActivityLogDatabase nwActivityLog = new UpdateActivityLogDatabase();
-                     if (properties.get("female_visits") != null) {
-                         nwActivityLog.set_female_visits(((Integer) properties.get("female_visits")));
-                     } else {
-                         nwActivityLog.set_female_visits(0);
-                     }
-                     if (properties.get("male_visits") != null) {
-                         nwActivityLog.set_male_visits(((Integer) properties.get("male_visits")));
-                     } else {
-                         nwActivityLog.set_male_visits(0);
-                     }
-                     nwActivityLog.set_female_opened((ArrayList) properties.get("female_opened"));
-                     nwActivityLog.set_female_rating(((ArrayList) properties.get("female_rating")));
-                     nwActivityLog.set_female_timesRated(((ArrayList) properties.get("female_timesRated")));
-                     nwActivityLog.set_male_opened(((ArrayList) properties.get("male_opened")));
-                     nwActivityLog.set_male_rating(((ArrayList) properties.get("male_rating")));
-                     nwActivityLog.set_male_timesRated(((ArrayList) properties.get("male_timesRated")));
-                     nwActivityLog.set_resources_names(((ArrayList) properties.get("resources_names")));
-                     nwActivityLog.set_resources_opened(((ArrayList) properties.get("resources_opened")));
-                     nwActivityLog.set_resourcesIds(((ArrayList) properties.get("resourcesIds")));
-                     nwActivityLog.execute("");
-                     feedbackDialog.dismiss();
-                     updateUI();
-                 } catch (Exception err) {
-                     updateUI();
-                     feedbackDialog.dismiss();
-                     alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-                     Log.e("MyCouch", "reading activity log error " + err);
-                 }
+    public void sendfeedbackToServer(ProgressDialog feedbackDialog) {
+        Database resourceRating, activitylog, visits;
+        try {
+            // Get server date for activitylog update
+            GetServerDate gtSvDt = new GetServerDate();
+            gtSvDt.setdbName("activitylog");
+            gtSvDt.setView("date_now");
+            gtSvDt.execute("");
+        } catch (Exception err) {
+            feedbackDialog.dismiss();
+            alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+            Log.e("MyCouch", "Getting date from server" + err);
+        }
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            resourceRating = manager.getDatabase("resourcerating");
+            Query orderedQuery = chViews.ReadResourceRatingByIdView(resourceRating).createQuery();
+            orderedQuery.setDescending(true);
+            QueryEnumerator results = orderedQuery.run();
+            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document doc = resourceRating.getExistingDocument(docId);
+                Map<String, Object> properties = doc.getProperties();
+                int sum = ((int) properties.get("sum"));
+                int timesRated = ((Integer) properties.get("timesRated"));
+                // Update server resources with new ratings
+                UpdateResourceDocument nwUpdateResDoc = new UpdateResourceDocument();
+                nwUpdateResDoc.setResourceId(docId);
+                nwUpdateResDoc.setSum(sum);
+                nwUpdateResDoc.setTimesRated(timesRated);
+                nwUpdateResDoc.execute("");
+            }
+            Database dbResources = manager.getDatabase("resourcerating");
+            dbResources.delete();
+        } catch (Exception err) {
+            feedbackDialog.dismiss();
+            alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+            Log.e("MyCouch", "reading resource rating error " + err);
+        }
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            visits = manager.getDatabase("visits");
+            Query orderedQuery = chViews.ReadMemberVisitsId(visits).createQuery();
+            orderedQuery.setDescending(true);
+            QueryEnumerator results = orderedQuery.run();
+            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document doc = visits.getExistingDocument(docId);
+                Map<String, Object> properties = doc.getProperties();
+                int numOfVisits = ((Integer) properties.get("noOfVisits"));
+                Log.e("MyCouch", "Number Of visits for " + docId + " is " + numOfVisits);
+                // Update server members with visits
+                UpdateMemberVisitsDocument nwUpdateMemberVisits = new UpdateMemberVisitsDocument();
+                nwUpdateMemberVisits.setMemberId(docId);
+                nwUpdateMemberVisits.setSumVisits(numOfVisits);
+                nwUpdateMemberVisits.execute("");
+            }
+            Database visitsdb = manager.getDatabase("visits");
+            visitsdb.delete();
+        } catch (Exception err) {
+            feedbackDialog.dismiss();
+            alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+            Log.e("MyCouch", "reading visits error " + err);
+        }
+        //// Read activitylog database details
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            activitylog = manager.getDatabase("activitylog");
+            @SuppressLint("WifiManagerLeak") WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+            String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+            Document doc = activitylog.getExistingDocument(m_WLANMAC);
+            Map<String, Object> properties = doc.getProperties();
+            // Update server resources with new ratings
+            UpdateActivityLogDatabase nwActivityLog = new UpdateActivityLogDatabase();
+            if (properties.get("female_visits") != null) {
+                nwActivityLog.set_female_visits(((Integer) properties.get("female_visits")));
+            } else {
+                nwActivityLog.set_female_visits(0);
+            }
+            if (properties.get("male_visits") != null) {
+                nwActivityLog.set_male_visits(((Integer) properties.get("male_visits")));
+            } else {
+                nwActivityLog.set_male_visits(0);
+            }
+        } catch (Exception err) {
+            feedbackDialog.dismiss();
+            alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+            Log.e("MyCouch", "reading activity log " + err);
+        }
+
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            resourceRating = manager.getDatabase("resourcerating");
+            Query orderedQuery = chViews.ReadResourceRatingByIdView(resourceRating).createQuery();
+            orderedQuery.setDescending(true);
+            QueryEnumerator results = orderedQuery.run();
+            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document doc = resourceRating.getExistingDocument(docId);
+                Map<String, Object> properties = doc.getProperties();
+                int sum = ((int) properties.get("sum"));
+                int timesRated = ((Integer) properties.get("timesRated"));
+                // Update server resources with new ratings
+                UpdateResourceDocument nwUpdateResDoc = new UpdateResourceDocument();
+                nwUpdateResDoc.setResourceId(docId);
+                nwUpdateResDoc.setSum(sum);
+                nwUpdateResDoc.setTimesRated(timesRated);
+                nwUpdateResDoc.execute("");
+            }
+            Database dbResources = manager.getDatabase("resourcerating");
+            dbResources.delete();
+        } catch (Exception err) {
+            feedbackDialog.dismiss();
+            alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+            Log.e("MyCouch", "reading resource rating error " + err);
+        }
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            visits = manager.getDatabase("visits");
+            Query orderedQuery = chViews.ReadMemberVisitsId(visits).createQuery();
+            orderedQuery.setDescending(true);
+            QueryEnumerator results = orderedQuery.run();
+            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document doc = visits.getExistingDocument(docId);
+                Map<String, Object> properties = doc.getProperties();
+                int numOfVisits = ((Integer) properties.get("noOfVisits"));
+                Log.e("MyCouch", "Number Of visits for " + docId + " is " + numOfVisits);
+                // Update server members with visits
+                UpdateMemberVisitsDocument nwUpdateMemberVisits = new UpdateMemberVisitsDocument();
+                nwUpdateMemberVisits.setMemberId(docId);
+                nwUpdateMemberVisits.setSumVisits(numOfVisits);
+                nwUpdateMemberVisits.execute("");
+            }
+            Database dbResources = manager.getDatabase("visits");
+            dbResources.delete();
+        } catch (Exception err) {
+            feedbackDialog.dismiss();
+            alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+            Log.e("MyCouch", "reading visits error " + err);
+        }
+        //// Read activitylog database details
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            activitylog = manager.getDatabase("activitylog");
+            @SuppressLint("WifiManagerLeak") WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+            String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+            Document doc = activitylog.getExistingDocument(m_WLANMAC);
+            Map<String, Object> properties = doc.getProperties();
+            // Update server resources with new ratings
+            UpdateActivityLogDatabase nwActivityLog = new UpdateActivityLogDatabase();
+            if (properties.get("female_visits") != null) {
+                nwActivityLog.set_female_visits(((Integer) properties.get("female_visits")));
+            } else {
+                nwActivityLog.set_female_visits(0);
+            }
+            if (properties.get("male_visits") != null) {
+                nwActivityLog.set_male_visits(((Integer) properties.get("male_visits")));
+            } else {
+                nwActivityLog.set_male_visits(0);
+            }
+            nwActivityLog.set_female_opened((ArrayList) properties.get("female_opened"));
+            nwActivityLog.set_female_rating(((ArrayList) properties.get("female_rating")));
+            nwActivityLog.set_female_timesRated(((ArrayList) properties.get("female_timesRated")));
+            nwActivityLog.set_male_opened(((ArrayList) properties.get("male_opened")));
+            nwActivityLog.set_male_rating(((ArrayList) properties.get("male_rating")));
+            nwActivityLog.set_male_timesRated(((ArrayList) properties.get("male_timesRated")));
+            nwActivityLog.set_resources_names(((ArrayList) properties.get("resources_names")));
+            nwActivityLog.set_resources_opened(((ArrayList) properties.get("resources_opened")));
+            nwActivityLog.set_resourcesIds(((ArrayList) properties.get("resourcesIds")));
+            nwActivityLog.execute("");
+            feedbackDialog.dismiss();
+            updateUI();
+        } catch (Exception err) {
+            updateUI();
+            feedbackDialog.dismiss();
+            alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+            Log.e("MyCouch", "reading activity log error " + err);
+        }
 
 
-     }
+    }
+
     ////////
     private void TestConnectionToServer(String textURL) {
         mDialog = new ProgressDialog(context);
@@ -493,6 +494,7 @@ public class FullscreenLogin extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
+
             @Override
             public void failure(Request request, Response response, FuelError fuelError) {
                 mDialog.dismiss();
@@ -511,7 +513,7 @@ public class FullscreenLogin extends AppCompatActivity {
     public boolean authenticateUser() {
         AndroidContext androidContext = new AndroidContext(this);
         Manager manager = null;
-       /// getSystemInfo();
+        /// getSystemInfo();
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database db = manager.getExistingDatabase("members");
@@ -525,63 +527,63 @@ public class FullscreenLogin extends AppCompatActivity {
                 Map<String, Object> properties = doc.getProperties();
                 String doc_loginId = (String) properties.get("login");
                 String doc_password = (String) properties.get("password");
-                 if (doc_password == "" && !mPasswordView.getText().toString().equals("")) {
-                     if (mUsername.getText().toString().equals(doc_loginId)) {
-                     try {
-                         Map<String, Object> doc_credentials = (Map<String, Object>) properties.get("credentials");
-                         AndroidDecrypter adc = new AndroidDecrypter();
-                         SharedPreferences.Editor editor = settings.edit();
-                         String ServerName = settings.getString("pf_server_code", "");
+                if (doc_password == "" && !mPasswordView.getText().toString().equals("")) {
+                    if (mUsername.getText().toString().equals(doc_loginId)) {
+                        try {
+                            Map<String, Object> doc_credentials = (Map<String, Object>) properties.get("credentials");
+                            AndroidDecrypter adc = new AndroidDecrypter();
+                            SharedPreferences.Editor editor = settings.edit();
+                            String ServerName = settings.getString("pf_server_code", "");
 
-                         Log.e(TAG, " User Login  " + (String) properties.get("login"));
-                         Log.e(TAG, " User id  " + (String) properties.get("_id"));
-                         Log.e(TAG, " User ServerName  " + ServerName);
-                         Log.e(TAG, " User Value  " + doc_credentials.get("value").toString());
-                         Log.e(TAG, " User Community  " + (String) properties.get("community"));
+                            Log.e(TAG, " User Login  " + (String) properties.get("login"));
+                            Log.e(TAG, " User id  " + (String) properties.get("_id"));
+                            Log.e(TAG, " User ServerName  " + ServerName);
+                            Log.e(TAG, " User Value  " + doc_credentials.get("value").toString());
+                            Log.e(TAG, " User Community  " + (String) properties.get("community"));
 
-                         if (adc.AndroidDecrypter(doc_loginId, mPasswordView.getText().toString(), doc_credentials.get("value").toString())) {
-                             Log.e(TAG, " Got Here 1");
-                             if (ServerName.equalsIgnoreCase((String) properties.get("community"))) {
-                                 Log.e(TAG, " Got Here 2");
-                                 editor.putString("pf_username", (String) properties.get("login"));
-                                 editor.putString("pf_password", (String) properties.get("password"));
-                                 editor.putString("pf_usercouchId", (String) properties.get("_id"));
-                                 editor.putString("pf_userfirstname", (String) properties.get("firstName"));
-                                 editor.putString("pf_userlastname", (String) properties.get("lastName"));
-                                 editor.putString("pf_usergender", (String) properties.get("Gender"));
-                                 editor.putBoolean("pf_appindemomode", sys_appInDemoMode);
-                                 sys_usergender = (String) properties.get("Gender");
-                                 try {
-                                     String noOfVisits = properties.get("visits").toString();
-                                     int currentTotalVisits = Integer.parseInt(noOfVisits) + totalVisits((String) properties.get("_id"));
-                                     editor.putInt("pf_uservisits_Int", currentTotalVisits);
-                                     editor.putString("pf_uservisits", currentTotalVisits + "");
-                                     editor.putString("pf_lastVisitDate", doc_lastVisit);
-                                 } catch (Exception err) {
-                                     alertDialogOkay(err.getMessage());
-                                     err.printStackTrace();
-                                 }
-                                 Set<String> stgSet = settings.getStringSet("pf_userroles", new HashSet<String>());
-                                 ArrayList roleList = (ArrayList<String>) properties.get("roles");
-                                 for (int cnt = 0; cnt < roleList.size(); cnt++) {
-                                     stgSet.add(String.valueOf(roleList.get(cnt)));
-                                 }
-                                 editor.putStringSet("pf_userroles", stgSet);
-                                 editor.commit();
-                                 Log.e("MYAPP", " RowChipsView Login Id: " + doc_loginId + " Password: " + doc_password);
-                                 restorePref();
-                                 return true;
-                             }
-                         }
+                            if (adc.AndroidDecrypter(doc_loginId, mPasswordView.getText().toString(), doc_credentials.get("value").toString())) {
+                                Log.e(TAG, " Got Here 1");
+                                if (ServerName.equalsIgnoreCase((String) properties.get("community"))) {
+                                    Log.e(TAG, " Got Here 2");
+                                    editor.putString("pf_username", (String) properties.get("login"));
+                                    editor.putString("pf_password", (String) properties.get("password"));
+                                    editor.putString("pf_usercouchId", (String) properties.get("_id"));
+                                    editor.putString("pf_userfirstname", (String) properties.get("firstName"));
+                                    editor.putString("pf_userlastname", (String) properties.get("lastName"));
+                                    editor.putString("pf_usergender", (String) properties.get("Gender"));
+                                    editor.putBoolean("pf_appindemomode", sys_appInDemoMode);
+                                    sys_usergender = (String) properties.get("Gender");
+                                    try {
+                                        String noOfVisits = properties.get("visits").toString();
+                                        int currentTotalVisits = Integer.parseInt(noOfVisits) + totalVisits((String) properties.get("_id"));
+                                        editor.putInt("pf_uservisits_Int", currentTotalVisits);
+                                        editor.putString("pf_uservisits", currentTotalVisits + "");
+                                        editor.putString("pf_lastVisitDate", doc_lastVisit);
+                                    } catch (Exception err) {
+                                        alertDialogOkay(err.getMessage());
+                                        err.printStackTrace();
+                                    }
+                                    Set<String> stgSet = settings.getStringSet("pf_userroles", new HashSet<String>());
+                                    ArrayList roleList = (ArrayList<String>) properties.get("roles");
+                                    for (int cnt = 0; cnt < roleList.size(); cnt++) {
+                                        stgSet.add(String.valueOf(roleList.get(cnt)));
+                                    }
+                                    editor.putStringSet("pf_userroles", stgSet);
+                                    editor.commit();
+                                    Log.e("MYAPP", " RowChipsView Login Id: " + doc_loginId + " Password: " + doc_password);
+                                    restorePref();
+                                    return true;
+                                }
+                            }
 
-                     } catch (Exception err) {
-                         Log.e("MYAPP", " Encryption Err  " + err.getMessage());
-                         err.printStackTrace();
-                         return false;
-                     }
-                 }
+                        } catch (Exception err) {
+                            Log.e("MYAPP", " Encryption Err  " + err.getMessage());
+                            err.printStackTrace();
+                            return false;
+                        }
+                    }
                 } else if (mUsername.getText().toString().equals(doc_loginId)) {
-                     Log.e(TAG, " Got Here 3");
+                    Log.e(TAG, " Got Here 3");
                     if (mPasswordView.getText().toString().equals(doc_password) && !properties.containsKey("credentials")) {
                         Log.e(TAG, " Got Here 4");
                         SharedPreferences.Editor editor = settings.edit();
@@ -711,7 +713,7 @@ public class FullscreenLogin extends AppCompatActivity {
             //This is for setting the MAC address if it is being run in a android emulator.
             String m_WLANMAC;
             m_WLANMAC = wm.getConnectionInfo().getMacAddress();
-            if(m_WLANMAC == null) {
+            if (m_WLANMAC == null) {
                 m_WLANMAC = "mymac";
             }
 
@@ -748,14 +750,15 @@ public class FullscreenLogin extends AppCompatActivity {
         }
     }
 
-    public String todaysDate(){
+    public String todaysDate() {
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Calendar cal = Calendar.getInstance();
         Log.e("MyCouch", "System Date : " + dateFormat.format(cal.getTime()));
         return dateFormat.format(cal.getTime());
 
     }
-    public void getSyncURLDialog(){
+
+    public void getSyncURLDialog() {
         @SuppressLint("WifiManagerLeak") final WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
         AlertDialog.Builder dialogB = new AlertDialog.Builder(this);
         dialogB.setView(R.layout.dialog_setup);
@@ -776,18 +779,18 @@ public class FullscreenLogin extends AppCompatActivity {
         chBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
-                    wipeClean =true;
-                }else{
-                    wipeClean=false;
+                if (isChecked) {
+                    wipeClean = true;
+                } else {
+                    wipeClean = false;
                 }
                 Log.e("MYAPP", " Wipe clean is now " + isChecked);
             }
         });
 
         ////
-        sys_singlefilestreamdownload =settings.getBoolean("pf_singlefilestreamdownload",true);
-        sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload",true);
+        sys_singlefilestreamdownload = settings.getBoolean("pf_singlefilestreamdownload", true);
+        sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload", true);
 
         dialogSyncButton = (Button) dialog.findViewById(R.id.btnNewSaveSyncURL);
         dialogSyncButton.setOnClickListener(new View.OnClickListener() {
@@ -810,14 +813,14 @@ public class FullscreenLogin extends AppCompatActivity {
             }
         });
         dialogSyncButton.setVisibility(View.INVISIBLE);
-        if(wifiManager.isWifiEnabled()) {
+        if (wifiManager.isWifiEnabled()) {
             dialog.show();
             ////
-        }else{
+        } else {
             DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface int_dialog, int which) {
-                    switch (which){
+                    switch (which) {
                         case DialogInterface.BUTTON_POSITIVE:
                             //Yes button clicked
                             wifiManager.setWifiEnabled(true);
@@ -837,7 +840,8 @@ public class FullscreenLogin extends AppCompatActivity {
                     .setNegativeButton("No", dialogClickListener).show();
         }
     }
-    public void setDateDialog(){
+
+    public void setDateDialog() {
         @SuppressLint("WifiManagerLeak") final WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
         AlertDialog.Builder dialogB = new AlertDialog.Builder(this);
         dialogB.setView(R.layout.dialog_date);
@@ -846,7 +850,7 @@ public class FullscreenLogin extends AppCompatActivity {
         dialog.show();
         Button saveDate = (Button) dialog.findViewById(R.id.btnSaveDate);
         final DatePicker dp = (DatePicker) dialog.findViewById(R.id.datePicker);
-        String day = String.valueOf(dp.getDayOfMonth())+"-"+String.valueOf(dp.getMonth() + 1) +"-"+String.valueOf(dp.getYear());
+        String day = String.valueOf(dp.getDayOfMonth()) + "-" + String.valueOf(dp.getMonth() + 1) + "-" + String.valueOf(dp.getYear());
         Log.e("MyCouch", "  date   " + day);
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
         try {
@@ -865,60 +869,63 @@ public class FullscreenLogin extends AppCompatActivity {
             }
         });
     }
-    public void restorePref(){
+
+    public void restorePref() {
         // Restore preferences
         settings = getSharedPreferences(PREFS_NAME, 0);
-        sys_username = settings.getString("pf_username","");
-        sys_oldSyncServerURL = settings.getString("pf_sysncUrl","http://");
-        sys_lastSyncDate = settings.getString("pf_lastSyncDate","");
-        sys_password = settings.getString("pf_password","");
-        sys_usercouchId = settings.getString("pf_usercouchId","");
-        sys_userfirstname = settings.getString("pf_userfirstname","");
-        sys_userlastname = settings.getString("pf_userlastname","");
-        sys_usergender = settings.getString("pf_usergender","");
-        sys_uservisits = settings.getString("pf_uservisits","");;
-        sys_uservisits_Int = settings.getInt("pf_uservisits_Int",0);
-        sys_singlefilestreamdownload =settings.getBoolean("pf_singlefilestreamdownload",true);
-        sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload",true);
-        sys_servername = settings.getString("pf_server_name"," ");
-        sys_serverversion = settings.getString("pf_server_version"," ");
+        sys_username = settings.getString("pf_username", "");
+        sys_oldSyncServerURL = settings.getString("pf_sysncUrl", "http://");
+        sys_lastSyncDate = settings.getString("pf_lastSyncDate", "");
+        sys_password = settings.getString("pf_password", "");
+        sys_usercouchId = settings.getString("pf_usercouchId", "");
+        sys_userfirstname = settings.getString("pf_userfirstname", "");
+        sys_userlastname = settings.getString("pf_userlastname", "");
+        sys_usergender = settings.getString("pf_usergender", "");
+        sys_uservisits = settings.getString("pf_uservisits", "");
+        ;
+        sys_uservisits_Int = settings.getInt("pf_uservisits_Int", 0);
+        sys_singlefilestreamdownload = settings.getBoolean("pf_singlefilestreamdownload", true);
+        sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload", true);
+        sys_servername = settings.getString("pf_server_name", " ");
+        sys_serverversion = settings.getString("pf_server_version", " ");
 
-        if(sys_username!=""){
+        if (sys_username != "") {
             mUsername.setText(sys_username);
-        }else{
+        } else {
             mUsername.setText("");
         }
-        Set<String>  mwr = settings.getStringSet("membersWithResource",null);
-        try{
+        Set<String> mwr = settings.getStringSet("membersWithResource", null);
+        try {
             sys_membersWithResource = mwr.toArray();
-            Log.e("MYAPP", " membersWithResource  = "+sys_membersWithResource.length);
+            Log.e("MYAPP", " membersWithResource  = " + sys_membersWithResource.length);
 
-        }catch(Exception err){
+        } catch (Exception err) {
             Log.e("MYAPP", " Error creating  sys_membersWithResource");
         }
-        try{
-            serviceIntent = new Intent(context,ServerSearchService.class);
+        try {
+            serviceIntent = new Intent(context, ServerSearchService.class);
             context.stopService(serviceIntent);
-        }catch(Exception error) {
-            Log.e("MYAPP", " Creating Service error "+error.getMessage());
+        } catch (Exception error) {
+            Log.e("MYAPP", " Creating Service error " + error.getMessage());
         }
     }
 
-    public void startServiceCommand(){
-        try{
-            serviceIntent = new Intent(context,ServerSearchService.class);
+    public void startServiceCommand() {
+        try {
+            serviceIntent = new Intent(context, ServerSearchService.class);
             serviceIntent.putExtra("serverUrl", sys_oldSyncServerURL);
             context.startService(serviceIntent);
-        }catch(Exception err){
-            Log.e("MYAPP", " Creating Service error "+err.getMessage());
+        } catch (Exception err) {
+            Log.e("MYAPP", " Creating Service error " + err.getMessage());
         }
     }
-    public void syncNotifier(){
+
+    public void syncNotifier() {
         emptyAllDbs();
-        try{
+        try {
 /// Todo Decide either use design document in apps or not
             JsonObject filterContent = new JsonObject();
-            filterContent.addProperty("by_resource","function(doc, req){return doc._id === req.query._id;}");
+            filterContent.addProperty("by_resource", "function(doc, req){return doc._id === req.query._id;}");
             RunCreateDocTask newRunCreateFilterTask = new RunCreateDocTask();
             newRunCreateFilterTask.setDbName("resources");
             newRunCreateFilterTask.setDocNameId("_design/apps");
@@ -927,16 +934,16 @@ public class FullscreenLogin extends AppCompatActivity {
             newRunCreateFilterTask.setViewContent(filterContent);
             newRunCreateFilterTask.execute("");
 
-        }catch(Exception err){
+        } catch (Exception err) {
             Log.e("MYAPP", err.getMessage());
         }
-        try{
+        try {
 
             JsonObject viewContent = new JsonObject();
-            viewContent.addProperty("map","function() { var now = new Date().toLocaleDateString(); " +
+            viewContent.addProperty("map", "function() { var now = new Date().toLocaleDateString(); " +
                     "var output = JSON.parse(JSON.stringify(now)); emit(output, output); }");
             JsonObject dateViewContent = new JsonObject();
-            dateViewContent.add("date_now",viewContent);
+            dateViewContent.add("date_now", viewContent);
             RunCreateDocTask newRunCreateViewTask = new RunCreateDocTask();
             newRunCreateViewTask.setDbName("activitylog");
             newRunCreateViewTask.setDocNameId("_design/apps");
@@ -945,22 +952,23 @@ public class FullscreenLogin extends AppCompatActivity {
             newRunCreateViewTask.setViewContent(dateViewContent);
             newRunCreateViewTask.execute("");
 
-        }catch(Exception err){
+        } catch (Exception err) {
             Log.e("MYAPP", err.getMessage());
         }
         ResourcesJson rsj = new ResourcesJson();
-        if(rsj.ResourcesJson(sys_oldSyncServerURL,"resources",androidContext)){
+        if (rsj.ResourcesJson(sys_oldSyncServerURL, "resources", androidContext)) {
             startSyncProcess();
         }
         ///// End creating design Document
     }
+
     public void emptyAllDbs() {
-        if(wipeClean) {
+        if (wipeClean) {
             for (int cnt = 0; cnt < databaseList.length; cnt++) {
                 try {
                     Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                     Database db = manager.getDatabase(databaseList[cnt]);
-                    Log.e("MYAPP","Deleting "+databaseList[cnt]);
+                    Log.e("MYAPP", "Deleting " + databaseList[cnt]);
                     db.delete();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -971,25 +979,25 @@ public class FullscreenLogin extends AppCompatActivity {
                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                 Database dbResources = manager.getDatabase("resources");
                 dbResources.delete();
-            }catch(Exception err){
+            } catch (Exception err) {
                 err.printStackTrace();
             }
             try {
                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                 Database dbResources = manager.getDatabase("shadowresources");
                 dbResources.delete();
-            }catch(Exception err){
+            } catch (Exception err) {
                 err.printStackTrace();
             }
             try {
                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                 Database dbOffline_courses = manager.getDatabase("offline_courses");
                 dbOffline_courses.delete();
-            }catch(Exception err){
+            } catch (Exception err) {
                 err.printStackTrace();
             }
 
-            try{
+            try {
                 String root = Environment.getExternalStorageDirectory().toString();
                 File myDir = new File(root + "/ole_temp");
                 String[] flist = myDir.list();
@@ -1003,31 +1011,33 @@ public class FullscreenLogin extends AppCompatActivity {
                         temp.delete();
                     }
                 }
-            }catch (Exception err){
+            } catch (Exception err) {
                 Log.e("MYAPP", " Deleting materials from ole_tem directory ");
             }
         }
     }
-    public void startSyncProcess(){
+
+    public void startSyncProcess() {
         /// Start Syncing databases from server
         final AsyncTask<Void, Integer, String> execute = new FullscreenLogin.TestAsyncPull().execute();
         Log.e("MyCouch", "syncNotifier Running");
         final Thread th = new Thread(new Runnable() {
             private long startTime = System.currentTimeMillis();
+
             public void run() {
                 while (syncmembers) {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if(openMemberList) {
+                            if (openMemberList) {
                                 mDialog.dismiss();
-                                openMemberList=false;
+                                openMemberList = false;
                                 alertDialogOkay("Completed. Thank you for waiting, you can now \" Sign In \" .");
-                                syncmembers=false;
+                                syncmembers = false;
                                 return;
                             }
                             Log.d("runOnUiThread", "running pull members");
-                            mDialog.setMessage("Downloading, please wait ... " + databaseList[syncCnt] +" ["+ (syncCnt+1) +" / "+ databaseList.length+"]");
+                            mDialog.setMessage("Downloading, please wait ... " + databaseList[syncCnt] + " [" + (syncCnt + 1) + " / " + databaseList.length + "]");
                         }
                     });
                     try {
@@ -1040,7 +1050,8 @@ public class FullscreenLogin extends AppCompatActivity {
         });
         th.start();
     }
-    public void alertDialogOkay(String Message){
+
+    public void alertDialogOkay(String Message) {
         AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
         builder1.setMessage(Message);
         builder1.setCancelable(true);
@@ -1053,14 +1064,15 @@ public class FullscreenLogin extends AppCompatActivity {
         AlertDialog alert11 = builder1.create();
         alert11.show();
     }
+
     private void copyAPK(int resource, String apkUrl) {
         InputStream in = getResources().openRawResource(resource);
         String root = Environment.getExternalStorageDirectory().toString();
         File myDir = new File(root + "/ole_temp2");
-        if (!myDir.exists()){
+        if (!myDir.exists()) {
             myDir.mkdirs();
         }
-        File dst = new File(myDir,apkUrl);
+        File dst = new File(myDir, apkUrl);
         try {
             FileOutputStream out = new FileOutputStream(dst);
             byte[] buff = new byte[1024];
@@ -1070,11 +1082,12 @@ public class FullscreenLogin extends AppCompatActivity {
             }
             in.close();
             out.close();
-            Log.e("tag", "Adobe Reader Copied "+ dst.toString());
-        }catch(Exception err){
+            Log.e("tag", "Adobe Reader Copied " + dst.toString());
+        } catch (Exception err) {
             err.printStackTrace();
         }
     }
+
     class RunCreateDocTask extends AsyncTask<String, Void, Boolean> {
         private Exception exception;
         private String cls_SyncServerURL;
@@ -1082,51 +1095,62 @@ public class FullscreenLogin extends AppCompatActivity {
         private String cls_DocNameId;
         private String cls_Category;
         private JsonObject cls_ViewContent;
-        public String getSyncServerURL(){
+
+        public String getSyncServerURL() {
             return cls_SyncServerURL;
         }
-        public void setSyncServerURL(String oldSyncServerURL){
+
+        public void setSyncServerURL(String oldSyncServerURL) {
             cls_SyncServerURL = oldSyncServerURL;
         }
-        public String getDbName(){
+
+        public String getDbName() {
             return cls_DbName;
         }
-        public void setDbName(String dbName){
+
+        public void setDbName(String dbName) {
             cls_DbName = dbName;
         }
-        public String getDocNameId(){
+
+        public String getDocNameId() {
             return cls_DocNameId;
         }
-        public void setCategory(String category){
+
+        public void setCategory(String category) {
             cls_Category = category;
         }
-        public String getCategory(){
+
+        public String getCategory() {
             return cls_Category;
         }
-        public void setDocNameId(String docNameId){
+
+        public void setDocNameId(String docNameId) {
             cls_DocNameId = docNameId;
         }
-        public JsonObject getViewContent(){
+
+        public JsonObject getViewContent() {
             return cls_ViewContent;
         }
+
         public void setViewContent(JsonObject viewContent) {
             cls_ViewContent = viewContent;
         }
+
         protected Boolean doInBackground(String... urls) {
             try {
-                Log.e("MyCouch", "URL = "+getSyncServerURL());
+                Log.e("MyCouch", "URL = " + getSyncServerURL());
                 URI uri = URI.create(getSyncServerURL());
                 String url_Scheme = uri.getScheme();
                 String url_Host = uri.getHost();
                 int url_Port = uri.getPort();
                 String url_user = null, url_pwd = null;
-                if(sys_oldSyncServerURL.contains("@")){
+                if (sys_oldSyncServerURL.contains("@")) {
                     String[] userinfo = uri.getUserInfo().split(":");
                     url_user = userinfo[0];
                     url_pwd = userinfo[1];
                 }
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid(getDbName(), true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
-                if(!dbClient.contains(URLEncoder.encode(getDocNameId(), "UTF-8"))){
+                if (!dbClient.contains(URLEncoder.encode(getDocNameId(), "UTF-8"))) {
                     JsonObject json = new JsonObject();
                     json.addProperty("_id", getDocNameId());
                     json.add(getCategory(), getViewContent());
@@ -1139,39 +1163,42 @@ public class FullscreenLogin extends AppCompatActivity {
                 return false;
             }
         }
+
         protected void onPostExecute(Boolean docResult) {
             startSyncProcess();
         }
     }
+
     class TestAsyncPull extends AsyncTask<Void, Integer, String> {
-        protected void onPreExecute (){
-            Log.d("PreExceute","On pre Exceute......");
+        protected void onPreExecute() {
+            Log.d("PreExceute", "On pre Exceute......");
         }
-        protected String doInBackground(Void...arg0) {
-            Log.d("DoINBackGround","On doInBackground...");
-            syncmembers =true;
-            pull= new Replication[databaseList.length];
+
+        protected String doInBackground(Void... arg0) {
+            Log.d("DoINBackGround", "On doInBackground...");
+            syncmembers = true;
+            pull = new Replication[databaseList.length];
             db = new Database[databaseList.length];
             manager = new Manager[databaseList.length];
             try {
                 manager[syncCnt] = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                 db[syncCnt] = manager[syncCnt].getDatabase(databaseList[syncCnt]);
-                URL url = new URL(sys_oldSyncServerURL+"/"+databaseList[syncCnt]);
-                pull[syncCnt]=  db[syncCnt].createPullReplication(url);
+                URL url = new URL(sys_oldSyncServerURL + "/" + databaseList[syncCnt]);
+                pull[syncCnt] = db[syncCnt].createPullReplication(url);
                 pull[syncCnt].setContinuous(false);
                 pull[syncCnt].addChangeListener(new Replication.ChangeListener() {
                     @Override
                     public void changed(Replication.ChangeEvent event) {
-                        if(pull[syncCnt] .isRunning()){
-                            Log.e("MyCouch", databaseList[syncCnt]+" "+event.getChangeCount());
-                        }else {
-                            Log.e("Finished", databaseList[syncCnt]+" "+ db[syncCnt].getDocumentCount());
-                            if(syncCnt < (databaseList.length-2)){
+                        if (pull[syncCnt].isRunning()) {
+                            Log.e("MyCouch", databaseList[syncCnt] + " " + event.getChangeCount());
+                        } else {
+                            Log.e("Finished", databaseList[syncCnt] + " " + db[syncCnt].getDocumentCount());
+                            if (syncCnt < (databaseList.length - 2)) {
                                 syncCnt++;
                                 new FullscreenLogin.TestAsyncPull().execute();
-                            }else{
-                                Log.e("MyCouch","Sync Completed");
-                                if(!openMemberList) {
+                            } else {
+                                Log.e("MyCouch", "Sync Completed");
+                                if (!openMemberList) {
                                     openMemberList = true;
                                 }
                             }
@@ -1180,38 +1207,46 @@ public class FullscreenLogin extends AppCompatActivity {
                 });
                 pull[syncCnt].start();
             } catch (Exception e) {
-                Log.e("MyCouch", databaseList[syncCnt]+" "+" Cannot create database", e);
+                Log.e("MyCouch", databaseList[syncCnt] + " " + " Cannot create database", e);
             }
             publishProgress(syncCnt);
             return "You are at PostExecute";
         }
-        protected void onProgressUpdate(Integer...a){
-            Log.d("onProgress","You are in progress update ... " + a[0]);
-            if(syncCnt != (databaseList.length-2)){
-            }else{
+
+        protected void onProgressUpdate(Integer... a) {
+            Log.d("onProgress", "You are in progress update ... " + a[0]);
+            if (syncCnt != (databaseList.length - 2)) {
+            } else {
             }
         }
+
         protected void onPostExecute(String result) {
-            Log.d("OnPostExec",""+result);
+            Log.d("OnPostExec", "" + result);
         }
     }
+
     class UpdateMemberVisitsDocument extends AsyncTask<String, Void, String> {
         private Exception exception;
         private String cls_memberId;
         private int cls_sumVisits;
         private int cls_serverNewTotalVisits;
-        public String getMemberId(){
+
+        public String getMemberId() {
             return cls_memberId;
         }
-        public void setMemberId(String memberId){
+
+        public void setMemberId(String memberId) {
             cls_memberId = memberId;
         }
-        public int getSumVisits(){
+
+        public int getSumVisits() {
             return cls_sumVisits;
         }
-        public void setSumVisits(int sumVisits){
+
+        public void setSumVisits(int sumVisits) {
             cls_sumVisits = sumVisits;
         }
+
         protected String doInBackground(String... urls) {
             try {
                 URI uri = URI.create(sys_oldSyncServerURL);
@@ -1219,26 +1254,27 @@ public class FullscreenLogin extends AppCompatActivity {
                 String url_Host = uri.getHost();
                 int url_Port = uri.getPort();
                 String url_user = null, url_pwd = null;
-                if(sys_oldSyncServerURL.contains("@")){
+                if (sys_oldSyncServerURL.contains("@")) {
                     String[] userinfo = uri.getUserInfo().split(":");
                     url_user = userinfo[0];
                     url_pwd = userinfo[1];
                 }
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid("members", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
-                if(dbClient.contains(cls_memberId)){
+                if (dbClient.contains(cls_memberId)) {
                     /// Handle with Json
                     JsonObject json = dbClient.find(JsonObject.class, getMemberId());
                     cls_serverNewTotalVisits = (getSumVisits() + Integer.parseInt(json.get("visits").getAsString()));
-                    json.addProperty("visits",cls_serverNewTotalVisits);
+                    json.addProperty("visits", cls_serverNewTotalVisits);
                     dbClient.update(json);
                 }
                 return "";
             } catch (Exception e) {
                 this.exception = e;
-                Log.e("MyCouch","Updating member visits on server "+ e.getMessage());
+                Log.e("MyCouch", "Updating member visits on server " + e.getMessage());
                 return null;
             }
         }
+
         protected void onPostExecute(String message) {
             AndroidContext androidContext = new AndroidContext(context);
             Manager manager = null;
@@ -1255,42 +1291,52 @@ public class FullscreenLogin extends AppCompatActivity {
                         retrievedDocument.putProperties(newProperties);
                     }
                 }
-            }catch(Exception err){
-                Log.e("MyCouch","Updating local member visits on device "+ err.getMessage());
+            } catch (Exception err) {
+                Log.e("MyCouch", "Updating local member visits on device " + err.getMessage());
             }
 
         }
     }
+
     class UpdateResourceDocument extends AsyncTask<String, Void, String> {
         private Exception exception;
         private String cls_resouceId;
         private int cls_sum;
         private int cls_timesRated;
         private String cls_revision;
-        public String getResourceId(){
+
+        public String getResourceId() {
             return cls_resouceId;
         }
-        public void setResourceId(String resouceId){
+
+        public void setResourceId(String resouceId) {
             cls_resouceId = resouceId;
         }
-        public void getRevision(String revision){
+
+        public void getRevision(String revision) {
             cls_revision = revision;
         }
-        public String setRevision(){
+
+        public String setRevision() {
             return cls_revision;
         }
-        public int getSum(){
+
+        public int getSum() {
             return cls_sum;
         }
-        public void setSum(int sum){
+
+        public void setSum(int sum) {
             cls_sum = sum;
         }
-        public int getTimesRated(){
+
+        public int getTimesRated() {
             return cls_timesRated;
         }
+
         public void setTimesRated(int timesRated) {
             cls_timesRated = timesRated;
         }
+
         protected String doInBackground(String... urls) {
             try {
                 URI uri = URI.create(sys_oldSyncServerURL);
@@ -1298,7 +1344,7 @@ public class FullscreenLogin extends AppCompatActivity {
                 String url_Host = uri.getHost();
                 int url_Port = uri.getPort();
                 String url_user = null, url_pwd = null;
-                if(sys_oldSyncServerURL.contains("@")){
+                if (sys_oldSyncServerURL.contains("@")) {
                     String[] userinfo = uri.getUserInfo().split(":");
                     url_user = userinfo[0];
                     url_pwd = userinfo[1];
@@ -1307,14 +1353,14 @@ public class FullscreenLogin extends AppCompatActivity {
                 //
                 //}
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
-                if(dbClient.contains(cls_resouceId)){
+                if (dbClient.contains(cls_resouceId)) {
                     /// Handle with Json
                     JsonObject json = dbClient.find(JsonObject.class, getResourceId());
                     int total_sum = (int) (getSum() + Integer.parseInt(json.get("sum").getAsString()));
-                     int total_timesRated = getTimesRated() + Integer.parseInt(json.get("timesRated").toString());
-                     json.addProperty("sum",total_sum);
-                     json.addProperty("timesRated",total_timesRated);
-                     dbClient.update(json);
+                    int total_timesRated = getTimesRated() + Integer.parseInt(json.get("timesRated").toString());
+                    json.addProperty("sum", total_sum);
+                    json.addProperty("timesRated", total_timesRated);
+                    dbClient.update(json);
                 }
                 return "";
             } catch (Exception e) {
@@ -1323,25 +1369,83 @@ public class FullscreenLogin extends AppCompatActivity {
                 return null;
             }
         }
+
         protected void onPostExecute(String message) {
 
         }
     }
+
     class UpdateActivityLogDatabase extends AsyncTask<String, Void, String> {
-        private int cls_male_visits,cls_female_visits;
-        private ArrayList cls_male_rating,cls_male_timesRated,cls_female_timesRated,cls_female_rating,cls_resourcesIds;
-        private ArrayList cls_male_opened,cls_female_opened,cls_resources_names,cls_resources_opened;
-        public void set_resourcesIds(ArrayList resourcesIds){cls_resourcesIds=resourcesIds;};
-        public void set_resources_names(ArrayList resources_names){cls_resources_names=resources_names;};
-        public void set_resources_opened(ArrayList resources_opened){cls_resources_opened=resources_opened;};
-        public void set_male_visits(int male_visits){cls_male_visits=male_visits;};
-        public void set_female_visits(int female_visits){cls_female_visits=female_visits;};
-        public void set_male_rating(ArrayList male_rating){cls_male_rating=male_rating;};
-        public void set_female_rating(ArrayList female_rating){cls_female_rating=female_rating;};
-        public void set_male_timesRated(ArrayList male_timesRated){cls_male_timesRated=male_timesRated;};
-        public void set_female_timesRated(ArrayList female_timesRated){cls_female_timesRated=female_timesRated;};
-        public void set_male_opened(ArrayList male_opened){cls_male_opened=male_opened;};
-        public void set_female_opened(ArrayList female_opened){cls_female_opened=female_opened;};
+        private int cls_male_visits, cls_female_visits;
+        private ArrayList cls_male_rating, cls_male_timesRated, cls_female_timesRated, cls_female_rating, cls_resourcesIds;
+        private ArrayList cls_male_opened, cls_female_opened, cls_resources_names, cls_resources_opened;
+
+        public void set_resourcesIds(ArrayList resourcesIds) {
+            cls_resourcesIds = resourcesIds;
+        }
+
+        ;
+
+        public void set_resources_names(ArrayList resources_names) {
+            cls_resources_names = resources_names;
+        }
+
+        ;
+
+        public void set_resources_opened(ArrayList resources_opened) {
+            cls_resources_opened = resources_opened;
+        }
+
+        ;
+
+        public void set_male_visits(int male_visits) {
+            cls_male_visits = male_visits;
+        }
+
+        ;
+
+        public void set_female_visits(int female_visits) {
+            cls_female_visits = female_visits;
+        }
+
+        ;
+
+        public void set_male_rating(ArrayList male_rating) {
+            cls_male_rating = male_rating;
+        }
+
+        ;
+
+        public void set_female_rating(ArrayList female_rating) {
+            cls_female_rating = female_rating;
+        }
+
+        ;
+
+        public void set_male_timesRated(ArrayList male_timesRated) {
+            cls_male_timesRated = male_timesRated;
+        }
+
+        ;
+
+        public void set_female_timesRated(ArrayList female_timesRated) {
+            cls_female_timesRated = female_timesRated;
+        }
+
+        ;
+
+        public void set_male_opened(ArrayList male_opened) {
+            cls_male_opened = male_opened;
+        }
+
+        ;
+
+        public void set_female_opened(ArrayList female_opened) {
+            cls_female_opened = female_opened;
+        }
+
+        ;
+
         protected String doInBackground(String... urls) {
             try {
                 URI uri = URI.create(sys_oldSyncServerURL);
@@ -1349,7 +1453,7 @@ public class FullscreenLogin extends AppCompatActivity {
                 String url_Host = uri.getHost();
                 int url_Port = uri.getPort();
                 String url_user = null, url_pwd = null;
-                if(sys_oldSyncServerURL.contains("@")){
+                if (sys_oldSyncServerURL.contains("@")) {
                     String[] userinfo = uri.getUserInfo().split(":");
                     url_user = userinfo[0];
                     url_pwd = userinfo[1];
@@ -1358,28 +1462,28 @@ public class FullscreenLogin extends AppCompatActivity {
                 //
                 //}
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid("activitylog", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
-                org.lightcouch.View view= dbClient.view("bell/getdocBylogdate").includeDocs(false);
+                org.lightcouch.View view = dbClient.view("bell/getdocBylogdate").includeDocs(false);
                 List<Map> results = view.reduce(false).includeDocs(false).query(Map.class);
                 String todaysActivityDocId = null;
                 String docDateStr = null;
-                int i= 0;
+                int i = 0;
                 if (results.size() != 0) {
-                    while (i < results.size()){
+                    while (i < results.size()) {
                         LinkedTreeMap treemap = (LinkedTreeMap) results.get(i).get("value");
                         Gson gson = new Gson();
                         JsonObject jsonObject = gson.toJsonTree(treemap).getAsJsonObject();
                         docDateStr = jsonObject.get("logDate").getAsString();
-                        Log.e("MyCouch",i+" "+ docDateStr +" - "+ jsonObject.get("_id").toString());
+                        Log.e("MyCouch", i + " " + docDateStr + " - " + jsonObject.get("_id").toString());
                         // Todo convert to date Compare date, month, year
-                        if(docDateStr.equalsIgnoreCase(Serverdate)){
+                        if (docDateStr.equalsIgnoreCase(Serverdate)) {
                             todaysActivityDocId = jsonObject.get("_id").getAsString();
-                            Log.e("MyCouch","Found "+docDateStr+" with Id "+todaysActivityDocId);
+                            Log.e("MyCouch", "Found " + docDateStr + " with Id " + todaysActivityDocId);
                             break;
                         }
                         i++;
                     }
                     //// Check if activitylog document for today exist
-                    if(docDateStr!=null && todaysActivityDocId !=null ){
+                    if (docDateStr != null && todaysActivityDocId != null) {
                         try {
                             Gson gson = new Gson();
                             JsonParser parser = new JsonParser();
@@ -1388,81 +1492,81 @@ public class FullscreenLogin extends AppCompatActivity {
                             JsonArray female_opened_Array = jsonObject.get("female_opened").getAsJsonArray();
                             JsonElement female_opened_Element = parser.parse(gson.toJson(cls_female_opened));
                             Log.e("MyCouch", "Begun -- ");
-                            try{
+                            try {
                                 female_opened_Array.addAll(female_opened_Element.getAsJsonArray());
-                            }catch(Exception err){
-                                Log.e("MyCouch", "Got to female_opened "+err.getLocalizedMessage());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to female_opened " + err.getLocalizedMessage());
                             }
                             //male_rating
                             JsonArray male_rating_Array = jsonObject.get("male_rating").getAsJsonArray();
                             JsonElement male_rating_Element = parser.parse(gson.toJson(cls_male_rating));
-                            try{
+                            try {
                                 male_rating_Array.addAll(male_rating_Element.getAsJsonArray());
-                            }catch(Exception err){
-                                Log.e("MyCouch", "Got to male_rating "+err.getLocalizedMessage());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to male_rating " + err.getLocalizedMessage());
                             }
 
                             //male_timesRated
                             JsonArray male_timesRated_Array = jsonObject.get("male_timesRated").getAsJsonArray();
                             JsonElement male_timesRated_Element = parser.parse(gson.toJson(cls_male_timesRated));
-                            try{
+                            try {
                                 male_timesRated_Array.addAll(male_timesRated_Element.getAsJsonArray());
-                            }catch(Exception err){
-                                Log.e("MyCouch", "Got to male_timesRated "+err.getLocalizedMessage());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to male_timesRated " + err.getLocalizedMessage());
                             }
                             //female_timesRated
                             JsonArray female_timesRated_Array = jsonObject.get("female_timesRated").getAsJsonArray();
                             JsonElement female_timesRated_Element = parser.parse(gson.toJson(cls_female_timesRated));
-                            try{
+                            try {
                                 female_timesRated_Array.addAll(female_timesRated_Element.getAsJsonArray());
-                            }catch(Exception err){
-                                Log.e("MyCouch", "Got to female_timesRated "+err.getLocalizedMessage());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to female_timesRated " + err.getLocalizedMessage());
                             }
                             //female_rating
                             JsonArray female_rating_Array = jsonObject.get("female_rating").getAsJsonArray();
                             JsonElement female_rating_Element = parser.parse(gson.toJson(cls_female_rating));
-                            try{
+                            try {
                                 female_rating_Array.addAll(female_rating_Element.getAsJsonArray());
-                            }catch(Exception err){
-                                Log.e("MyCouch", "Got to female_rating "+err.getLocalizedMessage());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to female_rating " + err.getLocalizedMessage());
                             }
                             //resourcesIds
                             JsonArray resourcesIds_Array = jsonObject.get("resourcesIds").getAsJsonArray();
                             JsonElement resourcesIds_Element = parser.parse(gson.toJson(cls_resourcesIds));
-                            try{
+                            try {
                                 resourcesIds_Array.addAll(resourcesIds_Element.getAsJsonArray());
-                            }catch(Exception err){
-                                Log.e("MyCouch", "Got to resourcesIds "+err.getLocalizedMessage());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to resourcesIds " + err.getLocalizedMessage());
                             }
                             //male_opened
                             JsonArray male_opened_Array = jsonObject.get("male_opened").getAsJsonArray();
                             JsonElement male_opened_Element = parser.parse(gson.toJson(cls_male_opened));
-                            try{
+                            try {
                                 male_opened_Array.addAll(male_opened_Element.getAsJsonArray());
-                            }catch(Exception err){
-                                Log.e("MyCouch", "Got to male_opened "+err.getLocalizedMessage());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to male_opened " + err.getLocalizedMessage());
                             }
                             //resources_names
                             JsonArray resources_names_Array = jsonObject.get("resources_names").getAsJsonArray();
                             JsonElement resources_names_Element = parser.parse(gson.toJson(cls_resources_names));
-                            try{
+                            try {
                                 resources_names_Array.addAll(resources_names_Element.getAsJsonArray());
-                            }catch(Exception err){
-                                Log.e("MyCouch", "Got to resources_names "+err.getLocalizedMessage());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to resources_names " + err.getLocalizedMessage());
                             }
                             //resources_opened
                             JsonArray resources_opened_Array = jsonObject.get("resources_opened").getAsJsonArray();
                             JsonElement resources_opened_Element = parser.parse(gson.toJson(cls_resources_opened));
-                            try{
+                            try {
                                 resources_opened_Array.addAll(resources_opened_Element.getAsJsonArray());
-                            }catch(Exception err){
-                                Log.e("MyCouch", "Got to resources_opened "+err.getLocalizedMessage());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to resources_opened " + err.getLocalizedMessage());
                             }
                             Log.e("MyCouch", "Ended -- ");
                             int totalMaleVisits = (cls_male_visits + jsonObject.get("male_visits").getAsInt());
                             jsonObject.addProperty("male_visits", totalMaleVisits);
-                            int totalFemaleVisits = (cls_female_visits+ jsonObject.get("female_visits").getAsInt());
-                            jsonObject.addProperty("female_visits",totalFemaleVisits);
+                            int totalFemaleVisits = (cls_female_visits + jsonObject.get("female_visits").getAsInt());
+                            jsonObject.addProperty("female_visits", totalFemaleVisits);
                             jsonObject.add("female_opened", female_opened_Array);
                             jsonObject.add("male_rating", male_rating_Array);
                             jsonObject.add("male_timesRated", male_timesRated_Array);
@@ -1473,10 +1577,10 @@ public class FullscreenLogin extends AppCompatActivity {
                             jsonObject.add("resources_names", resources_names_Array);
                             jsonObject.add("resources_opened", resources_opened_Array);
                             dbClient.update(jsonObject);
-                        }catch(Exception err){
-                            Log.e("MyCouch", "Error updating existing activity log "+ err.getMessage());
+                        } catch (Exception err) {
+                            Log.e("MyCouch", "Error updating existing activity log " + err.getMessage());
                         }
-                    }else{
+                    } else {
                         try {
                             Gson gson = new Gson();
                             JsonParser parser = new JsonParser();
@@ -1485,74 +1589,74 @@ public class FullscreenLogin extends AppCompatActivity {
                             //female_opened
                             JsonArray female_opened_Array = new JsonArray();
                             JsonElement female_opened_Element = parser.parse(gson.toJson(cls_female_opened));
-                            try{
+                            try {
                                 female_opened_Array.addAll(female_opened_Element.getAsJsonArray());
-                            }catch(Exception err){
-                                Log.e("MyCouch", "Got to female_opened "+err.getLocalizedMessage());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to female_opened " + err.getLocalizedMessage());
                             }
                             //male_rating
                             JsonArray male_rating_Array = new JsonArray();
                             JsonElement male_rating_Element = parser.parse(gson.toJson(cls_male_rating));
-                            try{
-                               male_rating_Array.addAll(male_rating_Element.getAsJsonArray());
-                            }catch(Exception err){
-                               Log.e("MyCouch", "Got to male_rating "+err.getLocalizedMessage());
+                            try {
+                                male_rating_Array.addAll(male_rating_Element.getAsJsonArray());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to male_rating " + err.getLocalizedMessage());
                             }
                             //male_timesRated
                             JsonArray male_timesRated_Array = new JsonArray();
                             JsonElement male_timesRated_Element = parser.parse(gson.toJson(cls_male_timesRated));
-                            try{
+                            try {
                                 male_timesRated_Array.addAll(male_timesRated_Element.getAsJsonArray());
-                            }catch(Exception err){
-                                Log.e("MyCouch", "Got to male_timesRated "+err.getLocalizedMessage());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to male_timesRated " + err.getLocalizedMessage());
                             }
                             //female_timesRated
                             JsonArray female_timesRated_Array = new JsonArray();
                             JsonElement female_timesRated_Element = parser.parse(gson.toJson(cls_female_timesRated));
-                            try{
+                            try {
                                 female_timesRated_Array.addAll(female_timesRated_Element.getAsJsonArray());
-                            }catch(Exception err){
-                                Log.e("MyCouch", "Got to female_timesRated "+err.getLocalizedMessage());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to female_timesRated " + err.getLocalizedMessage());
                             }
                             //female_rating
                             JsonArray female_rating_Array = new JsonArray();
                             JsonElement female_rating_Element = parser.parse(gson.toJson(cls_female_rating));
-                            try{
+                            try {
                                 female_rating_Array.addAll(female_rating_Element.getAsJsonArray());
-                            }catch(Exception err){
-                                Log.e("MyCouch", "Got to female_rating "+err.getLocalizedMessage());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to female_rating " + err.getLocalizedMessage());
                             }
                             //resourcesIds
                             JsonArray resourcesIds_Array = new JsonArray();
                             JsonElement resourcesIds_Element = parser.parse(gson.toJson(cls_resourcesIds));
-                            try{
+                            try {
                                 resourcesIds_Array.addAll(resourcesIds_Element.getAsJsonArray());
-                            }catch(Exception err){
-                                Log.e("MyCouch", "Got to resourcesIds "+err.getLocalizedMessage());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to resourcesIds " + err.getLocalizedMessage());
                             }
                             //male_opened
                             JsonArray male_opened_Array = new JsonArray();
                             JsonElement male_opened_Element = parser.parse(gson.toJson(cls_male_opened));
-                            try{
+                            try {
                                 male_opened_Array.addAll(male_opened_Element.getAsJsonArray());
-                            }catch(Exception err){
-                                Log.e("MyCouch", "Got to male_opened "+err.getLocalizedMessage());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to male_opened " + err.getLocalizedMessage());
                             }
                             //resources_names
                             JsonArray resources_names_Array = new JsonArray();
                             JsonElement resources_names_Element = parser.parse(gson.toJson(cls_resources_names));
-                            try{
+                            try {
                                 resources_names_Array.addAll(resources_names_Element.getAsJsonArray());
-                            }catch(Exception err){
-                                Log.e("MyCouch", "Got to resources_names "+err.getLocalizedMessage());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to resources_names " + err.getLocalizedMessage());
                             }
                             //resources_opened
                             Log.e("MyCouch", "Ended New Activity Resource -- ");
                             JsonArray resources_opened_Array = new JsonArray();
                             JsonElement resources_opened_Element = parser.parse(gson.toJson(cls_resources_opened));
-                            try{
+                            try {
                                 resources_opened_Array.addAll(resources_opened_Element.getAsJsonArray());
-                            }catch (Exception err){
+                            } catch (Exception err) {
                                 Log.e("MyCouch", "Opened resources null " + err.getMessage());
                                 err.printStackTrace();
                             }
@@ -1570,8 +1674,8 @@ public class FullscreenLogin extends AppCompatActivity {
                             jsonObject.add("resources_names", resources_names_Array);
                             jsonObject.add("resources_opened", resources_opened_Array);
                             dbClient.save(jsonObject);
-                        }catch(Exception err){
-                            Log.e("MyCouch", "Error writing new activity log data "+ err.getMessage());
+                        } catch (Exception err) {
+                            Log.e("MyCouch", "Error writing new activity log data " + err.getMessage());
                             err.printStackTrace();
                         }
                     }
@@ -1582,8 +1686,9 @@ public class FullscreenLogin extends AppCompatActivity {
                 return null;
             }
         }
+
         protected void onPostExecute(String message) {
-            try{
+            try {
                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                 Database activitylog = manager.getDatabase("activitylog");
                 activitylog.delete();
@@ -1593,11 +1698,12 @@ public class FullscreenLogin extends AppCompatActivity {
                 //String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
                 //Document doc = activitylog.getExistingDocument(m_WLANMAC);
                 //doc.delete();
-            }catch(Exception err){
+            } catch (Exception err) {
                 Log.e("MyCouch", "Error deleting document from activitylog " + err.getMessage());
             }
         }
     }
+
     private void updateUI() {
         try {
             Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
@@ -1613,7 +1719,7 @@ public class FullscreenLogin extends AppCompatActivity {
                 btnFeedback.setTextColor(getResources().getColor(R.color.ole_white));
                 btnFeedback.setEnabled(false);
             }
-        }catch(Exception err){
+        } catch (Exception err) {
 
         }
         /*runOnUiThread(new Runnable() {
@@ -1629,27 +1735,33 @@ public class FullscreenLogin extends AppCompatActivity {
             }
         });*/
     }
+
     class GetServerDate extends AsyncTask<String, Void, String> {
         private Exception exception;
         private String cls_dbName;
         private String cls_View;
-        public String getdbName(){
+
+        public String getdbName() {
             return cls_dbName;
         }
-        public void setdbName(String dbName){
+
+        public void setdbName(String dbName) {
             cls_dbName = dbName;
         }
-        public String getView(){
+
+        public String getView() {
             return cls_View;
         }
-        public void setView(String view){
+
+        public void setView(String view) {
             cls_View = view;
         }
+
         protected String doInBackground(String... urls) {
             Calendar c = Calendar.getInstance();
             SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy");
             Serverdate = df.format(c.getTime());
-            Log.e("MyCouch", "Current Date: "+Serverdate.toString());
+            Log.e("MyCouch", "Current Date: " + Serverdate.toString());
 
             /*try {
                 URI uri = URI.create(sys_oldSyncServerURL);
@@ -1681,6 +1793,7 @@ public class FullscreenLogin extends AppCompatActivity {
             */
             return "";
         }
+
         protected void onPostExecute(String message) {
             // TODO: check this.exception
             // TODO: do something with the message

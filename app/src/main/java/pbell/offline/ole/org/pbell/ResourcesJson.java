@@ -39,32 +39,33 @@ public class ResourcesJson {
     Context context;
     String query_serverURL;
     String query_databaseName;
-    String url_Scheme ,url_Host;
+    String url_Scheme, url_Host;
     int url_Port;
     String url_user, url_pwd;
     JsonObject json;
     CouchViews chViews = new CouchViews();
-    public Boolean ResourcesJson(String serverURL, String databaseName, final AndroidContext android_context){
+
+    public Boolean ResourcesJson(String serverURL, String databaseName, final AndroidContext android_context) {
         query_context = android_context;
 
-        query_serverURL= serverURL;
+        query_serverURL = serverURL;
         query_databaseName = databaseName;
         try {
-            Log.e("MyCouch", "URL = "+serverURL);
+            Log.e("MyCouch", "URL = " + serverURL);
             URI uri = URI.create(serverURL);
-             url_Scheme = uri.getScheme();
-             url_Host = uri.getHost();
-             url_Port = uri.getPort();
-             url_user = null;
-             url_pwd = null;
-            if(serverURL.contains("@")){
+            url_Scheme = uri.getScheme();
+            url_Host = uri.getHost();
+            url_Port = uri.getPort();
+            url_user = null;
+            url_pwd = null;
+            if (serverURL.contains("@")) {
                 String[] userinfo = uri.getUserInfo().split(":");
                 url_user = userinfo[0];
                 url_pwd = userinfo[1];
             }
 
             new Thread(new Runnable() {
-                public void run(){
+                public void run() {
                     try {
                         CouchDbClientAndroid dbClient = new CouchDbClientAndroid(query_databaseName, false, url_Scheme, url_Host, url_Port, url_user, url_pwd);
                         List<JsonObject> allDocs = dbClient.view("_all_docs").includeDocs(true).query(JsonObject.class);
@@ -75,7 +76,7 @@ public class ResourcesJson {
                         Database shadowresources = manager.getDatabase("shadowresources");
                         Map<String, Object> newshadowdocProperties;
                         String[] shdResIds = new String[allDocs.size()];
-                        for(x=0;x<allDocs.size();x++) {
+                        for (x = 0; x < allDocs.size(); x++) {
                             Log.e("MyCouch", "Remote View = " + allDocs.get(x));
                             JsonObject json = allDocs.get(x);
                             for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
@@ -84,7 +85,7 @@ public class ResourcesJson {
                                 }
                             }
                         }
-                        JsonObject jsonData=null;
+                        JsonObject jsonData = null;
                         for (String shdResId : shdResIds) {
                             if (!shdResId.contains("_design")) {
                                 jsonData = dbClient.find(JsonObject.class, shdResId);
@@ -122,7 +123,7 @@ public class ResourcesJson {
                             }
                         }
                         json = new JsonObject();
-                    }catch (Exception er){
+                    } catch (Exception er) {
                         er.printStackTrace();
                     }
 
@@ -130,7 +131,7 @@ public class ResourcesJson {
             }).start();
             return true;
         } catch (Exception e) {
-            Log.e("MyCouch", "Loading resources from remote to device"+e.toString());
+            Log.e("MyCouch", "Loading resources from remote to device" + e.toString());
             e.printStackTrace();
             return false;
         }

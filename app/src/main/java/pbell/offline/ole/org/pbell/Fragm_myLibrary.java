@@ -119,9 +119,9 @@ public class Fragm_myLibrary extends Fragment {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database shelf_db = manager.getExistingDatabase("shelf");
             Database shadowresources_db;
-            if(sys_appInDemoMode){
+            if (sys_appInDemoMode) {
                 shadowresources_db = manager.getExistingDatabase("shadowresources_demo");
-            }else{
+            } else {
                 shadowresources_db = manager.getExistingDatabase("shadowresources");
             }
             Database local_downloaded_resources = manager.getDatabase("resources");
@@ -146,7 +146,7 @@ public class Fragm_myLibrary extends Fragment {
                     Log.e(TAG, "Resource Title " + (String) shelf_properties.get("resourceTitle"));
                     String buildDecript = "Description not available.";
                     String buildRating = "0";
-                    String avgRating ="0";
+                    String avgRating = "0";
                     Boolean resourceDownloaded = false;
                     HashMap<String, String> map = new HashMap<>();
                     map.put(KEY_ID, myresId);
@@ -157,13 +157,13 @@ public class Fragm_myLibrary extends Fragment {
                         Document local_downloaded_doc = local_downloaded_resources.getExistingDocument(myresId);
 
                         Log.e(TAG, "Completed going to if " + myresTitile);
-                        if(shadowresources_doc!=null){
+                        if (shadowresources_doc != null) {
                             Map<String, Object> shadowresources_properties = shadowresources_doc.getProperties();
                             buildDecript = "Author : " + (String) shadowresources_properties.get("author") + "  Language : " + (String) shadowresources_properties.get("language") + " \n" +
                                     "  Resource Type : " + (String) shadowresources_properties.get("Medium") + " \n" +
                                     "Date Uploaded : " + (String) shadowresources_properties.get("uploadDate") + "  ";
                             buildRating = (((String) shadowresources_properties.get("averageRating")) == "") ? "2.2" : (String) shadowresources_properties.get("averageRating");
-                            avgRating =shadowresources_properties.get("averageRating").toString();
+                            avgRating = shadowresources_properties.get("averageRating").toString();
                             Log.e(TAG, "OBJECT FOUND - Item found in shadow resources " + myresTitile);
                         }
                         if (local_downloaded_doc != null) {
@@ -179,22 +179,22 @@ public class Fragm_myLibrary extends Fragment {
                     } catch (Exception err) {
                         Log.e(TAG, "ERROR NOT Found in shadow resources" + err.getMessage());
                         err.printStackTrace();
-                       // rsLstCnt++;
+                        // rsLstCnt++;
                     }
 
                     Document local_downloaded_doc = local_downloaded_resources.getExistingDocument(myresId);
-                    if(resourceDownloaded){
-                        map.put(KEY_RESOURCE_STATUS,"downloaded");
-                    }else{
-                        if(sys_appInDemoMode) {
+                    if (resourceDownloaded) {
+                        map.put(KEY_RESOURCE_STATUS, "downloaded");
+                    } else {
+                        if (sys_appInDemoMode) {
                             map.put(KEY_RESOURCE_STATUS, "downloaded");
-                        }else{
+                        } else {
                             map.put(KEY_RESOURCE_STATUS, "not downloaded");
                         }
                     }
                     map.put(KEY_DESCRIPTION, buildDecript);
                     map.put(KEY_DETAILS, myresId);
-                    map.put(KEY_FEEDBACK,myresId);
+                    map.put(KEY_FEEDBACK, myresId);
                     map.put(KEY_DELETE, myresId);
                     map.put(KEY_RATING, buildRating);
                     map.put(KEY_TOTALNUM_RATING, "Rating  (" + avgRating + ")");
@@ -257,7 +257,6 @@ public class Fragm_myLibrary extends Fragment {
         sys_servername = settings.getString("pf_server_name", " ");
         sys_serverversion = settings.getString("pf_server_version", " ");
     }
-
 
 
 }

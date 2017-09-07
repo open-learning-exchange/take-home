@@ -33,10 +33,10 @@ public class Loading_Screen extends AppCompatActivity {
         InputStream in = getResources().openRawResource(resource);
         String root = Environment.getExternalStorageDirectory().toString();
         File myDir = new File(root + "/ole_temp2");
-        if (!myDir.exists()){
+        if (!myDir.exists()) {
             myDir.mkdirs();
         }
-        File dst = new File(myDir,apkUrl);
+        File dst = new File(myDir, apkUrl);
         try {
             FileOutputStream out = new FileOutputStream(dst);
             byte[] buff = new byte[1024];
@@ -46,8 +46,8 @@ public class Loading_Screen extends AppCompatActivity {
             }
             in.close();
             out.close();
-            Log.e("tag", "Adobe Reader Copied "+ dst.toString());
-        }catch(Exception err){
+            Log.e("tag", "Adobe Reader Copied " + dst.toString());
+        } catch (Exception err) {
             err.printStackTrace();
         }
     }
