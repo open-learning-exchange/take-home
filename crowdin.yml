@@ -1,4 +1,9 @@
 files:
-  - source: app/src/main/res/values/string.xml
+  - source: app/src/main/res/values/*.xml
+    ignore:
+      - attrs
+      - colors
+      - dimens
+      - styles
     translation: >-
       app/src/main/res/values-%two_letters_code%-%three_letters_code%/%original_file_name%
