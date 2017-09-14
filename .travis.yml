@@ -111,12 +111,12 @@ deploy:
 
   provider: releases
 
-  file: TravisExample.apk
+  file: TakeHomeAPK.apk
   skip_cleanup: true
 
   on:
 
-    repo: harmittaa/travis-example-android
+    repo: open-learning-exchange/take-home
 
     tags: true
 
