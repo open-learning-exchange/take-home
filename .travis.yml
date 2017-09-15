@@ -41,7 +41,7 @@ android:
 
 script:
 
-- "./gradlew clean build connectedCheck -PdisablePreDex --stacktrace"
+- "./gradlew assembleRelease --stacktrace"
 
 before_deploy:
 
