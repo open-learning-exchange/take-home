@@ -80,6 +80,7 @@ before_install:
 before_script:
 
 #- echo no | android create avd --force -n test -t android-24 --abi google_apis/armeabi-v7a
+- echo android list targets
 - echo no | android create avd --force -n test -t "android-EMULATOR_API" --abi $ANDROID_ABI --tag $ANDROID_TAG
 
 - emulator -avd test -no-skin -no-audio -no-window &
