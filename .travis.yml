@@ -26,7 +26,7 @@ env:
 
  - ANDROID_BUILD_TOOLS=21.1.2
 
- - ANDROID_ABI=armeabi-v7a
+ - ANDROID_ABI=google_apis/armeabi-v7a
 
  - ANDROID_TAG=google_apis/armeabi-v7a
 
