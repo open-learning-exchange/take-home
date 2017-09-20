@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.StatFs;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
@@ -224,6 +225,51 @@ public class LogHouse {
             return false;
         }
     }
+
+    public void saveRating(Context context, int rate, String comment, String resourceId) {
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        Database resourceRating;
+        int doc_rating;
+        int doc_timesRated;
+        ArrayList<String> commentList = new ArrayList<>();
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            resourceRating = manager.getDatabase("resourcerating");
+            Document retrievedDocument = resourceRating.getExistingDocument(resourceId);
+            if (retrievedDocument != null) {
+                Map<String, Object> properties = retrievedDocument.getProperties();
+                if (properties.containsKey("sum")) {
+                    doc_rating = (int) properties.get("sum");
+                    doc_timesRated = (int) properties.get("timesRated");
+                    commentList = (ArrayList<String>) properties.get("comments");
+                    commentList.add(comment);
+                    Map<String, Object> newProperties = new HashMap<>();
+                    newProperties.putAll(retrievedDocument.getProperties());
+                    newProperties.put("sum", (doc_rating + rate));
+                    newProperties.put("timesRated", doc_timesRated + 1);
+                    newProperties.put("comments", commentList);
+                    retrievedDocument.putProperties(newProperties);
+                    updateActivityRatingResources(context, rate, resourceId);
+                    Toast.makeText(context, String.valueOf(rate), Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Document newdocument = resourceRating.getDocument(resourceId);
+                Map<String, Object> newProperties = new HashMap<>();
+                newProperties.put("sum", rate);
+                newProperties.put("timesRated", 1);
+                commentList.add(comment);
+                newProperties.put("comments", commentList);
+                newdocument.putProperties(newProperties);
+                /// todo check updating resource to see it works
+                updateActivityRatingResources(context, rate, resourceId);
+                Toast.makeText(context, String.valueOf(rate), Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception err) {
+            Log.e("MyCouch", "ERR : " + err.getMessage());
+        }
+    }
+
 
     public boolean updateActivityRatingResources(Context context, float rate, String resourceid) {
         restorePreferences(context);

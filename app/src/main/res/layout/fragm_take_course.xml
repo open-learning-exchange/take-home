@@ -43,7 +43,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Pneumonia and Fast Breathing"
+                        android:text=" "
                         android:textColor="@color/white"
                         android:textSize="18sp"
                         android:textStyle="bold" />
@@ -76,7 +76,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Step 10 of 29"
+                            android:text=" "
                             android:textAlignment="center"
                             android:textColor="@android:color/white"
                             android:textSize="12sp"
@@ -109,7 +109,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:paddingLeft="10dp"
-                    android:text="hello "
+                    android:text="Invalid course. Report to course manager "
                     android:textColor="@color/logo_blue"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -159,7 +159,8 @@
                     android:layout_weight="1"
                     android:background="@null"
                     android:text="Back"
-                    android:textColor="@color/white" />
+                    android:textColor="@color/white"
+                    android:visibility="invisible" />
 
             </LinearLayout>
 
@@ -182,7 +183,8 @@
                     android:layout_weight="1"
                     android:background="@drawable/rounded_corners_darkblue_btn"
                     android:text="Resources"
-                    android:textColor="@color/white" />
+                    android:textColor="@color/white"
+                    android:visibility="invisible" />
 
                 <Button
                     android:id="@+id/btnCourseTakeTest"
@@ -194,7 +196,8 @@
                     android:layout_weight="1"
                     android:background="@drawable/rounded_corners_darkblue_btn"
                     android:text="Take Test"
-                    android:textColor="@color/white" />
+                    android:textColor="@color/white"
+                    android:visibility="invisible" />
 
             </LinearLayout>
 
@@ -213,7 +216,8 @@
                     android:layout_weight="1"
                     android:background="@null"
                     android:text="Next"
-                    android:textColor="@color/white" />
+                    android:textColor="@color/white"
+                    android:visibility="invisible" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
