@@ -60,7 +60,7 @@
   <string name="txtWelcome">Welcome</string>
   <string name="txtDemo">Demo Mode</string>
   <string name="txtLogin">Login</string>
-  <string name="txt_Password">Passord</string>
+  <string name="txt_Password">Password</string>
   <string name="title_activity_test">test</string>
   <string name="btnSetup">Setup</string>
   <string name="fst_material_offline">This material is not on this device (offline). Do you want to open it online or download into this device.</string>
