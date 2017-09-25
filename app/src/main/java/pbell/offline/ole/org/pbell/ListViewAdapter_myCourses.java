@@ -278,17 +278,26 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
             AndroidContext androidContext = new AndroidContext(context);
             Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             database = manager.getDatabase("offline_course_resources");
-            Map<String, Object> properties = new HashMap<>();
-            properties.put("title", manualResTitle);
-            properties.put("openWith", manualResopenWith);
-            properties.put("localfile", "yes");
-            // properties.put("resourceType", manualResType);
-            Document document = database.getDocument(manualResId);
-            try {
-                document.putProperties(properties);
-            } catch (CouchbaseLiteException e) {
-                Log.e("MyCouch", "Cannot save document", e);
-            }
+
+            ///Document doc = database.getExistingDocument(manualResId);
+            //Map<String, Object> existing_properties = doc.getProperties();
+            //if(existing_properties == null){
+                Log.e(TAG, "File does not exist");
+                Map<String, Object> properties = new HashMap<>();
+                properties.put("title", manualResTitle);
+                properties.put("openWith", manualResopenWith);
+                properties.put("localfile", "yes");
+                // properties.put("resourceType", manualResType);
+                Document document = database.getDocument(manualResId);
+                try {
+                    document.putProperties(properties);
+                } catch (CouchbaseLiteException e) {
+                    Log.e(TAG, "Cannot save document", e);
+                }
+           // }else{
+           //     Log.e("MyCouch", "File already exist");
+           // }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -447,6 +456,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                             });
                         }
                     } else {
+                        Log.e(TAG, "Doesn't contain resource");
                         //// HTML Resources not supported
                         /*Log.e("MyCouch", "-- HTML NOT PART OF DOWNLOADS ");
                         htmlResourceList.add(OneByOneResID);
@@ -465,7 +475,6 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Download this resource error " + e.getMessage());
-
                 mListener.onCourseDownloadingProgress(OneByOneResTitle,"Please Wait","Downloading item");
                 mDialog.dismiss();
                 alertDialogOkay("Error downloading file, check connection and try again");
