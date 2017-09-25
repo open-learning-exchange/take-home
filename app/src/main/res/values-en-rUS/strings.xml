@@ -27,8 +27,8 @@
   <string name="syncURL_label">Sync server url</string>
   <string name="syncURL_saveButton">Save changes</string>
   <!-- Strings Sync URL -->
-  <string name="sync_LastSyncDate">Last sync date</string>
-  <string name="sync_Headen">Synchronize device with server</string>
+  <string name="sync_LastSyncDate">Last sync date/time</string>
+  <string name="sync_Headen">Synchronize data with server</string>
   <string name="sync_NowPush">Push Changes</string>
   <string name="sync_NowPull">Pull Changes</string>
   <string name="sync_EraseOldData">Wipe Clean</string>
@@ -40,13 +40,12 @@
   <string name="action_sign_in_short">Sign-in</string>
   <string name="error_incorrect_password">This password is incorrect</string>
   <string name="error_field_required">This field is required</string>
-  <string name="permission_rationale">\"Contacts permissions are needed for providing email completions.\"
-    </string>
+  <string name="permission_rationale">\"Contacts permissions are needed for providing email completions.\"    </string>
   <string name="title_activity_sync_device">Sync Device</string>
-  <string name="title_activity_new_sync">First Time Configuration</string>
-  <string name="sync_NowPullOnly">Synchronize With Server</string>
+  <string name="title_activity_new_sync">First-time configuration</string>
+  <string name="sync_NowPullOnly">Synchronize data with server</string>
   <string name="sync_CloseWindow">Close</string>
-  <string name="sync_DownloadResPersons">Download Resources</string>
+  <string name="sync_DownloadResPersons">Download resource</string>
   <string name="open_course">Open Course</string>
   <string name="title_activity_course">Course</string>
   <string name="bbtext_MyTutors">My Tutors</string>
@@ -61,7 +60,7 @@
   <string name="txtWelcome">Welcome</string>
   <string name="txtDemo">Demo Mode</string>
   <string name="txtLogin">Login</string>
-  <string name="txt_Password">Password</string>
+  <string name="txt_Password">Passord</string>
   <string name="title_activity_test">test</string>
   <string name="btnSetup">Setup</string>
   <string name="fst_material_offline">This material is not on this device (offline). Do you want to open it online or download into this device.</string>
