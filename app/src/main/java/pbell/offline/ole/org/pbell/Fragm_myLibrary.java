@@ -53,6 +53,7 @@ public class Fragm_myLibrary extends Fragment {
             sys_password, sys_usercouchId, sys_userfirstname, sys_userlastname,
             sys_usergender, sys_uservisits, sys_servername, sys_serverversion = "";
     Boolean sys_singlefilestreamdownload, sys_multiplefilestreamdownload;
+    Boolean sys_appInDemoMode;
     int sys_uservisits_Int = 0;
     AndroidContext androidContext;
     Manager manager;
@@ -117,7 +118,12 @@ public class Fragm_myLibrary extends Fragment {
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database shelf_db = manager.getExistingDatabase("shelf");
-            Database shadowresources_db = manager.getExistingDatabase("shadowresources");
+            Database shadowresources_db;
+            if (sys_appInDemoMode) {
+                shadowresources_db = manager.getExistingDatabase("shadowresources_demo");
+            } else {
+                shadowresources_db = manager.getExistingDatabase("shadowresources");
+            }
             Database local_downloaded_resources = manager.getDatabase("resources");
             Query orderedQuery = chViews.ReadShelfByIdView(shelf_db).createQuery();
             orderedQuery.setDescending(true);
@@ -140,7 +146,7 @@ public class Fragm_myLibrary extends Fragment {
                     Log.e(TAG, "Resource Title " + (String) shelf_properties.get("resourceTitle"));
                     String buildDecript = "Description not available.";
                     String buildRating = "0";
-                    String avgRating ="0";
+                    String avgRating = "0";
                     Boolean resourceDownloaded = false;
                     HashMap<String, String> map = new HashMap<>();
                     map.put(KEY_ID, myresId);
@@ -151,13 +157,13 @@ public class Fragm_myLibrary extends Fragment {
                         Document local_downloaded_doc = local_downloaded_resources.getExistingDocument(myresId);
 
                         Log.e(TAG, "Completed going to if " + myresTitile);
-                        if(shadowresources_doc!=null){
+                        if (shadowresources_doc != null) {
                             Map<String, Object> shadowresources_properties = shadowresources_doc.getProperties();
                             buildDecript = "Author : " + (String) shadowresources_properties.get("author") + "  Language : " + (String) shadowresources_properties.get("language") + " \n" +
                                     "  Resource Type : " + (String) shadowresources_properties.get("Medium") + " \n" +
                                     "Date Uploaded : " + (String) shadowresources_properties.get("uploadDate") + "  ";
                             buildRating = (((String) shadowresources_properties.get("averageRating")) == "") ? "2.2" : (String) shadowresources_properties.get("averageRating");
-                            avgRating =shadowresources_properties.get("averageRating").toString();
+                            avgRating = shadowresources_properties.get("averageRating").toString();
                             Log.e(TAG, "OBJECT FOUND - Item found in shadow resources " + myresTitile);
                         }
                         if (local_downloaded_doc != null) {
@@ -173,18 +179,22 @@ public class Fragm_myLibrary extends Fragment {
                     } catch (Exception err) {
                         Log.e(TAG, "ERROR NOT Found in shadow resources" + err.getMessage());
                         err.printStackTrace();
-                       // rsLstCnt++;
+                        // rsLstCnt++;
                     }
 
                     Document local_downloaded_doc = local_downloaded_resources.getExistingDocument(myresId);
-                    if(resourceDownloaded){
-                        map.put(KEY_RESOURCE_STATUS,"downloaded");
-                    }else{
-                        map.put(KEY_RESOURCE_STATUS,"not downloaded");
+                    if (resourceDownloaded) {
+                        map.put(KEY_RESOURCE_STATUS, "downloaded");
+                    } else {
+                        if (sys_appInDemoMode) {
+                            map.put(KEY_RESOURCE_STATUS, "downloaded");
+                        } else {
+                            map.put(KEY_RESOURCE_STATUS, "not downloaded");
+                        }
                     }
                     map.put(KEY_DESCRIPTION, buildDecript);
                     map.put(KEY_DETAILS, myresId);
-                    map.put(KEY_FEEDBACK,myresId);
+                    map.put(KEY_FEEDBACK, myresId);
                     map.put(KEY_DELETE, myresId);
                     map.put(KEY_RATING, buildRating);
                     map.put(KEY_TOTALNUM_RATING, "Rating  (" + avgRating + ")");
@@ -241,12 +251,12 @@ public class Fragm_myLibrary extends Fragment {
         sys_usergender = settings.getString("pf_usergender", "");
         sys_uservisits = settings.getString("pf_uservisits", "");
         sys_uservisits_Int = settings.getInt("pf_uservisits_Int", 0);
+        sys_appInDemoMode = settings.getBoolean("pf_appindemomode", false);
         sys_singlefilestreamdownload = settings.getBoolean("pf_singlefilestreamdownload", true);
         sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload", true);
         sys_servername = settings.getString("pf_server_name", " ");
         sys_serverversion = settings.getString("pf_server_version", " ");
     }
-
 
 
 }

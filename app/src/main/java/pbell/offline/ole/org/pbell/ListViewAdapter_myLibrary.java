@@ -75,16 +75,18 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
     private ProgressDialog mDialog;
     private long resources_enqueue;
     boolean singleFileDownload = true;
-    int universalHtmlCnt=0;
+    int universalHtmlCnt = 0;
     public static final String PREFS_NAME = "MyPrefsFile";
 
     /// String
     String sys_oldSyncServerURL, sys_username, sys_lastSyncDate,
             sys_password, sys_usercouchId, sys_userfirstname, sys_userlastname,
             sys_usergender, sys_uservisits, sys_servername, sys_serverversion = "";
+
+    Boolean sys_appInDemoMode;
     String OneByOneResID, OneByOneResTitle;
-    String openWith ,title ,author,language,resourceType,uploadDate ;
-    JsonArray subject ;
+    String openWith, title, author, language, resourceType, uploadDate;
+    JsonArray subject;
     SharedPreferences settings;
     List<String> resIDArrayList = new ArrayList<>();
     List<String> htmlResFileList = new ArrayList<>();
@@ -92,15 +94,14 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
     LogHouse logHouse = new LogHouse();
     protected int _splashTime = 5000;
     private Thread splashTread;
-    Context contextTry =null;
+    Context contextTry = null;
     String openedResourceId, openedResourceTitle = "";
     boolean openedResource = false;
 
 
-
     private String downloadCompleteIntentName = DownloadManager.ACTION_DOWNLOAD_COMPLETE;
     private IntentFilter downloadCompleteIntentFilter = new IntentFilter(downloadCompleteIntentName);
-    private  OnResouceListListener mListener;
+    private OnResouceListListener mListener;
 
     public ListViewAdapter_myLibrary(final List<String> resIDsList, Activity a, Context cont, ArrayList<HashMap<String, String>> d) {
         resIDArrayList.addAll(resIDsList);
@@ -157,7 +158,6 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
         this.mListener = null;
         mListener = (OnResouceListListener) cont;
     }
-
 
 
     public int getCount() {
@@ -286,10 +286,11 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
         sys_usergender = settings.getString("pf_usergender", "");
         sys_uservisits = settings.getString("pf_uservisits", "");
         sys_servername = settings.getString("pf_server_name", " ");
+        sys_appInDemoMode = settings.getBoolean("pf_appindemomode", false);
         sys_serverversion = settings.getString("pf_server_version", " ");
     }
 
-    public void createResourceDoc(String manualResId, String manualResTitle, String manualResopenWith, String manualauthor,String manuallanguage,JsonArray manualsubject,String manualresourceType,String manualuploadDate) {
+    public void createResourceDoc(String manualResId, String manualResTitle, String manualResopenWith, String manualauthor, String manuallanguage, JsonArray manualsubject, String manualresourceType, String manualuploadDate) {
         Database database = null;
         try {
             AndroidContext androidContext = new AndroidContext(context);
@@ -306,10 +307,10 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             properties.put("uploadDate", manualuploadDate);
             // properties.put("resourceType", manualResType);
             Document document = database.getDocument(manualResId);
-            Log.e(TAG, "Saving document called " + manualResTitle + "- "+ manualResId);
+            Log.e(TAG, "Saving document called " + manualResTitle + "- " + manualResId);
             try {
                 document.putProperties(properties);
-                Log.e(TAG, "Saved document called " + manualResTitle + "- "+ manualResId);
+                Log.e(TAG, "Saved document called " + manualResTitle + "- " + manualResId);
             } catch (Exception e) {
                 Log.e(TAG, "Cannot save document" + e.getLocalizedMessage());
                 e.printStackTrace();
@@ -321,6 +322,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
     }
 
     public void buttonAction(String resourceId, String action) {
+        restorePreferences(activity);
         switch (action) {
             case "Delete":
                 break;
@@ -334,11 +336,19 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
                 mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
                 mDialog.setMessage("Please wait...");
                 mDialog.setCancelable(true);
-                mDialog.show();
-                if (openResources(resourceId)) {
-                    Log.i(TAG, "Open Clicked ********** " + resourceId);
+//////                mDialog.show();
+                if (sys_appInDemoMode) {
+                    if (openDemoResources(resourceId)) {
+                        Log.i(TAG, "Demo Mode Open Clicked ********** " + resourceId);
+                    } else {
+                        Log.i(TAG, "Demo Mode Open   ********** " + resourceId);
+                    }
                 } else {
-                    Log.i(TAG, "Open  ********** " + resourceId);
+                    if (openResources(resourceId)) {
+                        Log.i(TAG, "Open Clicked ********** " + resourceId);
+                    } else {
+                        Log.i(TAG, "Open  ********** " + resourceId);
+                    }
                 }
                 break;
             case "Download":
@@ -370,8 +380,8 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
         request.setDestinationInExternalPublicDir("ole_temp", FileName);
         // get download service and enqueue file
         mDialog.setMessage("Downloading  \" " + OneByOneResTitle + " \" . please wait...");
- //       resources_downloadManager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
- //       resources_enqueue = resources_downloadManager.enqueue(request);
+        //       resources_downloadManager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+        //       resources_enqueue = resources_downloadManager.enqueue(request);
 
         DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
         resources_enqueue = downloadManager.enqueue(request);
@@ -379,6 +389,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
 
     public interface OnResouceListListener {
         void onResourceDownloadCompleted(String CourseId, Object data);
+
         void onResourceOpened(String resourceId, String resourceTitle);
     }
 
@@ -386,7 +397,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
         @Override
         protected Boolean doInBackground(String... params) {
             try {
-                Log.e(TAG,"URL " + sys_oldSyncServerURL);
+                Log.e(TAG, "URL " + sys_oldSyncServerURL);
                 URI uri = URI.create(sys_oldSyncServerURL);
                 String url_Scheme = uri.getScheme();
                 String url_Host = uri.getHost();
@@ -430,7 +441,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
                             });
                         }
                     } else {
-                        try{
+                        try {
                             JSONObject _attachments = new JSONObject(jsonAttachments.toString());
                             Iterator<String> iter = _attachments.keys();
                             while (iter.hasNext()) {
@@ -442,7 +453,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
                                     e.printStackTrace();
                                 }
                             }
-                        }catch(Exception err){
+                        } catch (Exception err) {
                             mDialog.dismiss();
                             alertDialogOkay("Download was not successful. Check the connection to the server, resource metadata or contact manager for assistance ");
                         }
@@ -459,7 +470,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
                                         if (!fileDir.mkdirs()) {
                                             Log.i(TAG, "Problem creating folders" + fileDir.getAbsolutePath());
                                         }
-                                    }else{
+                                    } else {
                                         Log.i(TAG, "Folders exists" + fileDir.getAbsolutePath());
                                     }
                                 } catch (Exception err) {
@@ -470,7 +481,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
                             activity.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                   new DownloadHTMLFileFromURL().execute(sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + htmlResFileList.get(0));
+                                    new DownloadHTMLFileFromURL().execute(sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + htmlResFileList.get(0));
                                 }
                             });
                         } catch (Exception err) {
@@ -494,6 +505,171 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
         }
     }
 
+    public Boolean openDemoResources(String id) {
+        String resourceIdTobeOpened = id;
+        Log.d(TAG, "Trying to open resource " + id);
+        try {
+            AndroidContext androidContext = new AndroidContext(context);
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database res_Db = manager.getExistingDatabase("shadowresources_demo");
+            Document res_doc = res_Db.getExistingDocument(resourceIdTobeOpened);
+            openWith = (String) res_doc.getProperty("openWith");
+            String openResName = (String) res_doc.getProperty("title");
+            openedResourceId = resourceIdTobeOpened;
+            openedResourceTitle = openResName;
+            ///openFromDiskDirectly = true;
+            logHouse.updateActivityOpenedResources(context, sys_usercouchId, resourceIdTobeOpened, openResName);
+            Log.e("MYAPP", " member opening resource  = " + resourceIdTobeOpened + " and Open with " + openWith);
+            ///        List<String> attmentNames = res_doc.getCurrentRevision().getAttachmentNames();
+            //// PDF and Bell-Reader
+            if (openWith.equalsIgnoreCase("PDF.js") || (openWith.equalsIgnoreCase("Bell-Reader"))) {
+                Log.e(TAG, " Command  name -:  " + resourceIdTobeOpened);
+                String filenameOnly = "";
+                String root = Environment.getExternalStorageDirectory().toString();
+                File myDir = new File(root + "/ole_temp");
+                if (!myDir.exists()) {
+                    myDir.mkdirs();
+                }
+                for (File f : myDir.listFiles()) {
+                    if (f.isFile()) {
+                        if (f.getName().indexOf(".") > 0) {
+                            filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
+                        }
+                        Log.e(TAG, " File name -:  " + f.getName() + " Filename only " + filenameOnly);
+                        if (filenameOnly.equalsIgnoreCase(resourceIdTobeOpened)) {
+                            try {
+                                mDialog.dismiss();
+                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                intent.setPackage("com.adobe.reader");
+                                intent.setDataAndType(Uri.fromFile(f), "application/pdf");
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                context.startActivity(intent);
+                            } catch (Exception err) {
+                                err.printStackTrace();
+                                myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
+                                File dst = new File(myDir, "adobe_reader.apk");
+                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                context.startActivity(intent);
+                            }
+                        }
+                    }
+                }
+////MP3
+            } else if (openWith.equalsIgnoreCase("MP3")) {
+                Log.e("MyCouch", " Command Video name -:  " + resourceIdTobeOpened);
+                String filenameOnly = "";
+                String root = Environment.getExternalStorageDirectory().toString();
+                File myDir = new File(root + "/ole_temp");
+                for (File f : myDir.listFiles()) {
+                    if (f.isFile()) {
+                        if (f.getName().indexOf(".") > 0) {
+                            filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
+                        }
+                        Log.e("MyCouch", " File name -:  " + f.getName() + " Filename only " + filenameOnly);
+                        if (filenameOnly.equalsIgnoreCase(resourceIdTobeOpened)) {
+                            mDialog.dismiss();
+                            Intent intent = new Intent();
+                            intent.setAction(Intent.ACTION_VIEW);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(f).toString());
+                            String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                            intent.setDataAndType(Uri.fromFile(f), mimetype);
+                            context.startActivity(intent);
+                        }
+                    }
+                }
+///// VIDEO or Video Book Player
+            } else if (openWith.equalsIgnoreCase("Flow Video Player") || (openWith.equalsIgnoreCase("Native Video"))) {
+                Log.e("MyCouch", " Command Video name -:  " + resourceIdTobeOpened);
+                String filenameOnly = "";
+                String root = Environment.getExternalStorageDirectory().toString();
+                File myDir = new File(root + "/ole_temp");
+                for (File f : myDir.listFiles()) {
+                    if (f.isFile()) {
+                        if (f.getName().indexOf(".") > 0) {
+                            filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
+                        }
+                        Log.e("MyCouch", " File name -:  " + f.getName() + " Filename only " + filenameOnly);
+                        if (filenameOnly.equalsIgnoreCase(resourceIdTobeOpened)) {
+                            mDialog.dismiss();
+                            Intent intent = new Intent();
+                            intent.setAction(Intent.ACTION_VIEW);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            String extension = android.webkit.MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(f).toString());
+                            String mimetype = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+                            intent.setDataAndType(Uri.fromFile(f), mimetype);
+                            context.startActivity(intent);
+                        }
+                    }
+                }
+            }
+///// HTML
+            else if (openWith.equalsIgnoreCase("HTML")) {
+                Log.e(TAG, " Command  name -:  " + resourceIdTobeOpened);
+                String filenameOnly = "";
+                String root = Environment.getExternalStorageDirectory().toString();
+                File myDir = new File(root + "/ole_temp/" + resourceIdTobeOpened);
+                for (File f : myDir.listFiles()) {
+                    if (f.isFile()) {
+                        if (f.getName().indexOf(".") > 0) {
+                            filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
+                        }
+                        Log.e(TAG, " File name -:  " + f.getName() + " Filename only " + filenameOnly);
+                        if (filenameOnly.equalsIgnoreCase("index")) {
+                            try {
+                                mDialog.dismiss();
+                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                intent.setPackage("org.mozilla.firefox");
+                                intent.setDataAndType(Uri.parse(f.getAbsolutePath()), "text/html");
+                                intent.setComponent(new ComponentName("org.mozilla.firefox", "org.mozilla.firefox.App"));
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                context.startActivity(intent);
+                                break;
+                            } catch (Exception err) {
+                                Log.e("Error", err.getMessage());
+                                myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
+                                File dst = new File(myDir, "firefox_49_0_multi_android.apk");
+                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                context.startActivity(intent);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+
+
+
+
+               /* indexFilePath = null;
+                if (attmentNames.size() > 1) {
+                    for (int cnt = 0; cnt < attmentNames.size(); cnt++) {
+                        downloadHTMLContent(resourceIdTobeOpened, (String) attmentNames.get(cnt));
+                    }
+                    if (indexFilePath != null) {
+                        openHTML(indexFilePath);
+                    }
+                } else {
+                    openImage(resourceIdTobeOpened, (String) attmentNames.get(0), getExtension(attmentNames.get(0)));
+                }*/
+//// PDF
+            } else if (openWith.equalsIgnoreCase("Just download")) {
+                //// Todo work to get just download
+            } else if (openWith.equalsIgnoreCase("BeLL Video Book Player")) {
+            }
+            sendResourceRatingFeedback(openedResourceId);
+        } catch (Exception Er) {
+            Log.d("MyCouch", "Opening resource error " + Er.getMessage());
+            Er.printStackTrace();
+        }
+        return true;
+    }
+
+
     public Boolean openResources(String id) {
         String resourceIdTobeOpened = id;
         Log.d(TAG, "Trying to open resource " + id);
@@ -510,8 +686,8 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             logHouse.updateActivityOpenedResources(context, sys_usercouchId, resourceIdTobeOpened, openResName);
             Log.e("MYAPP", " member opening resource  = " + resourceIdTobeOpened + " and Open with " + openWith);
             List<String> attmentNames = res_doc.getCurrentRevision().getAttachmentNames();
- //// PDF and Bell-Reader
-             if (openWith.equalsIgnoreCase("PDF.js") || (openWith.equalsIgnoreCase("Bell-Reader"))) {
+            //// PDF and Bell-Reader
+            if (openWith.equalsIgnoreCase("PDF.js") || (openWith.equalsIgnoreCase("Bell-Reader"))) {
                 Log.e(TAG, " Command  name -:  " + resourceIdTobeOpened);
                 String filenameOnly = "";
                 String root = Environment.getExternalStorageDirectory().toString();
@@ -593,39 +769,39 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             }
 ///// HTML
             else if (openWith.equalsIgnoreCase("HTML")) {
-                 Log.e(TAG, " Command  name -:  " + resourceIdTobeOpened);
-                 String filenameOnly = "";
-                 String root = Environment.getExternalStorageDirectory().toString();
-                 File myDir = new File(root + "/ole_temp/"+resourceIdTobeOpened);
-                 for (File f : myDir.listFiles()) {
-                     if (f.isFile()) {
-                         if (f.getName().indexOf(".") > 0) {
-                             filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
-                         }
-                         Log.e(TAG, " File name -:  " + f.getName() + " Filename only " + filenameOnly);
-                         if (filenameOnly.equalsIgnoreCase("index")) {
-                             try{
-                                 mDialog.dismiss();
-                                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                                 intent.setPackage("org.mozilla.firefox");
-                                 intent.setDataAndType(Uri.parse(f.getAbsolutePath()),"text/html");
-                                 intent.setComponent(new ComponentName("org.mozilla.firefox", "org.mozilla.firefox.App"));
-                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                 context.startActivity(intent);
-                                 break ;
-                             }catch(Exception err){
-                                 Log.e("Error", err.getMessage());
-                                 myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
-                                 File dst = new File(myDir,"firefox_49_0_multi_android.apk");
-                                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                                 intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
-                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                 context.startActivity(intent);
-                                 break ;
-                             }
-                         }
-                     }
-                 }
+                Log.e(TAG, " Command  name -:  " + resourceIdTobeOpened);
+                String filenameOnly = "";
+                String root = Environment.getExternalStorageDirectory().toString();
+                File myDir = new File(root + "/ole_temp/" + resourceIdTobeOpened);
+                for (File f : myDir.listFiles()) {
+                    if (f.isFile()) {
+                        if (f.getName().indexOf(".") > 0) {
+                            filenameOnly = f.getName().substring(0, f.getName().lastIndexOf("."));
+                        }
+                        Log.e(TAG, " File name -:  " + f.getName() + " Filename only " + filenameOnly);
+                        if (filenameOnly.equalsIgnoreCase("index")) {
+                            try {
+                                mDialog.dismiss();
+                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                intent.setPackage("org.mozilla.firefox");
+                                intent.setDataAndType(Uri.parse(f.getAbsolutePath()), "text/html");
+                                intent.setComponent(new ComponentName("org.mozilla.firefox", "org.mozilla.firefox.App"));
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                context.startActivity(intent);
+                                break;
+                            } catch (Exception err) {
+                                Log.e("Error", err.getMessage());
+                                myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
+                                File dst = new File(myDir, "firefox_49_0_multi_android.apk");
+                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                context.startActivity(intent);
+                                break;
+                            }
+                        }
+                    }
+                }
 
 
 
@@ -645,9 +821,8 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
 //// PDF
             } else if (openWith.equalsIgnoreCase("Just download")) {
                 //// Todo work to get just download
+            } else if (openWith.equalsIgnoreCase("BeLL Video Book Player")) {
             }
-             else if (openWith.equalsIgnoreCase("BeLL Video Book Player")) {
-             }
             sendResourceRatingFeedback(openedResourceId);
         } catch (Exception Er) {
             Log.d("MyCouch", "Opening resource error " + Er.getMessage());
@@ -656,7 +831,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
     }
 
     ////////// Rating
-    public void sendResourceRatingFeedback(String id){
+    public void sendResourceRatingFeedback(String id) {
         try {
             AndroidContext androidContext = new AndroidContext(context);
             Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
@@ -665,8 +840,8 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             String openResName = (String) res_doc.getProperty("title");
             openedResourceId = id;
             openedResourceTitle = openResName;
-            mListener.onResourceOpened(openedResourceId,openedResourceTitle);
-        }catch(Exception err){
+            mListener.onResourceOpened(openedResourceId, openedResourceTitle);
+        } catch (Exception err) {
             Log.d("MyCouch", "Sending feedback on resource error " + err.getMessage());
         }
     }
@@ -676,7 +851,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
 
         /**
          * Before starting background thread
-         * */
+         */
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -685,7 +860,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
 
         /**
          * Downloading file in background thread
-         * */
+         */
         @Override
         protected String doInBackground(String... f_url) {
             int count;
@@ -696,7 +871,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
                 conection.connect();
                 int lenghtOfFile = conection.getContentLength();
                 InputStream input = new BufferedInputStream(url.openStream(), 8192);
-                File myFileWithDir = new File(root + "/ole_temp/"+OneByOneResID+"/"+htmlResFileList.get(universalHtmlCnt));
+                File myFileWithDir = new File(root + "/ole_temp/" + OneByOneResID + "/" + htmlResFileList.get(universalHtmlCnt));
                 OutputStream output = new FileOutputStream(myFileWithDir);
                 byte data[] = new byte[1024];
                 long total = 0;
@@ -715,16 +890,17 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             }
             return null;
         }
+
         /**
          * After completing background task
-         * **/
+         **/
         @Override
         protected void onPostExecute(String file_url) {
             System.out.println("Downloaded");
-            if(universalHtmlCnt < htmlResFileList.size()-1){
-                universalHtmlCnt ++;
-                new DownloadHTMLFileFromURL().execute(sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/"+ htmlResFileList.get(universalHtmlCnt) );
-            }else {
+            if (universalHtmlCnt < htmlResFileList.size() - 1) {
+                universalHtmlCnt++;
+                new DownloadHTMLFileFromURL().execute(sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + htmlResFileList.get(universalHtmlCnt));
+            } else {
                 ///mDialog.dismiss();
                 createResourceDoc(OneByOneResID, title, openWith, author, language, subject, resourceType, uploadDate);
                 mListener.onResourceDownloadCompleted(OneByOneResTitle, resIDArrayList);
@@ -732,8 +908,6 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
         }
 
     }
-
-
 
 
 }
