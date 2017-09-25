@@ -12,14 +12,13 @@
   <string name="title_activity_login">Take-Home</string>
   <!-- Related to First Time Dialog -->
   <string name="fst_welcome">Take Home</string>
-  <string name="fst_instruction">It appears your device hasn\'t yet been linked to the BeLL network.
-        If you know your BeLL server\'s url, please enter it bellow or contact your coach / group leader for assistance</string>
+  <string name="fst_instruction">It appears your device hasn\'t yet been linked to the BeLL network.         If you know your BeLL server\'s url, please enter it bellow or contact your coach / group leader for assistance</string>
   <string name="fst_syncurl">BeLL Server Url</string>
-  <string name="fst_proceed">Save and Proceed</string>
+  <string name="fst_proceed">Agree and Proceed</string>
   <!-- Bottom Bar Menu related to Dashboard -->
   <string name="bbtext_Achievments">Achievements</string>
   <string name="bbtext_MyLibrary">myLibrary</string>
-  <string name="bbtext_Courses">Courses Progress</string>
+  <string name="bbtext_Courses">My Courses Progress</string>
   <string name="bbtext_Meetups">myMeetups</string>
   <!-- Strings related to Fragment 0 / Achievements -->
   <string name="frg1_Visits">Visits</string>
