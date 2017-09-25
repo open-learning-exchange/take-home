@@ -69,7 +69,7 @@ public class Fragm_myCourses extends Fragment {
     Manager manager;
 
     CouchViews chViews = new CouchViews();
-    String resourceIdList[], resourceTitleList[],courseIdList[],courseTitleList[];
+    String resourceIdList[], resourceTitleList[], courseIdList[], courseTitleList[];
     int rsLstCnt, csLstCnt = 0;
     static Intent intent;
     Database database;
@@ -187,6 +187,7 @@ public class Fragm_myCourses extends Fragment {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
     public void LoadMyCourses() {
         try {
             /// Todo remove bellow code
@@ -210,7 +211,6 @@ public class Fragm_myCourses extends Fragment {
             }*/
 
 
-
             //maximus
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database course_db = manager.getExistingDatabase("courses");
@@ -220,10 +220,10 @@ public class Fragm_myCourses extends Fragment {
             courseIdList = new String[results.getCount()];
             courseTitleList = new String[results.getCount()];
             csLstCnt = 0;
-            String mycourseId="";
+            String mycourseId = "";
             String mycourseTitile;
-            String mycourseForgndColor="#000000";
-            String mycourseBackgndColor="#FFFFFF";
+            String mycourseForgndColor = "#000000";
+            String mycourseBackgndColor = "#FFFFFF";
             for (Iterator<QueryRow> it = results; it.hasNext(); ) {
                 QueryRow row = it.next();
                 String docId = (String) row.getValue();
@@ -251,8 +251,8 @@ public class Fragm_myCourses extends Fragment {
                             doc = coursestep_Db.getExistingDocument(docId);
                             Map<String, Object> coursestep_properties = doc.getProperties();
                             if (mycourseId.equals((String) coursestep_properties.get("courseId"))) {
-                               course_step_resourceId = (ArrayList) coursestep_properties.get("resourceId");
-                                Log.e(TAG, "Course Step title " + ((String) coursestep_properties.get("title")) + " Step ID "+ docId);
+                                course_step_resourceId = (ArrayList) coursestep_properties.get("resourceId");
+                                Log.e(TAG, "Course Step title " + ((String) coursestep_properties.get("title")) + " Step ID " + docId);
                                 Log.e(TAG, "Course Step Resources - " + course_step_resourceId.size() + " ");
                                 courseStepsCounter++;
                             }
@@ -308,10 +308,10 @@ public class Fragm_myCourses extends Fragment {
                             if (local_downloaded_doc != null) {
                                 map.put(KEY_RESOURCE_STATUS, "downloaded");
                             } else {
-                                if(course_step_resourceId.size()<1) {
+                                if (course_step_resourceId.size() < 1) {
                                     map.put(KEY_RESOURCE_STATUS, "downloaded");
                                     createCourseDoc((String) properties.get("_id"), course_step_resourceId.size());
-                                }else{
+                                } else {
                                     map.put(KEY_RESOURCE_STATUS, "not downloaded");
                                 }
                             }
@@ -329,6 +329,7 @@ public class Fragm_myCourses extends Fragment {
             e.printStackTrace();
         }
     }
+
     public int getIconType(String myresExt) {
 
         int img = R.drawable.web;
@@ -354,6 +355,7 @@ public class Fragm_myCourses extends Fragment {
         }
         return img;
     }
+
     public void createCourseDoc(String manualCourseId, int numberOfSteps) {
         Database database = null;
         try {
@@ -367,13 +369,14 @@ public class Fragm_myCourses extends Fragment {
             try {
                 document.putProperties(properties);
             } catch (CouchbaseLiteException e) {
-                Log.e(TAG, "Cannot course details in offline courses"+ e.getMessage());
+                Log.e(TAG, "Cannot course details in offline courses" + e.getMessage());
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
+
     public void restorePref() {
         // Restore preferences
         settings = getActivity().getSharedPreferences(PREFS_NAME, 0);
@@ -393,7 +396,7 @@ public class Fragm_myCourses extends Fragment {
         sys_serverversion = settings.getString("pf_server_version", " ");
     }
 
-    private void crossfadeShowLoading(final View fromView,View toView) {
+    private void crossfadeShowLoading(final View fromView, View toView) {
 
         // Set the content view to 0% opacity but visible, so that it is visible
         // (but fully transparent) during the animation.

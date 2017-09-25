@@ -21,7 +21,7 @@
             android:id="@+id/fullscreen_content_controls"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="bottom|center_horizontal"
+            android:layout_gravity="center_vertical|fill_vertical|center_horizontal|fill_horizontal|fill"
             android:orientation="vertical"
             android:weightSum="6"
             tools:ignore="UselessParent">
@@ -35,7 +35,7 @@
             <!-- Forth layout bar -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
+                android:layout_height="match_parent"
                 android:layout_marginBottom="1dp"
                 android:layout_marginEnd="1dp"
                 android:layout_marginLeft="1dp"
@@ -48,17 +48,10 @@
                 android:weightSum="4">
 
                 <LinearLayout
+                    android:id="@+id/blueBg"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="0.8"
-                    android:orientation="vertical">
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="2.2"
+                    android:layout_height="fill_parent"
+                    android:layout_weight="1.5"
                     android:background="@drawable/ui_login_02"
                     android:orientation="vertical"
                     android:padding="10dp"
@@ -67,8 +60,8 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_marginLeft="80dp"
-                        android:layout_marginRight="80dp"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp"
                         android:orientation="vertical"
                         android:weightSum="9">
 
@@ -189,7 +182,7 @@
                                         android:id="@+id/textView21"
                                         android:layout_width="match_parent"
                                         android:layout_height="0dp"
-                                        android:layout_weight="1"
+                                        android:layout_weight="0.7"
                                         android:gravity="center_vertical"
                                         android:text="@string/prompt_username"
                                         android:textColor="@color/ole_white" />
@@ -204,10 +197,9 @@
                                             android:id="@+id/txtUsername"
                                             android:layout_width="fill_parent"
                                             android:layout_height="match_parent"
-                                            android:background="@null"
+                                            android:backgroundTint="@android:color/holo_blue_dark"
                                             android:inputType="text|textPersonName"
                                             android:paddingLeft="5dp"
-                                            android:singleLine="true"
                                             android:textColor="@android:color/white"
                                             android:textColorHint="?attr/colorControlHighlight" />
 
@@ -217,8 +209,8 @@
                                         android:id="@+id/textView22"
                                         android:layout_width="match_parent"
                                         android:layout_height="0dp"
-                                        android:layout_weight="1"
-                                        android:gravity="center_vertical"
+                                        android:layout_weight="0.7"
+                                        android:gravity="top|center_vertical"
                                         android:paddingTop="5dp"
                                         android:text="@string/txt_Password"
                                         android:textColor="@color/ole_white" />
@@ -233,10 +225,9 @@
                                             android:id="@+id/txtPassword"
                                             android:layout_width="fill_parent"
                                             android:layout_height="match_parent"
-                                            android:background="@null"
+                                            android:backgroundTint="@android:color/holo_blue_dark"
                                             android:inputType="textPassword"
                                             android:paddingLeft="5dp"
-                                            android:singleLine="true"
                                             android:textColor="@android:color/white"
                                             android:textColorHint="?attr/colorControlHighlight" />
 
@@ -249,7 +240,7 @@
                                 android:id="@+id/ly3"
                                 android:layout_width="match_parent"
                                 android:layout_height="0dp"
-                                android:layout_weight="0.7"
+                                android:layout_weight="1.2"
                                 android:orientation="horizontal"
                                 android:weightSum="2">
 
@@ -257,9 +248,10 @@
                                     android:id="@+id/btnSignIn"
                                     android:layout_width="0dp"
                                     android:layout_height="match_parent"
-                                    android:layout_weight="0.6"
+                                    android:layout_weight="0.8"
                                     android:background="@null"
-                                    android:gravity="bottom|left"
+                                    android:gravity="left"
+                                    android:paddingRight="2dp"
                                     android:text="@string/action_sign_in_short"
                                     android:textAllCaps="false"
                                     android:textColor="@color/ole_white" />
@@ -268,8 +260,8 @@
                                     android:id="@+id/textView17"
                                     android:layout_width="0dp"
                                     android:layout_height="match_parent"
-                                    android:layout_weight="0.1"
-                                    android:gravity="bottom|center_horizontal|center"
+                                    android:layout_weight="0.4"
+                                    android:gravity="top|center_horizontal|center"
                                     android:text="|"
                                     android:textColor="@color/ole_white" />
 
@@ -277,10 +269,11 @@
                                     android:id="@+id/btnBecomeMember"
                                     android:layout_width="0dp"
                                     android:layout_height="match_parent"
-                                    android:layout_weight="1.3"
+                                    android:layout_weight="0.8"
                                     android:background="@null"
-                                    android:gravity="bottom|center_horizontal"
-                                    android:text="@string/txtBecomeMember"
+                                    android:gravity="right"
+                                    android:paddingRight="2dp"
+                                    android:text="@string/txtDemo"
                                     android:textAllCaps="false"
                                     android:textColor="@color/ole_white" />
                             </LinearLayout>
@@ -358,13 +351,6 @@
 
                 </LinearLayout>
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="0.8"
-                    android:orientation="horizontal">
-
-                </LinearLayout>
             </LinearLayout>
 
         </LinearLayout>

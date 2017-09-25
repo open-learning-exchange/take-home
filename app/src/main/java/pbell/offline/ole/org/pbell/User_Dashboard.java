@@ -723,12 +723,14 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
         dialogButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                saveRating((int) ratingBar.getRating(), String.valueOf(txtComment.getText()), resourceID);
+                logHouse.saveRating(getApplicationContext(),(int) ratingBar.getRating(),String.valueOf(txtComment.getText()), resourceID );
+                //saveRating((int) ratingBar.getRating(), String.valueOf(txtComment.getText()), resourceID);
                 dialog.dismiss();
             }
         });
         dialog.show();
     }
+    /*
     public void saveRating(int rate, String comment, String resourceId) {
         AndroidContext androidContext = new AndroidContext(context);
         Manager manager = null;
@@ -772,6 +774,7 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
             Log.e("MyCouch", "ERR : " + err.getMessage());
         }
     }
+
     public boolean updateActivityRatingResources(float rate, String resourceid) {
         AndroidContext androidContext = new AndroidContext(this);
         Manager manager = null;
@@ -891,6 +894,6 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
             return false;
         }
     }
-
+*/
 }
 
