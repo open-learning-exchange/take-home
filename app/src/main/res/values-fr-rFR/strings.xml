@@ -5,54 +5,52 @@
   <string name="action_syncUrl">Url du serveur de synchronisation</string>
   <string name="action_syncNow">Dispositif de synchronisation</string>
   <string name="action_settings">Réglages</string>
-  <string name="action_profile">Profile</string>
-  <string name="action_help">Help</string>
-  <string name="action_about">About</string>
-  <string name="section_format">Hello World from section: %1$d</string>
-  <string name="title_activity_login">Take-Home</string>
+  <string name="action_profile">Profil</string>
+  <string name="action_help">Aide</string>
+  <string name="action_about">A propos</string>
+  <string name="section_format">Bonjour tout le monde de la section : %1$d</string>
+  <string name="title_activity_login">Faire à la maison</string>
   <!-- Related to First Time Dialog -->
-  <string name="fst_welcome">Take Home</string>
-  <string name="fst_instruction">It appears your device hasn\'t yet been linked to the BeLL network.
-        If you know your BeLL server\'s url, please enter it bellow or contact your coach / group leader for assistance</string>
-  <string name="fst_syncurl">BeLL Server Url</string>
-  <string name="fst_proceed">Save and Proceed</string>
+  <string name="fst_welcome">Prendre la maison</string>
+  <string name="fst_instruction">Il semble que votre appareil n’a pas encore été reliée au réseau de BeLL.         Si vous connaissez l’url de votre serveur de BeLL, entrez-le ci-dessous ou communiquez avec votre coach / du groupe d’assistance</string>
+  <string name="fst_syncurl">Url du serveur de BeLL</string>
+  <string name="fst_proceed">Accepter et continuer</string>
   <!-- Bottom Bar Menu related to Dashboard -->
-  <string name="bbtext_Achievments">Achievements</string>
+  <string name="bbtext_Achievments">Réalisations</string>
   <string name="bbtext_MyLibrary">myLibrary</string>
-  <string name="bbtext_Courses">Courses Progress</string>
+  <string name="bbtext_Courses">Progrès du cours</string>
   <string name="bbtext_Meetups">myMeetups</string>
   <!-- Strings related to Fragment 0 / Achievements -->
-  <string name="frg1_Visits">Visits</string>
-  <string name="frg1_OpenedRes">Opened Resources</string>
+  <string name="frg1_Visits">Visites</string>
+  <string name="frg1_OpenedRes">Ressources ouvertes</string>
   <!-- Strings related to Change Sync URL -->
-  <string name="syncURL_label">Sync server url</string>
-  <string name="syncURL_saveButton">Save changes</string>
+  <string name="syncURL_label">Url du serveur de synchronisation</string>
+  <string name="syncURL_saveButton">Enregistrer les modifications</string>
   <!-- Strings Sync URL -->
-  <string name="sync_LastSyncDate">Last sync date</string>
-  <string name="sync_Headen">Synchronize device with server</string>
-  <string name="sync_NowPush">Push Changes</string>
-  <string name="sync_NowPull">Pull Changes</string>
-  <string name="sync_EraseOldData">Wipe Clean</string>
-  <string name="sync_Resources">Sync Materials</string>
+  <string name="sync_LastSyncDate">Date de dernière synchronisation</string>
+  <string name="sync_Headen">Synchroniser avec le serveur</string>
+  <string name="sync_NowPush">Envoyer les modifications</string>
+  <string name="sync_NowPull">Tirez sur les changements</string>
+  <string name="sync_EraseOldData">Nettoyez avec un chiffon</string>
+  <string name="sync_Resources">Matériaux de synchronisation</string>
   <!-- Strings related to login -->
-  <string name="prompt_username">Username</string>
-  <string name="prompt_password">Password (optional)</string>
-  <string name="action_sign_in">Sign in</string>
-  <string name="action_sign_in_short">Sign-in</string>
-  <string name="error_incorrect_password">This password is incorrect</string>
-  <string name="error_field_required">This field is required</string>
-  <string name="permission_rationale">\"Contacts permissions are needed for providing email completions.\"
-    </string>
-  <string name="title_activity_sync_device">Sync Device</string>
-  <string name="title_activity_new_sync">First Time Configuration</string>
-  <string name="sync_NowPullOnly">Synchronize With Server</string>
-  <string name="sync_CloseWindow">Close</string>
-  <string name="sync_DownloadResPersons">Download Resources</string>
-  <string name="open_course">Open Course</string>
-  <string name="title_activity_course">Course</string>
-  <string name="bbtext_MyTutors">My Tutors</string>
-  <string name="bbtext_Home">My Home</string>
-  <string name="txtLibrary">Library</string>
+  <string name="prompt_username">Nom d\'utilisateur</string>
+  <string name="prompt_password">Mot de passe (facultatif)</string>
+  <string name="action_sign_in">Connexion</string>
+  <string name="action_sign_in_short">Connectez vous</string>
+  <string name="error_incorrect_password">Ce mot de passe est incorrect</string>
+  <string name="error_field_required">Ce champ est obligatoire</string>
+  <string name="permission_rationale">« Contacts autorisations sont nécessaires pour fournir les achèvements courriel. »    </string>
+  <string name="title_activity_sync_device">Dispositif de synchronisation</string>
+  <string name="title_activity_new_sync">Configuration au moment du premier</string>
+  <string name="sync_NowPullOnly">Synchroniser avec le serveur</string>
+  <string name="sync_CloseWindow">Fermer</string>
+  <string name="sync_DownloadResPersons">Télécharger des ressources</string>
+  <string name="open_course">Cours ouverts</string>
+  <string name="title_activity_course">Cours</string>
+  <string name="bbtext_MyTutors">Mes tuteurs</string>
+  <string name="bbtext_Home">Ma maison</string>
+  <string name="txtLibrary">Bibliothèque</string>
   <string name="txtCourses">Courses</string>
   <string name="txtMeetups">Meetups</string>
   <string name="txtLogout">Logout</string>
