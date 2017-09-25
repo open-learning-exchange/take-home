@@ -279,9 +279,9 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
             Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             database = manager.getDatabase("offline_course_resources");
 
-            Document doc = database.getExistingDocument(manualResId);
-            Map<String, Object> existing_properties = doc.getProperties();
-            if(existing_properties == null){
+            ///Document doc = database.getExistingDocument(manualResId);
+            //Map<String, Object> existing_properties = doc.getProperties();
+            //if(existing_properties == null){
                 Log.e(TAG, "File does not exist");
                 Map<String, Object> properties = new HashMap<>();
                 properties.put("title", manualResTitle);
@@ -294,9 +294,9 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                 } catch (CouchbaseLiteException e) {
                     Log.e(TAG, "Cannot save document", e);
                 }
-            }else{
-                Log.e("MyCouch", "File already exist");
-            }
+           // }else{
+           //     Log.e("MyCouch", "File already exist");
+           // }
 
         } catch (Exception e) {
             e.printStackTrace();
