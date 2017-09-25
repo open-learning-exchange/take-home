@@ -468,7 +468,6 @@ public class FullscreenLogin extends AppCompatActivity {
 
 
     }
-
     public void setLocale(String lang) {
         Locale myLocale = new Locale(lang);
         Resources res = getResources();
