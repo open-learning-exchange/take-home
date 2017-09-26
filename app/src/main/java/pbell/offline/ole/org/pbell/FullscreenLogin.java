@@ -193,7 +193,8 @@ public class FullscreenLogin extends AppCompatActivity {
         Language.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                alertDialogOkay("This feature has not been activated on this version.");
+                //alertDialogOkay("This feature has not been activated on this version.");
+                setLocale("fr");
                 //Intent intent = new Intent(context, ListView_Library.class);
                 //Intent intent = new Intent(context, User_Dashboard.class);
                 //startActivity(intent);

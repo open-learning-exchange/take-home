@@ -245,7 +245,7 @@ public class Fragm_TakeCourse extends Fragment {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database coursestep_Db = manager.getExistingDatabase("coursestep");
             Query orderedQuery = chViews.ReadCourseSteps(coursestep_Db).createQuery();
-            orderedQuery.setDescending(true);
+            orderedQuery.setDescending(false);
             QueryEnumerator results = orderedQuery.run();
             crs_NumberOfSteps = 0;
             for (Iterator<QueryRow> item = results; item.hasNext(); ) {
@@ -285,17 +285,6 @@ public class Fragm_TakeCourse extends Fragment {
             lblCourseTitle.setText(crs_MainTId);
             coursestep_Db.close();
             course_db.close();
-            for (int x = 0; x < crs_tempStepSeqNum.size(); x++) {
-                if ((x + 1) < crs_tempStepSeqNum.size()) {
-                    if (Integer.parseInt(crs_tempStepSeqNum.get(x)) > Integer.parseInt(crs_tempStepSeqNum.get(x + 1))) {
-                        crs_tempStepSeqNum.set(x, crs_tempStepSeqNum.get(x + 1));
-                        crs_tempStepSeqNum.set(x + 1, crs_tempAidStepSeqNum.get(x));
-                        crs_tempAidStepSeqNum.clear();
-                        crs_tempAidStepSeqNum.addAll(crs_tempStepSeqNum);
-                        x = 0;
-                    }
-                }
-            }
             // Add in the right order the arraylist to all items
             for (int x = 0; x < crs_tempStepSeqNum.size(); x++) {
                 int indexItem = crs_StepSeqNum.indexOf(crs_tempStepSeqNum.get(x));

@@ -82,9 +82,9 @@ public class CouchViews {
                 new Mapper(){
                     @Override
                     public void map(Map<String, Object> document,Emitter emitter) {
-                        emitter.emit((String) document.get("courseId"), (String) document.get("_id"));
+                        emitter.emit((String) document.get("step"), (String) document.get("_id"));
                     }
-                }, "1"
+                }, "4"
         );
         return CourseSteps;
     }
@@ -98,7 +98,7 @@ public class CouchViews {
                             emitter.emit((String) document.get("courseId"), (String) document.get("_id"));
                         }
                     }
-                }, "1"
+                }, "2"
         );
         return CourseSteps;
     }
