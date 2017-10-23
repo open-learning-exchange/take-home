@@ -156,6 +156,8 @@ public class FullscreenLogin extends AppCompatActivity {
                         if (updateActivityLog()) {
                                    /* mDialog.dismiss();*/
                             Intent intent = new Intent(context, User_Dashboard.class);
+                            //Intent intent = new Intent(context, FullscreenActivity.class);
+                            Log.e(TAG,"Opening Dashboard");
                             startActivity(intent);
                         } else {
                             alertDialogOkay("System Error. Please contact system manager");

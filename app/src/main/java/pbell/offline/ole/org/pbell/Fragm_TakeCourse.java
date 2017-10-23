@@ -92,7 +92,7 @@ public class Fragm_TakeCourse extends Fragment {
     List<String> qn_Type = new ArrayList<>();
     List<String> qn_Statement = new ArrayList<>();
     List<String> qn_Marks = new ArrayList<>();
-    List<String> qn_CorrectAnswer = new ArrayList<>();
+    List<ArrayList> qn_CorrectAnswer = new ArrayList<>();
     List<Integer> qn_NoOptions = new ArrayList<>();
     List<String[]> qn_StepOptions = new ArrayList<>();
 
@@ -101,7 +101,7 @@ public class Fragm_TakeCourse extends Fragment {
     LinearLayout lt_QueSinglelineHolder, lt_QueMultilineHolder, lt_QueMultipleChoiceHolder;
     TextView lbl_QueStepTitle, lbl_QueStatus;
     int quesionCurrentIndex, totalNumOfQuestions = 0;
-    Button btnQueNext, btnQueBack;
+    Button btnQueSubmitAns, btnQueBack;
     CheckBox qn_OptionsCheckbox[];
 
     ///// Resource Details
@@ -400,7 +400,7 @@ public class Fragm_TakeCourse extends Fragment {
                 qn_Marks.add((String) question_properties.get("Marks"));
 
                 if (((String) question_properties.get("Type")).equalsIgnoreCase("Multiple Choice")) {
-                    qn_CorrectAnswer.add((String) question_properties.get("correctAnswer"));
+                    qn_CorrectAnswer.add( (ArrayList) question_properties.get("CorrectAnswer"));
                     try {
                         ArrayList tempHolder = (ArrayList) question_properties.get("Options");
                         qn_StepOptions.add(new String[]{android.text.TextUtils.join(",", tempHolder)});
@@ -438,7 +438,7 @@ public class Fragm_TakeCourse extends Fragment {
             lt_QueSinglelineHolder = (LinearLayout) dialogTest.findViewById(R.id.lt_QueSinglelineHolder);
             lt_QueMultilineHolder = (LinearLayout) dialogTest.findViewById(R.id.lt_QueMultilineHolder);
             lt_QueMultipleChoiceHolder = (LinearLayout) dialogTest.findViewById(R.id.lt_QueMultipleChoiceHolder);
-            btnQueNext = (Button) dialogTest.findViewById(R.id.btn_QueNext);
+            btnQueSubmitAns = (Button) dialogTest.findViewById(R.id.btn_QueSubmitAns);
             btnQueBack = (Button) dialogTest.findViewById(R.id.btn_QueBack);
 
 
@@ -453,9 +453,9 @@ public class Fragm_TakeCourse extends Fragment {
         quesionCurrentIndex = qn_Ids.indexOf(questionID);
 
         if (quesionCurrentIndex < qn_Ids.size() - 1) {
-            btnQueNext.setVisibility(View.VISIBLE);
+            btnQueSubmitAns.setVisibility(View.VISIBLE);
         } else {
-            btnQueNext.setVisibility(View.GONE);
+            btnQueSubmitAns.setVisibility(View.GONE);
         }
 
         if (quesionCurrentIndex > 0) {
@@ -464,11 +464,14 @@ public class Fragm_TakeCourse extends Fragment {
             btnQueBack.setVisibility(View.GONE);
         }
 
-        btnQueNext.setOnClickListener(new View.OnClickListener() {
+        btnQueSubmitAns.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 try {
-                    QuestionUILoader(qn_Ids.get(quesionCurrentIndex + 1), totalNumOfQuestions);
+                    if(CheckAnsBeforeNext(qn_Ids.get(quesionCurrentIndex),totalNumOfQuestions )){
+                        QuestionUILoader(qn_Ids.get(quesionCurrentIndex + 1), totalNumOfQuestions);
+                    }
+
                 } catch (Exception except) {
                     Log.d(TAG, "Next clicked error " + except.getMessage());
                 }
@@ -510,13 +513,59 @@ public class Fragm_TakeCourse extends Fragment {
             }
         } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Comment/Essay Box")) {
             lt_QueMultilineHolder.setVisibility(View.VISIBLE);
-        } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Textbox")) {
+        } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Single Textbox")) {
             lt_QueSinglelineHolder.setVisibility(View.VISIBLE);
         } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Attachment")) {
 
         }
     }
 
+    public boolean CheckAnsBeforeNext(String questionID, int numberOfQuestions){
+        totalNumOfQuestions = numberOfQuestions;
+        quesionCurrentIndex = qn_Ids.indexOf(questionID);
+        boolean correctAnswrGiven = false;
+       if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Multiple Choice")) {
+           int noOfOptions = qn_OptionsCheckbox.length;
+           for (int x = 0; x < noOfOptions; x++) {
+               if(qn_OptionsCheckbox[x].isChecked()) {
+                   ArrayList qCorrectAnsArray = qn_CorrectAnswer.get(quesionCurrentIndex);
+                   for(int ca = 0; ca < qCorrectAnsArray.size(); ca++) {
+                       if((qCorrectAnsArray.get(ca)+"").equalsIgnoreCase((qn_OptionsCheckbox[x].getText()+""))){
+                           correctAnswrGiven = true;
+                       }else{
+                           correctAnswrGiven = false;
+                       }
+                        Log.e(TAG, qCorrectAnsArray.get(ca)+"");
+                   }
+                   Log.d(TAG, quesionCurrentIndex +" Size " + qn_CorrectAnswer.get(quesionCurrentIndex) + " Marks "+ qn_Marks.get(quesionCurrentIndex));
+               }else{
+
+               }
+           }
+           if(correctAnswrGiven){
+               alertDialogOkay("That's the correct answer, well done");
+               Log.d(TAG,"That's the correct answer, Well Done");
+
+           }else{
+               Log.d(TAG,"Oops, Wrong answer!!");
+               alertDialogOkay("Oops, Wrong answer!! ");
+           }
+           return true;
+        } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Comment/Essay Box")) {
+           Log.d(TAG,"Comment/Essay Box");
+
+           return true;
+        } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Single Textbox")) {
+           Log.d(TAG,"Single Textbox");
+           return true;
+        } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Attachment")) {
+           Log.d(TAG,"Attachment");
+           return true;
+        }
+        Log.d(TAG,"Not handled.."+ qn_Type.get(quesionCurrentIndex));
+
+        return true;
+    }
     public void showResourcesDialog(String StepId, String StepTitle) {
         rs_Ids.clear();
         rs_OpenWith.clear();
@@ -703,6 +752,20 @@ public class Fragm_TakeCourse extends Fragment {
             Er.printStackTrace();
         }
         return true;
+    }
+
+    public void alertDialogOkay(String Message) {
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(getContext());
+        builder1.setMessage(Message);
+        builder1.setCancelable(true);
+        builder1.setNegativeButton("Okay",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert11 = builder1.create();
+        alert11.show();
     }
 
 
