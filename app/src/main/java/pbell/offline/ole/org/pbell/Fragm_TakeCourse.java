@@ -543,22 +543,13 @@ public class Fragm_TakeCourse extends Fragment {
                }
            }
            if(correctAnswrGiven){
-               Log.d(TAG,"Congrats.. Answer correct ");
+               alertDialogOkay("That's the correct answer, well done");
+               Log.d(TAG,"That's the correct answer, Well Done");
+
            }else{
-               Log.d(TAG,"Sorry.. Answer selected was wrong ");
+               Log.d(TAG,"Oops, Wrong answer!!");
+               alertDialogOkay("Oops, Wrong answer!! ");
            }
-            /*
-            String tempOptionsHolder = qn_StepOptions.get(quesionCurrentIndex)[0];
-            List<String> items = Arrays.asList(tempOptionsHolder.split("\\s*,\\s*"));
-            qn_OptionsCheckbox = new CheckBox[items.size()];
-            for (int x = 0; x < items.size(); x++) {
-                //Log.e(TAG, "Loop No " + quesionCurrentIndex + " " + items.get(x));
-                qn_OptionsCheckbox[x] = new CheckBox(getContext());
-                qn_OptionsCheckbox[x].setId(x);
-                qn_OptionsCheckbox[x].setTag(x);
-                qn_OptionsCheckbox[x].setText(items.get(x));
-                lt_QueMultipleChoiceHolder.addView(qn_OptionsCheckbox[x]);
-            }*/
            return true;
         } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Comment/Essay Box")) {
            Log.d(TAG,"Comment/Essay Box");
@@ -572,6 +563,7 @@ public class Fragm_TakeCourse extends Fragment {
            return true;
         }
         Log.d(TAG,"Not handled.."+ qn_Type.get(quesionCurrentIndex));
+
         return true;
     }
     public void showResourcesDialog(String StepId, String StepTitle) {
@@ -760,6 +752,20 @@ public class Fragm_TakeCourse extends Fragment {
             Er.printStackTrace();
         }
         return true;
+    }
+
+    public void alertDialogOkay(String Message) {
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(getContext());
+        builder1.setMessage(Message);
+        builder1.setCancelable(true);
+        builder1.setNegativeButton("Okay",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert11 = builder1.create();
+        alert11.show();
     }
 
 
