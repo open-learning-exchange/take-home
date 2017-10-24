@@ -38,9 +38,9 @@ env:
   components:
   - tools
   - platform-tools
-  - build-tools-25.0.0
+  - build-tools-26.0.2
   - android-24
-  - android-23
+  - android-22
   - extra-google-google_play_services
   - extra-google-m2repository
   - extra-android-m2repository
@@ -60,7 +60,7 @@ before_install:
 - ./gradlew dependencies || true
 
 before_script:
-- echo no | android create avd --force -n test -t android-24 --abi armeabi-v7a -c 512M
+- echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a -c 512M
 - emulator -avd test -no-audio -no-window &
 - android-wait-for-emulator
 - sleep 180
