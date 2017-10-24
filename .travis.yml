@@ -1,14 +1,25 @@
 language: android
 dist: precise
 sudo: required
-jdk:
-- oraclejdk8
+jdk: oraclejdk8
+
 env:
   global:
     # switch glibc to a memory conserving mode
     - MALLOC_ARENA_MAX=2
+
+     - ANDROID_API=24
+
+     - EMULATOR_API=21
+
+     - ANDROID_BUILD_TOOLS=25.0.2
+
+     - ANDROID_ABI=armeabi-v7a
+
+     - ANDROID_TAG=google_apis
     # wait up to 10 minutes for adb to connect to emulator
     - ADB_INSTALL_TIMEOUT=10
+
 android:
   components:
     - tools # see https://github.com/travis-ci/travis-ci/issues/6040#issuecomment-219367943)
@@ -40,6 +51,7 @@ before_install:
  - mkdir "$ANDROID_HOME/licenses" || true
  - chmod +x gradlew
  - ./gradlew dependencies || true
+
  before_script:
 
  #- echo no | android create avd --force -n test -t android-24 --abi google_apis/armeabi-v7a
