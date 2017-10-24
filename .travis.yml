@@ -49,6 +49,7 @@ before_script:
 
 script:
   - ./gradlew clean check connectedCheck -x library:signArchives -PdisablePreDex
+  - ls
 
 before_deploy:
 - cp $TRAVIS_BUILD_DIR/example_keystore.jks $HOME
