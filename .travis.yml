@@ -9,7 +9,7 @@ env:
     - MALLOC_ARENA_MAX=2
     - ANDROID_API=24
     - EMULATOR_API=21
-    - ANDROID_BUILD_TOOLS=25.0.2
+    - ANDROID_BUILD_TOOLS=21.0.2
     - ANDROID_ABI=armeabi-v7a
     - ANDROID_TAG=google_apis
     # wait up to 10 minutes for adb to connect to emulator
