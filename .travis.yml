@@ -7,6 +7,11 @@ env:
   global:
     # switch glibc to a memory conserving mode
     - MALLOC_ARENA_MAX=2
+    - ANDROID_API=24
+    - EMULATOR_API=21
+    - ANDROID_BUILD_TOOLS=25.0.2
+    - ANDROID_ABI=armeabi-v7a
+    - ANDROID_TAG=google_apis
     # wait up to 10 minutes for adb to connect to emulator
     - ADB_INSTALL_TIMEOUT=10
 android:
@@ -40,4 +45,13 @@ before_install:
  - mkdir "$ANDROID_HOME/licenses" || true
  - chmod +x gradlew
  - ./gradlew dependencies || true
+
+before_deploy:
+- cp $TRAVIS_BUILD_DIR/example_keystore.jks $HOME
+- cd app/build/outputs/apk/
+- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore $HOME/example_keystore.jks -storepass $storepass -keypass $keypass app-release-unsigned.apk ExampleKeystoreAlias
+# Verification
+- jarsigner -verify app-release-unsigned.apk
+- "${ANDROID_HOME}/build-tools/24.0.2/zipalign -v 4 app-release-unsigned.apk TakeHomeAPK.apk"
+
 notifications:
