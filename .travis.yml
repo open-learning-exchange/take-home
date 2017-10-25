@@ -48,8 +48,8 @@ before_script:
   - android-wait-for-emulator
 
 script:
-  - ./gradlew clean check connectedCheck -x library:signArchives -PdisablePreDex
-  - ls
+  #- ./gradlew clean check connectedCheck -x library:signArchives -PdisablePreDex
+  - "./gradlew clean build connectedCheck -PdisablePreDex --stacktrace"
 
 before_deploy:
 - cp $TRAVIS_BUILD_DIR/example_keystore.jks $HOME
