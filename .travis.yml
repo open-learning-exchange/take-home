@@ -41,12 +41,10 @@ android:
 
 before_script:
   # Create and start emulator
-  ##- mkdir -p "$ANDROID_HOME/licenses"
-  ##- cp ./google-licenses/* "$ANDROID_HOME/licenses/"
-  - echo no | android create avd --force -n test -t "android-"$EMULATOR_API_LEVEL --abi $ANDROID_ABI --tag $ANDROID_TAG
-  - emulator -avd test -no-skin -no-audio -no-window &
-  - android-wait-for-emulator
-  - adb shell input keyevent 82 &
+ # - echo no | android create avd --force -n test -t "android-"$EMULATOR_API_LEVEL --abi $ANDROID_ABI --tag $ANDROID_TAG
+ # - emulator -avd test -no-skin -no-audio -no-window &
+ # - android-wait-for-emulator
+ # - adb shell input keyevent 82 &
 
 script:
   - echo "Got here and stoped"
