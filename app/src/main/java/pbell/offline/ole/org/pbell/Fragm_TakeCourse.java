@@ -437,9 +437,12 @@ public class Fragm_TakeCourse extends Fragment {
         quesionCurrentIndex = qn_Ids.indexOf(questionID);
 
         if (quesionCurrentIndex < qn_Ids.size() - 1) {
+            btnQueSubmitAns.setText(R.string.submit);
             btnQueSubmitAns.setVisibility(View.VISIBLE);
         } else {
-            btnQueSubmitAns.setVisibility(View.GONE);
+            btnQueSubmitAns.setText(R.string.finish);
+            btnQueSubmitAns.setVisibility(View.VISIBLE);
+            ///btnQueSubmitAns.setVisibility(View.GONE);
         }
 
         if (quesionCurrentIndex > 0) {
