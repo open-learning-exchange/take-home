@@ -221,7 +221,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:background="@null"
-                    android:text="Submit"
+                    android:text="@string/submit"
                     android:textColor="@color/white" />
             </LinearLayout>
         </LinearLayout>
