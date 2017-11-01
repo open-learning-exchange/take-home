@@ -20,8 +20,8 @@ public class Loading_Screen extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
-        copyAPK(R.raw.firefox_49_0_multi_android, "firefox_49_0_multi_android.apk");
+//        copyAPK(R.raw.adobe_reader, "adobe_reader.apk");
+//        copyAPK(R.raw.firefox_49_0_multi_android, "firefox_49_0_multi_android.apk");
 
 
         Intent intent = new Intent(this, FullscreenLogin.class);
