@@ -53,12 +53,9 @@ android:
  - android-sdk-preview-license-.+
  - android-sdk-license-.+
  - google-gdk-license-.+
-
-
-
+ 
 notifications:
   email: false
-
 before_deploy:
 - cp $TRAVIS_BUILD_DIR/example_keystore.jks $HOME
 - cd app/build/outputs/apk/
