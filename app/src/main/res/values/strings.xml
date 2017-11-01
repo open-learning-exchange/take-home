@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PLANET</string>
+    <string name="app_name">MY PLANET</string>
     <string name="action_syncUrl">Sync Server Url</string>
     <string name="action_syncNow">Sync Device</string>
     <string name="action_settings">Settings</string>
