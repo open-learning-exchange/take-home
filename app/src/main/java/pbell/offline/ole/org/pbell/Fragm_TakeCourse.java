@@ -164,22 +164,6 @@ public class Fragm_TakeCourse extends Fragment {
                              Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragm_take_course, container, false);
-       /* String description = "1. First ordered list item\n" +
-                "2. Another item\n" +
-                "⋅⋅* Unordered sub-list. \n" +
-                "1. Actual numbers don't matter, just that it's a number\n" +
-                "⋅⋅1. Ordered sub-list\n" +
-                "4. And another item.\n" +
-                "\n" +
-                "⋅⋅⋅#You can have properly indented paragraphs within list items. Notice the blank line above, and the leading spaces (at least one, but we'll use three here to also align the raw Markdown).\n" +
-                "\n" +
-                "⋅⋅⋅To have a line break without a paragraph, you will need to use two trailing spaces.⋅⋅\n" +
-                "⋅⋅⋅Note that this line is separate, but within the same paragraph.⋅⋅\n" +
-                "### (This is contrary to the typical GFM line break behaviour, where trailing spaces are not required.)\n" +
-                "\n" +
-                "* Unordered list can use asterisks\n" +
-                "- Or minuses\n" +
-                "+ Or pluses";*/
         markdownCourseDescContent = (MarkdownView) view.findViewById(R.id.markdownCourseDescriptionContent);
         markdownCourseDescContent.loadMarkdown("");
 
@@ -453,9 +437,12 @@ public class Fragm_TakeCourse extends Fragment {
         quesionCurrentIndex = qn_Ids.indexOf(questionID);
 
         if (quesionCurrentIndex < qn_Ids.size() - 1) {
+            btnQueSubmitAns.setText(R.string.submit);
             btnQueSubmitAns.setVisibility(View.VISIBLE);
         } else {
-            btnQueSubmitAns.setVisibility(View.GONE);
+            btnQueSubmitAns.setText(R.string.finish);
+            btnQueSubmitAns.setVisibility(View.VISIBLE);
+            ///btnQueSubmitAns.setVisibility(View.GONE);
         }
 
         if (quesionCurrentIndex > 0) {
@@ -625,6 +612,14 @@ public class Fragm_TakeCourse extends Fragment {
             });
             lbl_ResStepTitle = (TextView) dialogResources.findViewById(R.id.lbl_ResTopTitle);
             lbl_ResStepTitle.setText("Step : " + StepTitle);
+
+            Button btnClose = (Button) dialogResources.findViewById(R.id.btnCloseDlg);
+            btnClose.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dialogResources.dismiss();
+                }
+            });
 
         } catch (Exception err) {
             err.printStackTrace();
