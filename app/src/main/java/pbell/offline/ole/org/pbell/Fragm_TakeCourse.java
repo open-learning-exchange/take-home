@@ -456,7 +456,12 @@ public class Fragm_TakeCourse extends Fragment {
             public void onClick(View view) {
                 try {
                     if(CheckAnsBeforeNext(qn_Ids.get(quesionCurrentIndex),totalNumOfQuestions )){
-                        QuestionUILoader(qn_Ids.get(quesionCurrentIndex + 1), totalNumOfQuestions);
+                        if ((quesionCurrentIndex+1) == totalNumOfQuestions) {
+                            Log.d(TAG, "Last question ");
+                            ///dialogTest.dismiss();
+                        }else {
+                            QuestionUILoader(qn_Ids.get(quesionCurrentIndex + 1), totalNumOfQuestions);
+                        }
                     }
 
                 } catch (Exception except) {
