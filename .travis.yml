@@ -60,9 +60,9 @@ notifications:
   email: false
 
 before_deploy:
-- cp $TRAVIS_BUILD_DIR/example_keystore.jks $HOME
+- cp $TRAVIS_BUILD_DIR/androidkeystore.jks $HOME
 - cd app/build/outputs/apk/
-- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore $HOME/example_keystore.jks -storepass $storepass -keypass $keypass app-release-unsigned.apk ExampleKeystoreAlias
+- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore $HOME/androidkeystore.jks -storepass $storepass -keypass $keypass app-release-unsigned.apk ExampleKeystoreAlias
 # Verification
 - jarsigner -verify app-release-unsigned.apk
 - "${ANDROID_HOME}/build-tools/25.0.2/zipalign -v 4 app-release-unsigned.apk TakeHomeAPK.apk"
