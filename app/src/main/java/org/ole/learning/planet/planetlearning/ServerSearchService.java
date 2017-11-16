@@ -100,7 +100,7 @@ public class ServerSearchService extends Service {
                                             //    }
                                             //});
                                         } else {
-                                            double total = push.getCompletedChangesCount() + pull.getCompletedChangesCount();
+                                            ///double total = push.getCompletedChangesCount() + pull.getCompletedChangesCount();
                                             ///showNotificationMessage("Updating device",(push.getChangesCount() + pull.getChangesCount()) + " / "+(int) total);
                                         }
                                     }

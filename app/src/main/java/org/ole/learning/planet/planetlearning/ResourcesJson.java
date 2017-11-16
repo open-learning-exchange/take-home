@@ -74,7 +74,6 @@ public class ResourcesJson {
                         //Database shadowresourceslocal = manager.getDatabase("shadowresources");
                         //shadowresourceslocal.delete();
                         Database shadowresources = manager.getDatabase("shadowresources");
-                        Map<String, Object> newshadowdocProperties;
                         String[] shdResIds = new String[allDocs.size()];
                         for (x = 0; x < allDocs.size(); x++) {
                             Log.e("MyCouch", "Remote View = " + allDocs.get(x));

@@ -222,8 +222,6 @@ public class Fragm_myCourses extends Fragment {
             csLstCnt = 0;
             String mycourseId = "";
             String mycourseTitile;
-            String mycourseForgndColor = "#000000";
-            String mycourseBackgndColor = "#FFFFFF";
             for (Iterator<QueryRow> it = results; it.hasNext(); ) {
                 QueryRow row = it.next();
                 String docId = (String) row.getValue();
@@ -234,9 +232,6 @@ public class Fragm_myCourses extends Fragment {
                     if (sys_usercouchId.equals(courseMembers.get(cnt).toString())) {
                         mycourseTitile = ((String) properties.get("CourseTitle"));
                         mycourseId = ((String) properties.get("_id"));
-                        mycourseForgndColor = ((String) properties.get("foregroundColor"));
-                        mycourseBackgndColor = ((String) properties.get("backgroundColor"));
-
                         //// Get Steps
                         manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                         Database coursestep_Db = manager.getExistingDatabase("coursestep");

@@ -146,7 +146,7 @@ public class FullscreenLogin extends AppCompatActivity {
                         if (updateActivityLog()) {
                             Intent intent = new Intent(context, User_Dashboard.class);
                             //Intent intent = new Intent(context, FullscreenActivity.class);
-                            Log.e(TAG,"Opening Dashboard");
+                            Log.e(TAG, "Opening Dashboard");
                             startActivity(intent);
                         } else {
                             alertDialogOkay("System Error. Please contact system manager");
@@ -169,8 +169,7 @@ public class FullscreenLogin extends AppCompatActivity {
                 sys_appInDemoMode = true;
                 mUsername.setText("learner");
                 mPasswordView.setText("learner");
-              ///  DemoDataLoader demoDataLoader = new DemoDataLoader(context, SignInButton);
-
+                ///  DemoDataLoader demoDataLoader = new DemoDataLoader(context, SignInButton);
                 //alertDialogOkay("Device configured for Demo. Click Sign-in");
 
                 ///Intent intent = new Intent(context, Home.class);
@@ -482,7 +481,6 @@ public class FullscreenLogin extends AppCompatActivity {
                     List<String> myList = new ArrayList<String>();
                     myList.clear();
                     myList = Arrays.asList(s.split(","));
-                    Log.e("MyCouch", "-- " + myList.size());
                     if (myList.size() < 8) {
                         mDialog.dismiss();
                         alertDialogOkay("Check the server address again. What i connected to wasn't the BeLL Server");
@@ -877,7 +875,7 @@ public class FullscreenLogin extends AppCompatActivity {
             Log.e("MYAPP", " Error creating  sys_membersWithResource");
         }
         try {
- //           serviceIntent = new Intent(context, ServerSearchService.class);
+            //           serviceIntent = new Intent(context, ServerSearchService.class);
 //            context.stopService(serviceIntent);
         } catch (Exception error) {
             Log.e("MYAPP", " Creating Service error " + error.getMessage());
@@ -995,7 +993,7 @@ public class FullscreenLogin extends AppCompatActivity {
 
     public void startSyncProcess() {
         /// Start Syncing databases from server
-        final AsyncTask<Void, Integer, String> execute = new FullscreenLogin.TestAsyncPull().execute();
+        new FullscreenLogin.TestAsyncPull().execute();
         Log.e("MyCouch", "syncNotifier Running");
         final Thread th = new Thread(new Runnable() {
             private long startTime = System.currentTimeMillis();

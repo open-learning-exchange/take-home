@@ -110,7 +110,6 @@ public class LogHouse {
         userName = settings.getString("pf_userfirstname", "") + " " + settings.getString("pf_userlastname", "");
         userGender = settings.getString("pf_usergender", "");
         userVisitSessionNumber = settings.getString("pf_uservisits", "");
-        Set<String> stgSet = settings.getStringSet("pf_userroles", new HashSet<String>());
         userServerName = settings.getString("pf_server_name", " ");
         userServerVersion = settings.getString("pf_server_version", " ");
         userServersParent = settings.getString("pf_server_nation", " ");
@@ -136,7 +135,7 @@ public class LogHouse {
                     ArrayList resources_names = (ArrayList<String>) properties.get("resources_names");
                     ArrayList resources_opened = (ArrayList<String>) properties.get("resources_opened");
                     Log.e("MyCouch", "Option 1 " + userGender.toLowerCase());
-                    if (userGender.toLowerCase().equalsIgnoreCase("female")) {
+                    if (userGender.equalsIgnoreCase("female")) {
                         female_opened.add(1);
                         male_opened.add(0);
                     } else {
@@ -168,7 +167,7 @@ public class LogHouse {
                     ArrayList male_opened = new ArrayList<>();
                     ArrayList resources_names = new ArrayList<>();
                     ArrayList resources_opened = new ArrayList<>();
-                    if (userGender.toLowerCase().equalsIgnoreCase("female")) {
+                    if (userGender.equalsIgnoreCase("female")) {
                         female_opened.add(1);
                         male_opened.add(0);
                     } else {
@@ -289,7 +288,7 @@ public class LogHouse {
                     ArrayList male_timesRated = (ArrayList<String>) properties.get("male_timesRated");
                     ArrayList resourcesIds = (ArrayList<String>) properties.get("resourcesIds");
                     Log.e("MyCouch", "Option Rating 1");
-                    if (userGender.toLowerCase().equalsIgnoreCase("female")) {
+                    if (userGender.equalsIgnoreCase("female")) {
                         female_rating.add(rate);
                         female_timesRated.add(1);
                         male_rating.add(0);
@@ -322,7 +321,7 @@ public class LogHouse {
                         ArrayList male_rating = new ArrayList<>();
                         ArrayList male_timesRated = new ArrayList<>();
                         ArrayList resourcesIds = new ArrayList<>();
-                        if (userGender.toLowerCase().equalsIgnoreCase("female")) {
+                        if (userGender.equalsIgnoreCase("female")) {
                             female_rating.add(rate);
                             female_timesRated.add(1);
                             male_rating.add(0);
@@ -358,7 +357,7 @@ public class LogHouse {
                     ArrayList male_rating = new ArrayList<>();
                     ArrayList male_timesRated = new ArrayList<>();
                     ArrayList resourcesIds = new ArrayList<>();
-                    if (userGender.toLowerCase().equalsIgnoreCase("female")) {
+                    if (userGender.equalsIgnoreCase("female")) {
                         female_rating.add(rate);
                         female_timesRated.add(1);
                         male_rating.add(0);

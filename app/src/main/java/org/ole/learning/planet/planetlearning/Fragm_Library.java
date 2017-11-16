@@ -120,7 +120,6 @@ public class Fragm_Library extends Fragment {
                     String docId = (String) row.getValue();
                     com.couchbase.lite.Document resource_doc = shadowres.getExistingDocument(docId);
                     Map<String, Object> resource_properties = resource_doc.getProperties();
-                    String doc_id = ((String) resource_properties.get("_id"));
                     try {
                         resource_properties = resource_doc.getProperties();
                     } catch (Exception errs) {

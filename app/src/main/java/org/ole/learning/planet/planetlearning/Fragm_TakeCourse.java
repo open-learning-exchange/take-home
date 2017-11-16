@@ -64,9 +64,9 @@ public class Fragm_TakeCourse extends Fragment {
     int rsLstCnt, csLstCnt = 0;
     private List<String> resIDArrayList = new ArrayList<>();
     private List<String> courseIDArrayList = new ArrayList<>();
-    Dialog dialogTest,dialogResources;
+    Dialog dialogTest, dialogResources;
     private ProgressDialog mDialog;
-    String  openedResourceId,openedResourceTitle;
+    String openedResourceId, openedResourceTitle;
 
     ///////////////////////////////////////////
 
@@ -384,7 +384,7 @@ public class Fragm_TakeCourse extends Fragment {
                 qn_Marks.add((String) question_properties.get("Marks"));
 
                 if (((String) question_properties.get("Type")).equalsIgnoreCase("Multiple Choice")) {
-                    qn_CorrectAnswer.add( (ArrayList) question_properties.get("CorrectAnswer"));
+                    qn_CorrectAnswer.add((ArrayList) question_properties.get("CorrectAnswer"));
                     try {
                         ArrayList tempHolder = (ArrayList) question_properties.get("Options");
                         qn_StepOptions.add(new String[]{android.text.TextUtils.join(",", tempHolder)});
@@ -455,11 +455,11 @@ public class Fragm_TakeCourse extends Fragment {
             @Override
             public void onClick(View view) {
                 try {
-                    if(CheckAnsBeforeNext(qn_Ids.get(quesionCurrentIndex),totalNumOfQuestions )){
-                        if ((quesionCurrentIndex+1) == totalNumOfQuestions) {
+                    if (CheckAnsBeforeNext(qn_Ids.get(quesionCurrentIndex), totalNumOfQuestions)) {
+                        if ((quesionCurrentIndex + 1) == totalNumOfQuestions) {
                             Log.d(TAG, "Last question ");
                             ///dialogTest.dismiss();
-                        }else {
+                        } else {
                             QuestionUILoader(qn_Ids.get(quesionCurrentIndex + 1), totalNumOfQuestions);
                         }
                     }
@@ -511,50 +511,49 @@ public class Fragm_TakeCourse extends Fragment {
 
         }
     }
-
-    public boolean CheckAnsBeforeNext(String questionID, int numberOfQuestions){
+    public boolean CheckAnsBeforeNext(String questionID, int numberOfQuestions) {
         totalNumOfQuestions = numberOfQuestions;
         quesionCurrentIndex = qn_Ids.indexOf(questionID);
         boolean correctAnswrGiven = false;
-       if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Multiple Choice")) {
-           int noOfOptions = qn_OptionsCheckbox.length;
-           for (int x = 0; x < noOfOptions; x++) {
-               if(qn_OptionsCheckbox[x].isChecked()) {
-                   ArrayList qCorrectAnsArray = qn_CorrectAnswer.get(quesionCurrentIndex);
-                   for(int ca = 0; ca < qCorrectAnsArray.size(); ca++) {
-                       if((qCorrectAnsArray.get(ca)+"").equalsIgnoreCase((qn_OptionsCheckbox[x].getText()+""))){
-                           correctAnswrGiven = true;
-                       }else{
-                           correctAnswrGiven = false;
-                       }
-                        Log.e(TAG, qCorrectAnsArray.get(ca)+"");
-                   }
-                   Log.d(TAG, quesionCurrentIndex +" Size " + qn_CorrectAnswer.get(quesionCurrentIndex) + " Marks "+ qn_Marks.get(quesionCurrentIndex));
-               }else{
+        if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Multiple Choice")) {
+            int noOfOptions = qn_OptionsCheckbox.length;
+            for (int x = 0; x < noOfOptions; x++) {
+                if (qn_OptionsCheckbox[x].isChecked()) {
+                    ArrayList qCorrectAnsArray = qn_CorrectAnswer.get(quesionCurrentIndex);
+                    for (int ca = 0; ca < qCorrectAnsArray.size(); ca++) {
+                        if ((qCorrectAnsArray.get(ca) + "").equalsIgnoreCase((qn_OptionsCheckbox[x].getText() + ""))) {
+                            correctAnswrGiven = true;
+                        } else {
+                            correctAnswrGiven = false;
+                        }
+                        Log.e(TAG, qCorrectAnsArray.get(ca) + "");
+                    }
+                    Log.d(TAG, quesionCurrentIndex + " Size " + qn_CorrectAnswer.get(quesionCurrentIndex) + " Marks " + qn_Marks.get(quesionCurrentIndex));
+                } else {
 
-               }
-           }
-           if(correctAnswrGiven){
-               alertDialogOkay("That's the correct answer, well done");
-               Log.d(TAG,"That's the correct answer, Well Done");
+                }
+            }
+            if (correctAnswrGiven) {
+                alertDialogOkay("That's the correct answer, well done");
+                Log.d(TAG, "That's the correct answer, Well Done");
 
-           }else{
-               Log.d(TAG,"Oops, Wrong answer!!");
-               alertDialogOkay("Oops, Wrong answer!! ");
-           }
-           return true;
+            } else {
+                Log.d(TAG, "Oops, Wrong answer!!");
+                alertDialogOkay("Oops, Wrong answer!! ");
+            }
+            return true;
         } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Comment/Essay Box")) {
-           Log.d(TAG,"Comment/Essay Box");
+            Log.d(TAG, "Comment/Essay Box");
 
-           return true;
+            return true;
         } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Single Textbox")) {
-           Log.d(TAG,"Single Textbox");
-           return true;
+            Log.d(TAG, "Single Textbox");
+            return true;
         } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Attachment")) {
-           Log.d(TAG,"Attachment");
-           return true;
+            Log.d(TAG, "Attachment");
+            return true;
         }
-        Log.d(TAG,"Not handled.."+ qn_Type.get(quesionCurrentIndex));
+        Log.d(TAG, "Not handled.." + qn_Type.get(quesionCurrentIndex));
 
         return true;
     }
@@ -645,7 +644,6 @@ public class Fragm_TakeCourse extends Fragment {
             ///openFromDiskDirectly = true;
             //////////////////logHouse.updateActivityOpenedResources(getContext(), sys_usercouchId, resourceIdTobeOpened, openResName);
             Log.e("MYAPP", " member opening resource  = " + resourceIdTobeOpened + " and Open with " + openwith);
-            List<String> attmentNames = res_doc.getCurrentRevision().getAttachmentNames();
             //// PDF and Bell-Reader
             if (openwith.equalsIgnoreCase("PDF.js") || (openwith.equalsIgnoreCase("Bell-Reader"))) {
                 Log.e(TAG, " Command Video name -:  " + resourceIdTobeOpened);
@@ -743,10 +741,9 @@ public class Fragm_TakeCourse extends Fragment {
 //// PDF
             } else if (openwith.equalsIgnoreCase("Just download")) {
                 //// Todo work to get just download
+            } else if (openwith.equalsIgnoreCase("BeLL Video Book Player")) {
             }
-            else if (openwith.equalsIgnoreCase("BeLL Video Book Player")) {
-            }
-            mListener.onResourceOpened(openedResourceId,openedResourceTitle);
+            mListener.onResourceOpened(openedResourceId, openedResourceTitle);
         } catch (Exception Er) {
             Log.d("MyCouch", "Opening resource error " + Er.getMessage());
             Er.printStackTrace();
@@ -767,9 +764,4 @@ public class Fragm_TakeCourse extends Fragment {
         AlertDialog alert11 = builder1.create();
         alert11.show();
     }
-
-
-
-
-
 }

@@ -429,8 +429,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
                             String key = (String) keys.next();
                             Log.e(TAG, "-- " + key);
                             final String encodedkey = URLEncoder.encode(key, "utf-8");
-                            File file = new File(encodedkey);
-                            String extension = encodedkey.substring(encodedkey.lastIndexOf("."));
+                            String extension = encodedkey.substring(encodedkey.lastIndexOf('.'));
                             final String diskFileName = OneByOneResID + extension;
                             activity.runOnUiThread(new Runnable() {
                                 @Override
@@ -447,9 +446,8 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
                             while (iter.hasNext()) {
                                 String key = iter.next();
                                 try {
-                                    Object value = _attachments.get(key);
                                     htmlResFileList.add(key);
-                                } catch (JSONException e) {
+                                } catch (Exception e) {
                                     e.printStackTrace();
                                 }
                             }
@@ -685,7 +683,6 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
             ///openFromDiskDirectly = true;
             logHouse.updateActivityOpenedResources(context, sys_usercouchId, resourceIdTobeOpened, openResName);
             Log.e("MYAPP", " member opening resource  = " + resourceIdTobeOpened + " and Open with " + openWith);
-            List<String> attmentNames = res_doc.getCurrentRevision().getAttachmentNames();
             //// PDF and Bell-Reader
             if (openWith.equalsIgnoreCase("PDF.js") || (openWith.equalsIgnoreCase("Bell-Reader"))) {
                 Log.e(TAG, " Command  name -:  " + resourceIdTobeOpened);
@@ -869,7 +866,6 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
                 URL url = new URL(f_url[0]);
                 URLConnection conection = url.openConnection();
                 conection.connect();
-                int lenghtOfFile = conection.getContentLength();
                 InputStream input = new BufferedInputStream(url.openStream(), 8192);
                 File myFileWithDir = new File(root + "/ole_temp/" + OneByOneResID + "/" + htmlResFileList.get(universalHtmlCnt));
                 OutputStream output = new FileOutputStream(myFileWithDir);
