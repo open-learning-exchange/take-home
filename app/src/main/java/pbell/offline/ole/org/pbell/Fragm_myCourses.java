@@ -331,7 +331,6 @@ public class Fragm_myCourses extends Fragment {
     }
 
     public int getIconType(String myresExt) {
-
         int img = R.drawable.web;
         switch (myresExt) {
             case "Flow Video Player":
@@ -369,7 +368,7 @@ public class Fragm_myCourses extends Fragment {
             try {
                 document.putProperties(properties);
             } catch (CouchbaseLiteException e) {
-                Log.e(TAG, "Cannot course details in offline courses" + e.getMessage());
+                Log.e(TAG, "Course details in offline courses" + e.getMessage());
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -11,6 +11,8 @@ android {
         versionCode 1
         versionName "1.0"
         multiDexEnabled true
+        manifestPlaceholders = [downloadAuthority: "com.your.unique.authority"]
+
     }
     buildTypes {
         release {
@@ -57,5 +59,7 @@ dependencies {
     compile 'com.mcxiaoke.volley:library-aar:1.0.0'
     compile 'pl.droidsonroids.gif:android-gif-drawable:1.1.+'
     compile 'us.feras.mdv:markdownview:1.1.0'
+    compile 'com.novoda:download-manager:0.2.44'
+    //compile 'com.tonyodev.fetch:fetch:1.1.4'
     testCompile 'junit:junit:4.12'
 }

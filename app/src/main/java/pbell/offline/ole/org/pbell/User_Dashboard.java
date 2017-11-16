@@ -116,8 +116,6 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
         restorePreferences();
         ///totalVisits(sys_usercouchId);
         loadUIDynamicText();
-
-
         Fragm_Loading loading = new Fragm_Loading();
         Bundle args = new Bundle();
         args.putString("targetAction", "myLibrary");
