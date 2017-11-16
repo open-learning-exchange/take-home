@@ -85,15 +85,12 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
     SharedPreferences settings;
     List<String> resIDArrayList = new ArrayList<>();
     View vi;
-
     TextView title, description, ratingAvgNum, totalNum;
     Button open;
     RatingBar ratingStars;
     LayerDrawable stars;
     ProgressBar femalerating, malerating;
     String activityName = "myCourses";
-
-
     protected int _splashTime = 5000;
     private Thread splashTread;
 
@@ -105,7 +102,6 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
     Fetch fetch;
     List<Long> downloadListIDs = new ArrayList<>();
     List<Request> requests = new ArrayList<>();
-
     public ListViewAdapter_myCourses(final List<String> resIDsList, Activity a, Context cont, ArrayList<HashMap<String, String>> d) {
         activity = a;
         data = d;
@@ -192,7 +188,6 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
 
             @Override
             public void onUpdate(long id, int status, int progress, long downloadedBytes, long fileSize, int error) {
-
                 if (downloadId == id && status == Fetch.STATUS_DOWNLOADING) {
                     Log.d(TAG, "downloading ooo." + progress);
                     //progressBar.setProgress(progress);
@@ -373,7 +368,6 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                 break;
         }
     }
-
     public void downloadCourseResources(String courseId) {
         try {
             resIDArrayList.clear();
@@ -488,7 +482,6 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                         alertDialogOkay("Fetch -- Error downloading file, check connection and try again");
                         e.printStackTrace();
                     }
-
                     /// Log.e(TAG, "Resources for course ( "++" ) step " + resIDArrayList.get(x));
                 }
                 fetch.enqueue(requests);
@@ -512,7 +505,6 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                 });
                 //
                 /// List<Long> downloadIds = fetch.enqueue(requests);
-
                 return true;
             } catch (Exception e) {
                 this.exception = e;
@@ -540,7 +532,6 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
         request.setDestinationInExternalPublicDir("ole_temp", FileName);
         // get download service and enqueue file
         mDialog.setMessage("Downloading  \" " + OneByOneResTitle + " \" . please wait...");
-
         mListener.onCourseDownloadingProgress(OneByOneResTitle, "Please Wait", "Downloading item");
         downloadManager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
         enqueue = downloadManager.enqueue(request);
@@ -548,9 +539,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
 
     public interface OnCourseListListener {
         void onTakeCourseOpen(String CourseId);
-
         void onCourseDownloadCompleted(String CourseId, Object data);
-
         void onCourseDownloadingProgress(String itemTitle, String status, String message);
     }
 
@@ -595,7 +584,6 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                                     downloadId = fetch.enqueue(request);
                                     // downloadWithDownloadManagerSingleFile(sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey, diskFileName);
                                     // createCourseResourceDoc(OneByOneResID, title, openWith);
-
                                 }
                             });
                         }

@@ -232,7 +232,6 @@ public class Fragm_myCourses extends Fragment {
                     if (sys_usercouchId.equals(courseMembers.get(cnt).toString())) {
                         mycourseTitile = ((String) properties.get("CourseTitle"));
                         mycourseId = ((String) properties.get("_id"));
-
                         //// Get Steps
                         manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                         Database coursestep_Db = manager.getExistingDatabase("coursestep");

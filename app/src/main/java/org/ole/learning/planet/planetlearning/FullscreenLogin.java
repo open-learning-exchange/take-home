@@ -170,7 +170,6 @@ public class FullscreenLogin extends AppCompatActivity {
                 mUsername.setText("learner");
                 mPasswordView.setText("learner");
                 ///  DemoDataLoader demoDataLoader = new DemoDataLoader(context, SignInButton);
-
                 //alertDialogOkay("Device configured for Demo. Click Sign-in");
 
                 ///Intent intent = new Intent(context, Home.class);
@@ -457,7 +456,6 @@ public class FullscreenLogin extends AppCompatActivity {
 
 
     }
-
     public void setLocale(String lang) {
         Locale myLocale = new Locale(lang);
         Resources res = getResources();
@@ -469,7 +467,6 @@ public class FullscreenLogin extends AppCompatActivity {
         startActivity(refresh);
         finish();
     }
-
     ////////
     private void TestConnectionToServer(String textURL) {
         mDialog = new ProgressDialog(context);

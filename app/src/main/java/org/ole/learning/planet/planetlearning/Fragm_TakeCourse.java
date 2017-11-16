@@ -207,7 +207,6 @@ public class Fragm_TakeCourse extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
-
         void onResourceOpened(String resourceId, String resourceTitle);
     }
 
@@ -512,7 +511,6 @@ public class Fragm_TakeCourse extends Fragment {
 
         }
     }
-
     public boolean CheckAnsBeforeNext(String questionID, int numberOfQuestions) {
         totalNumOfQuestions = numberOfQuestions;
         quesionCurrentIndex = qn_Ids.indexOf(questionID);
@@ -559,7 +557,6 @@ public class Fragm_TakeCourse extends Fragment {
 
         return true;
     }
-
     public void showResourcesDialog(String StepId, String StepTitle) {
         rs_Ids.clear();
         rs_OpenWith.clear();
@@ -632,7 +629,6 @@ public class Fragm_TakeCourse extends Fragment {
             err.printStackTrace();
         }
     }
-
     public Boolean openResources(String id) {
         String resourceIdTobeOpened = id;
         Log.d(TAG, "Trying to open resource " + id);
@@ -768,6 +764,4 @@ public class Fragm_TakeCourse extends Fragment {
         AlertDialog alert11 = builder1.create();
         alert11.show();
     }
-
-
 }
