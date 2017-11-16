@@ -73,25 +73,25 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
     boolean singleFileDownload = true;
     public static final String PREFS_NAME = "MyPrefsFile";
     CouchViews chViews = new CouchViews();
-    long downloadId =0;
+    long downloadId = 0;
 
     /// String
     String sys_oldSyncServerURL, sys_username, sys_lastSyncDate,
             sys_password, sys_usercouchId, sys_userfirstname, sys_userlastname,
             sys_usergender, sys_uservisits, sys_servername, sys_serverversion = "";
     String OneByOneResID, OneByOneResTitle, OneByOneCourseId;
-    int courseStepsCounter =0;
+    int courseStepsCounter = 0;
     int action_button_id = 0;
     SharedPreferences settings;
     List<String> resIDArrayList = new ArrayList<>();
     View vi;
 
-    TextView title,description,ratingAvgNum,totalNum;
+    TextView title, description, ratingAvgNum, totalNum;
     Button open;
     RatingBar ratingStars;
     LayerDrawable stars;
     ProgressBar femalerating, malerating;
-    String activityName ="myCourses";
+    String activityName = "myCourses";
 
 
     protected int _splashTime = 5000;
@@ -105,6 +105,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
     Fetch fetch;
     List<Long> downloadListIDs = new ArrayList<>();
     List<Request> requests = new ArrayList<>();
+
     public ListViewAdapter_myCourses(final List<String> resIDsList, Activity a, Context cont, ArrayList<HashMap<String, String>> d) {
         activity = a;
         data = d;
@@ -192,13 +193,13 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
             @Override
             public void onUpdate(long id, int status, int progress, long downloadedBytes, long fileSize, int error) {
 
-                if(downloadId == id && status == Fetch.STATUS_DOWNLOADING) {
-                    Log.d(TAG,"downloading ooo."+ progress);
+                if (downloadId == id && status == Fetch.STATUS_DOWNLOADING) {
+                    Log.d(TAG, "downloading ooo." + progress);
                     //progressBar.setProgress(progress);
-                }else if(error != Fetch.NO_ERROR) {
+                } else if (error != Fetch.NO_ERROR) {
                     //An error occurred
 
-                    if(error == Fetch.ERROR_HTTP_NOT_FOUND) {
+                    if (error == Fetch.ERROR_HTTP_NOT_FOUND) {
                         //handle error
                     }
 
@@ -268,7 +269,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
         }
 
         ratingAvgNum.setText("" + material.get(Fragm_myCourses.KEY_RATING));
-        ratingStars.setRating( Float.parseFloat((material.get(Fragm_myCourses.KEY_RATING) == null) ? "2.2" : material.get(Fragm_myCourses.KEY_RATING)));
+        ratingStars.setRating(Float.parseFloat((material.get(Fragm_myCourses.KEY_RATING) == null) ? "2.2" : material.get(Fragm_myCourses.KEY_RATING)));
         totalNum.setText(material.get(Fragm_myCourses.KEY_TOTALNUM_RATING));
         femalerating.setProgress(Integer.parseInt("1"));
         //femalerating.setProgress(Integer.parseInt(material.get(Fragm_myCourses.KEY_FEMALE_RATING)));
@@ -317,21 +318,21 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
             ///Document doc = database.getExistingDocument(manualResId);
             //Map<String, Object> existing_properties = doc.getProperties();
             //if(existing_properties == null){
-                Log.e(TAG, "File does not exist");
-                Map<String, Object> properties = new HashMap<>();
-                properties.put("title", manualResTitle);
-                properties.put("openWith", manualResopenWith);
-                properties.put("localfile", "yes");
-                // properties.put("resourceType", manualResType);
-                Document document = database.getDocument(manualResId);
-                try {
-                    document.putProperties(properties);
-                } catch (CouchbaseLiteException e) {
-                    Log.e(TAG, "Cannot save document", e);
-                }
-           // }else{
-           //     Log.e("MyCouch", "File already exist");
-           // }
+            Log.e(TAG, "File does not exist");
+            Map<String, Object> properties = new HashMap<>();
+            properties.put("title", manualResTitle);
+            properties.put("openWith", manualResopenWith);
+            properties.put("localfile", "yes");
+            // properties.put("resourceType", manualResType);
+            Document document = database.getDocument(manualResId);
+            try {
+                document.putProperties(properties);
+            } catch (CouchbaseLiteException e) {
+                Log.e(TAG, "Cannot save document", e);
+            }
+            // }else{
+            //     Log.e("MyCouch", "File already exist");
+            // }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -352,7 +353,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
             try {
                 document.putProperties(properties);
             } catch (CouchbaseLiteException e) {
-                Log.e(TAG, "Cannot course details in offline courses"+ e.getMessage());
+                Log.e(TAG, "Cannot course details in offline courses" + e.getMessage());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -363,8 +364,8 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
     public void buttonAction(String courseId, String action) {
         switch (action) {
             case "Open":
-                    mListener.onTakeCourseOpen(courseId);
-                    Log.i(TAG, "Open Clicked ********** " + courseId);
+                mListener.onTakeCourseOpen(courseId);
+                Log.i(TAG, "Open Clicked ********** " + courseId);
                 break;
             case "Download":
                 restorePreferences(activity);
@@ -373,56 +374,56 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
         }
     }
 
-    public void downloadCourseResources(String courseId){
-       try{
-           resIDArrayList.clear();
-           AndroidContext androidContext = new AndroidContext(context);
-           Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-           Database coursestep_Db = manager.getExistingDatabase("coursestep");
-           Query orderedQuery = chViews.ReadCourseSteps(coursestep_Db).createQuery();
-           orderedQuery.setDescending(true);
-           QueryEnumerator results = orderedQuery.run();
-           courseStepsCounter =0;
-           for (Iterator<QueryRow> item = results; item.hasNext(); ) {
-               QueryRow row = item.next();
-               String docId = (String) row.getValue();
-               Document doc = coursestep_Db.getExistingDocument(docId);
-               Map<String, Object> coursestep_properties = doc.getProperties();
-               if (courseId.equals((String) coursestep_properties.get("courseId"))) {
-                   ArrayList resourceList = (ArrayList<String>) coursestep_properties.get("resourceId");
-                   for (int cnt = 0; cnt < resourceList.size(); cnt++) {
-                       if (!resIDArrayList.contains(String.valueOf(resourceList.get(cnt)))) {
-                           resIDArrayList.add(String.valueOf(resourceList.get(cnt)));
-                       }
-                   }
-                   Log.e(TAG, "Course Step title " + ((String) coursestep_properties.get("title")) + " ");
-                   courseStepsCounter++;
-               }
-           }
-           fetch.removeRequests();
-           new FetchCompileDownload().execute();
+    public void downloadCourseResources(String courseId) {
+        try {
+            resIDArrayList.clear();
+            AndroidContext androidContext = new AndroidContext(context);
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database coursestep_Db = manager.getExistingDatabase("coursestep");
+            Query orderedQuery = chViews.ReadCourseSteps(coursestep_Db).createQuery();
+            orderedQuery.setDescending(true);
+            QueryEnumerator results = orderedQuery.run();
+            courseStepsCounter = 0;
+            for (Iterator<QueryRow> item = results; item.hasNext(); ) {
+                QueryRow row = item.next();
+                String docId = (String) row.getValue();
+                Document doc = coursestep_Db.getExistingDocument(docId);
+                Map<String, Object> coursestep_properties = doc.getProperties();
+                if (courseId.equals((String) coursestep_properties.get("courseId"))) {
+                    ArrayList resourceList = (ArrayList<String>) coursestep_properties.get("resourceId");
+                    for (int cnt = 0; cnt < resourceList.size(); cnt++) {
+                        if (!resIDArrayList.contains(String.valueOf(resourceList.get(cnt)))) {
+                            resIDArrayList.add(String.valueOf(resourceList.get(cnt)));
+                        }
+                    }
+                    Log.e(TAG, "Course Step title " + ((String) coursestep_properties.get("title")) + " ");
+                    courseStepsCounter++;
+                }
+            }
+            fetch.removeRequests();
+            new FetchCompileDownload().execute();
 
 
-           if(resIDArrayList.size()>0) {
-            ///  OneByOneResID = resIDArrayList.get(0);
-             //  mDialog = new ProgressDialog(activity.getWindow().getContext());
-             //  mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-             //  mDialog.setMessage("Please wait...");
-             //  mDialog.setCancelable(false);
-             //  mDialog.show();
-            // /  singleFileDownload = false;
-            ///   OneByOneCourseId = courseId;
-            ///   new downloadSpecificResourceToDisk().execute();
-            ///   Log.e(TAG, "Clicked Showing wait");
-               ///mListener.onCourseDownloadingProgress(OneByOneResTitle,"Please Wait","Downloading item");
+            if (resIDArrayList.size() > 0) {
+                ///  OneByOneResID = resIDArrayList.get(0);
+                //  mDialog = new ProgressDialog(activity.getWindow().getContext());
+                //  mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                //  mDialog.setMessage("Please wait...");
+                //  mDialog.setCancelable(false);
+                //  mDialog.show();
+                // /  singleFileDownload = false;
+                ///   OneByOneCourseId = courseId;
+                ///   new downloadSpecificResourceToDisk().execute();
+                ///   Log.e(TAG, "Clicked Showing wait");
+                ///mListener.onCourseDownloadingProgress(OneByOneResTitle,"Please Wait","Downloading item");
 
-           }else{
+            } else {
 
-           }
+            }
 
-       }catch(Exception err){
-           err.printStackTrace();
-       }
+        } catch (Exception err) {
+            err.printStackTrace();
+        }
     }
 
     class FetchCompileDownload extends AsyncTask<String, Void, Boolean> {
@@ -431,8 +432,8 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
 
         protected Boolean doInBackground(String... urls) {
             try {
-                for(int x=0;x<resIDArrayList.size();x++){
-                    OneByOneResID= resIDArrayList.get(x);
+                for (int x = 0; x < resIDArrayList.size(); x++) {
+                    OneByOneResID = resIDArrayList.get(x);
                     try {
                         URI uri = URI.create(sys_oldSyncServerURL);
                         String url_Scheme = uri.getScheme();
@@ -461,22 +462,22 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                                     String key = (String) keys.next();
                                     Log.e(TAG, "-- " + key);
                                     final String encodedkey = URLEncoder.encode(key, "utf-8");
-                                    String extension = encodedkey.substring(encodedkey.lastIndexOf("."));
+                                    String extension = encodedkey.substring(encodedkey.lastIndexOf('.'));
                                     final String diskFileName = OneByOneResID + extension;
                                     //activity.runOnUiThread(new Runnable() {
                                     //    @Override
                                     //    public void run() {
-                                            String root = Environment.getExternalStorageDirectory().toString();
-                                            File dirPath = new File(root + "/ole_temp");
-                                            String downloadURL = sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey;
-                                            Request request = new Request(downloadURL, dirPath.getAbsolutePath(), diskFileName);
-                                            requests.add(request);
+                                    String root = Environment.getExternalStorageDirectory().toString();
+                                    File dirPath = new File(root + "/ole_temp");
+                                    String downloadURL = sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey;
+                                    Request request = new Request(downloadURL, dirPath.getAbsolutePath(), diskFileName);
+                                    requests.add(request);
 
-                                           // Request request = new Request(downloadURL,dirPath.getAbsolutePath(),diskFileName);
-                                           // long downloadId = fetch.enqueue(request);
-                                           // downloadListIDs.add(downloadId);
+                                    // Request request = new Request(downloadURL,dirPath.getAbsolutePath(),diskFileName);
+                                    // long downloadId = fetch.enqueue(request);
+                                    // downloadListIDs.add(downloadId);
                                     //    }
-                                   // });
+                                    // });
                                 }
                             }
                         }
@@ -488,19 +489,19 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                         e.printStackTrace();
                     }
 
-                   /// Log.e(TAG, "Resources for course ( "++" ) step " + resIDArrayList.get(x));
+                    /// Log.e(TAG, "Resources for course ( "++" ) step " + resIDArrayList.get(x));
                 }
                 fetch.enqueue(requests);
                 fetch.addFetchListener(new FetchListener() {
                     @Override
                     public void onUpdate(long id, int status, int progress, long downloadedBytes, long fileSize, int error) {
-                        if(status == Fetch.STATUS_DOWNLOADING) {
+                        if (status == Fetch.STATUS_DOWNLOADING) {
                             Log.e(TAG, " Down 9" + progress);
 
-                        }else if(status == Fetch.STATUS_DONE) {
+                        } else if (status == Fetch.STATUS_DONE) {
                             Log.e(TAG, " Completed All Down 1 " + progress);
                             fetch.release();
-                        }else if(error != Fetch.NO_ERROR) {
+                        } else if (error != Fetch.NO_ERROR) {
                             //An error occurred
                             Log.e(TAG, " Down Error No " + error);
                             if (error == Fetch.ERROR_HTTP_NOT_FOUND) {
@@ -510,7 +511,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                     }
                 });
                 //
-               /// List<Long> downloadIds = fetch.enqueue(requests);
+                /// List<Long> downloadIds = fetch.enqueue(requests);
 
                 return true;
             } catch (Exception e) {
@@ -540,14 +541,16 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
         // get download service and enqueue file
         mDialog.setMessage("Downloading  \" " + OneByOneResTitle + " \" . please wait...");
 
-        mListener.onCourseDownloadingProgress(OneByOneResTitle,"Please Wait","Downloading item");
+        mListener.onCourseDownloadingProgress(OneByOneResTitle, "Please Wait", "Downloading item");
         downloadManager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
         enqueue = downloadManager.enqueue(request);
     }
 
     public interface OnCourseListListener {
         void onTakeCourseOpen(String CourseId);
+
         void onCourseDownloadCompleted(String CourseId, Object data);
+
         void onCourseDownloadingProgress(String itemTitle, String status, String message);
     }
 
@@ -581,22 +584,17 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                             String key = (String) keys.next();
                             Log.e(TAG, "-- " + key);
                             final String encodedkey = URLEncoder.encode(key, "utf-8");
-                            File file = new File(encodedkey);
-                            String extension = encodedkey.substring(encodedkey.lastIndexOf("."));
+                            String extension = encodedkey.substring(encodedkey.lastIndexOf('.'));
                             final String diskFileName = OneByOneResID + extension;
                             activity.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     String root = Environment.getExternalStorageDirectory().toString();
                                     File dirPath = new File(root + "/ole_temp");
-                                    Request request = new Request(sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey,dirPath.getAbsolutePath(),diskFileName);
+                                    Request request = new Request(sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey, dirPath.getAbsolutePath(), diskFileName);
                                     downloadId = fetch.enqueue(request);
-
-
-
-
-                                   // downloadWithDownloadManagerSingleFile(sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey, diskFileName);
-                                   // createCourseResourceDoc(OneByOneResID, title, openWith);
+                                    // downloadWithDownloadManagerSingleFile(sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey, diskFileName);
+                                    // createCourseResourceDoc(OneByOneResID, title, openWith);
 
                                 }
                             });
@@ -621,7 +619,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Download this resource error " + e.getMessage());
-                mListener.onCourseDownloadingProgress(OneByOneResTitle,"Please Wait","Downloading item");
+                mListener.onCourseDownloadingProgress(OneByOneResTitle, "Please Wait", "Downloading item");
                 mDialog.dismiss();
                 alertDialogOkay("Error downloading file, check connection and try again");
                 e.printStackTrace();
