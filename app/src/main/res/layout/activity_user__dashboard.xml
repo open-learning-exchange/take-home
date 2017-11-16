@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#007ccf"
-    tools:context="pbell.offline.ole.org.pbell.User_Dashboard">
+    tools:context="org.ole.learning.planet.planetlearning.User_Dashboard">
 
     <!-- The primary full-screen view. This can be replaced with whatever view
          is needed to present your content, e.g. VideoView, SurfaceView,
@@ -115,7 +115,7 @@
                             android:gravity="bottom|center"
                             android:paddingLeft="10dp"
                             android:text="Agness Mensah"
-                            android:textColor="@color/ole_white"
+                            android:textColor="@android:color/white"
                             android:textSize="16sp"
                             android:textStyle="bold" />
 
@@ -128,7 +128,7 @@
                             android:paddingLeft="2dp"
                             android:paddingRight="2dp"
                             android:text="Lead Manager"
-                            android:textColor="@color/ole_white"
+                            android:textColor="@android:color/white"
                             android:textSize="14sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -190,7 +190,7 @@
                                     android:layout_weight="1"
                                     android:gravity="center"
                                     android:text="ENG"
-                                    android:textColor="@color/white"
+                                    android:textColor="@android:color/white"
                                     android:textSize="10sp" />
                             </LinearLayout>
                         </LinearLayout>
@@ -235,7 +235,7 @@
                                     android:layout_weight="1"
                                     android:gravity="center"
                                     android:text="Badges"
-                                    android:textColor="@color/white"
+                                    android:textColor="@android:color/white"
                                     android:textSize="10sp" />
                             </LinearLayout>
                         </LinearLayout>
@@ -279,7 +279,7 @@
                                     android:layout_weight="1"
                                     android:gravity="center"
                                     android:text="Survey"
-                                    android:textColor="@color/white"
+                                    android:textColor="@android:color/white"
                                     android:textSize="10sp" />
                             </LinearLayout>
                         </LinearLayout>
@@ -333,7 +333,7 @@
                                     android:layout_weight="1"
                                     android:gravity="center"
                                     android:text="Emails (3)"
-                                    android:textColor="@color/white"
+                                    android:textColor="@android:color/white"
                                     android:textSize="10sp" />
                             </LinearLayout>
                         </LinearLayout>
@@ -378,7 +378,7 @@
                                     android:layout_weight="1"
                                     android:gravity="center"
                                     android:text="Points"
-                                    android:textColor="@color/white"
+                                    android:textColor="@android:color/white"
                                     android:textSize="10sp" />
                             </LinearLayout>
                         </LinearLayout>
@@ -422,7 +422,7 @@
                                     android:layout_weight="1"
                                     android:gravity="center"
                                     android:text="Feedback"
-                                    android:textColor="@color/white"
+                                    android:textColor="@android:color/white"
                                     android:textSize="10sp" />
                             </LinearLayout>
                         </LinearLayout>
@@ -516,7 +516,7 @@
                                 android:gravity="left|center"
                                 android:padding="7dp"
                                 android:text="@string/bbtext_MyLibrary"
-                                android:textColor="@color/white"
+                                android:textColor="@android:color/white"
                                 android:textSize="16sp" />
                         </LinearLayout>
                     </LinearLayout>
@@ -600,7 +600,7 @@
                                 android:gravity="left|center"
                                 android:padding="7dp"
                                 android:text="@string/bbtext_MyCourses"
-                                android:textColor="@color/white"
+                                android:textColor="@android:color/white"
                                 android:textSize="16sp" />
                         </LinearLayout>
                     </LinearLayout>
@@ -684,7 +684,7 @@
                                 android:gravity="left|center"
                                 android:padding="7dp"
                                 android:text="@string/bbtext_MyTeams"
-                                android:textColor="@color/white"
+                                android:textColor="@android:color/white"
                                 android:textSize="16sp" />
                         </LinearLayout>
                     </LinearLayout>
@@ -768,7 +768,7 @@
                                 android:gravity="left|center"
                                 android:padding="7dp"
                                 android:text="@string/bbtext_Meetups"
-                                android:textColor="@color/white"
+                                android:textColor="@android:color/white"
                                 android:textSize="16sp" />
                         </LinearLayout>
                     </LinearLayout>
@@ -836,7 +836,7 @@
                                 android:padding="7dp"
                                 android:text="@string/txtLogout"
                                 android:textAllCaps="true"
-                                android:textColor="@color/white"
+                                android:textColor="@android:color/white"
                                 android:textSize="14sp" />
                         </LinearLayout>
                     </LinearLayout>
@@ -922,7 +922,7 @@
                         android:gravity="center_vertical|center_horizontal"
                         android:text="HOME"
                         android:textAlignment="center"
-                        android:textColor="@color/ole_white" />
+                        android:textColor="@android:color/white" />
 
                     <TextView
                         android:id="@+id/space_1"
@@ -943,7 +943,7 @@
                         android:gravity="center_vertical|center_horizontal"
                         android:text="LIBRARY"
                         android:textAlignment="center"
-                        android:textColor="@color/ole_white" />
+                        android:textColor="@android:color/white" />
 
                     <TextView
                         android:id="@+id/space_2"
@@ -964,7 +964,7 @@
                         android:gravity="center_vertical|center_horizontal"
                         android:text="COURSES"
                         android:textAlignment="center"
-                        android:textColor="@color/ole_white" />
+                        android:textColor="@android:color/white" />
 
                     <TextView
                         android:id="@+id/space_3"
@@ -985,7 +985,7 @@
                         android:gravity="center_vertical|center_horizontal"
                         android:text="MEETUPS"
                         android:textAlignment="center"
-                        android:textColor="@color/ole_white" />
+                        android:textColor="@android:color/white" />
 
                     <TextView
                         android:id="@+id/space_4"
@@ -1007,7 +1007,7 @@
                         android:gravity="center_vertical|center_horizontal"
                         android:text="MEMBERS"
                         android:textAppearance="@style/TextAppearance.AppCompat"
-                        android:textColor="@color/ole_white" />
+                        android:textColor="@android:color/white" />
 
                     <TextView
                         android:id="@+id/space_5"
@@ -1028,7 +1028,7 @@
                         android:gravity="center_vertical|center_horizontal"
                         android:text="REPORTS"
                         android:textAlignment="center"
-                        android:textColor="@color/ole_white" />
+                        android:textColor="@android:color/white" />
 
                     <TextView
                         android:id="@+id/space_6"
@@ -1049,7 +1049,7 @@
                         android:gravity="center_vertical|center_horizontal"
                         android:text="FEEDBACK"
                         android:textAlignment="center"
-                        android:textColor="@color/ole_white" />
+                        android:textColor="@android:color/white" />
                 </LinearLayout>
 
                 <LinearLayout

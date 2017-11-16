@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PLANET</string>
+    <string name="app_name">Planet Learning</string>
     <string name="action_syncUrl">Sync Server Url</string>
     <string name="action_syncNow">Sync Device</string>
     <string name="action_settings">Settings</string>
@@ -8,6 +8,7 @@
     <string name="action_about">About</string>
     <string name="section_format">Hello World from section: %1$d</string>
     <string name="title_activity_login">Take-Home</string>
+    <string name="title_activity_fullscreen_login">Take-Home</string>
 
     <!-- Related to First Time Dialog -->
     <string name="fst_welcome">Take Home</string>
@@ -101,4 +102,6 @@
     <string name="finish">Finish</string>
     <string name="submit">Submit</string>
     <string name="version">version 2.1.1</string>
+
+    <string name="title_activity_downloading_items">DownloadingItems</string>
 </resources>

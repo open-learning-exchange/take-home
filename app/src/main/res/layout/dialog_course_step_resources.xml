@@ -14,7 +14,7 @@
         android:layout_marginRight="10dp"
         android:layout_marginTop="10dp"
         android:layout_weight="9.5"
-        android:background="@drawable/test_border_darkblue"
+        android:background="@drawable/border_darkblue"
         android:minHeight="500dp"
         android:minWidth="500dp"
         android:orientation="vertical"
