@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -201,6 +202,7 @@ public class FullscreenLogin extends AppCompatActivity {
         //
 
         restorePref();
+
         ////startServiceCommand();
         btnFeedback = (Button) findViewById(R.id.btnFeedback);
         btnFeedback.setOnClickListener(new View.OnClickListener() {
@@ -247,7 +249,25 @@ public class FullscreenLogin extends AppCompatActivity {
         if (!hasPermission) {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_STORAGE);
         }
+
+        boolean isAppInstalled = appInstalledOrNot("com.adobe.reader");
+        if(!isAppInstalled) {
+            alertInstallAdobeReader("This application requires adobe reader. Click continue to install it");
+        }else{
+
+        }
     }
+    private boolean appInstalledOrNot(String uri) {
+        PackageManager pm = getPackageManager();
+        try {
+            pm.getPackageInfo(uri, PackageManager.GET_ACTIVITIES);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+        }
+
+        return false;
+    }
+
 
     @Override
     public void onResume() {
@@ -768,8 +788,8 @@ public class FullscreenLogin extends AppCompatActivity {
         dialog.show();
         final EditText txtSuncURL = (EditText) dialog.findViewById(R.id.txtNewSyncURL);
         txtSuncURL.setText(sys_oldSyncServerURL);
-        Button TestConnButton = (Button) dialog.findViewById(R.id.btnTestCnnection);
-        TestConnButton.setOnClickListener(new View.OnClickListener() {
+        Button testConnButton = (Button) dialog.findViewById(R.id.btnTestCnnection);
+        testConnButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 TestConnectionToServer(txtSuncURL.getText().toString());
@@ -1024,6 +1044,28 @@ public class FullscreenLogin extends AppCompatActivity {
         });
         th.start();
     }
+
+    public void alertInstallAdobeReader(String Message) {
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
+        builder1.setMessage(Message);
+        builder1.setCancelable(true);
+        builder1.setNegativeButton("Continue",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        String root = Environment.getExternalStorageDirectory().toString();
+                        File myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
+                        File dst = new File(myDir, "adobe_reader.apk");
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        context.startActivity(intent);
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert11 = builder1.create();
+        alert11.show();
+    }
+
 
     public void alertDialogOkay(String Message) {
         AlertDialog.Builder builder1 = new AlertDialog.Builder(context);

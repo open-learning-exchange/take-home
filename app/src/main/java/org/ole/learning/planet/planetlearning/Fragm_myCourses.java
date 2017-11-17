@@ -4,12 +4,14 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -157,12 +159,6 @@ public class Fragm_myCourses extends Fragment {
         list = (ListView) rootView.findViewById(R.id.material_list);
         adapter = new ListViewAdapter_myCourses(resIDArrayList, getActivity(), context, materialList);
         list.setAdapter(adapter);
-        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            }
-        });
-
         return rootView;
     }
 
@@ -191,8 +187,8 @@ public class Fragm_myCourses extends Fragment {
     public void LoadMyCourses() {
         try {
             /// Todo remove bellow code
-
-           /* try {
+            /*
+            try {
                 AndroidContext androidContext = new AndroidContext(context);
                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                 Database dbOffline_courses = manager.getDatabase("offline_courses");
@@ -208,7 +204,8 @@ public class Fragm_myCourses extends Fragment {
                 dboffline_course_resources.delete();
             }catch(Exception err){
                 err.printStackTrace();
-            }*/
+            }
+            */
 
 
             //maximus
@@ -417,6 +414,21 @@ public class Fragm_myCourses extends Fragment {
                     }
                 });
     }
+
+    public void alertDialogOkay(String Message) {
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
+        builder1.setMessage(Message);
+        builder1.setCancelable(true);
+        builder1.setNegativeButton("Okay",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert11 = builder1.create();
+        alert11.show();
+    }
+
 
 
 }

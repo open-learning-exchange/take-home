@@ -5,6 +5,7 @@ package org.ole.learning.planet.planetlearning;
  */
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -27,9 +28,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
@@ -102,6 +106,13 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
     Fetch fetch;
     List<Long> downloadListIDs = new ArrayList<>();
     List<Request> requests = new ArrayList<>();
+    Dialog dialogDownloadProgress;
+    ProgressBar downloadPB;
+    TextView txtResourceTitle;
+    String downloadingCourseTitle;
+    boolean downloadCompleted = false;
+
+
     public ListViewAdapter_myCourses(final List<String> resIDsList, Activity a, Context cont, ArrayList<HashMap<String, String>> d) {
         activity = a;
         data = d;
@@ -182,25 +193,6 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
         */
         this.mListener = null;
         mListener = (OnCourseListListener) cont;
-
-
-        fetch.addFetchListener(new FetchListener() {
-
-            @Override
-            public void onUpdate(long id, int status, int progress, long downloadedBytes, long fileSize, int error) {
-                if (downloadId == id && status == Fetch.STATUS_DOWNLOADING) {
-                    Log.d(TAG, "downloading ooo." + progress);
-                    //progressBar.setProgress(progress);
-                } else if (error != Fetch.NO_ERROR) {
-                    //An error occurred
-
-                    if (error == Fetch.ERROR_HTTP_NOT_FOUND) {
-                        //handle error
-                    }
-
-                }
-            }
-        });
     }
 
     public int getCount() {
@@ -274,6 +266,32 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
         return vi;
     }
 
+    public void showDialogProgress(){
+        AlertDialog.Builder dialogB2 = new AlertDialog.Builder(activity);
+        dialogB2.setView(R.layout.dialog_simulate_download);
+        dialogB2.setCancelable(false);
+        try {
+            dialogDownloadProgress = dialogB2.create();
+            dialogDownloadProgress.show();
+            downloadPB = (ProgressBar)dialogDownloadProgress.findViewById(R.id.progressBarDownloading);
+            downloadPB.setScaleY(3f);
+            txtResourceTitle = (TextView) dialogDownloadProgress.findViewById(R.id.txtItemTitle);
+            txtResourceTitle.setText("Downloading");
+
+
+            /*Button btnClose = (Button) dialogResources.findViewById(R.id.btnCloseDlg);
+            btnClose.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dialogResources.dismiss();
+                }
+            });*/
+
+        } catch (Exception err) {
+            err.printStackTrace();
+        }
+    }
+
     public void alertDialogOkay(String Message) {
         AlertDialog.Builder builder1 = new AlertDialog.Builder(activity);
         builder1.setMessage(Message);
@@ -281,6 +299,21 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
         builder1.setNegativeButton("Okay",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert11 = builder1.create();
+        alert11.show();
+    }
+
+    public void alertCompletedDownload(String Message) {
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(activity);
+        builder1.setMessage(Message);
+        builder1.setCancelable(true);
+        builder1.setNegativeButton("Continue",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        mListener.onCourseDownloadCompleted(OneByOneResTitle, resIDArrayList);
                         dialog.cancel();
                     }
                 });
@@ -347,10 +380,11 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
             Document document = database.getDocument(manualCourseId);
             try {
                 document.putProperties(properties);
-            } catch (CouchbaseLiteException e) {
+            } catch (Exception e) {
                 Log.e(TAG, "Cannot course details in offline courses" + e.getMessage());
             }
         } catch (Exception e) {
+            Log.e(TAG, "Create Course error " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -390,31 +424,20 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                             resIDArrayList.add(String.valueOf(resourceList.get(cnt)));
                         }
                     }
-                    Log.e(TAG, "Course Step title " + ((String) coursestep_properties.get("title")) + " ");
+                    downloadingCourseTitle = ((String) coursestep_properties.get("title"));
+                    Log.e(TAG, "Course Step title " + downloadingCourseTitle);
                     courseStepsCounter++;
                 }
             }
             fetch.removeRequests();
-            new FetchCompileDownload().execute();
-
-
             if (resIDArrayList.size() > 0) {
-                ///  OneByOneResID = resIDArrayList.get(0);
-                //  mDialog = new ProgressDialog(activity.getWindow().getContext());
-                //  mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-                //  mDialog.setMessage("Please wait...");
-                //  mDialog.setCancelable(false);
-                //  mDialog.show();
-                // /  singleFileDownload = false;
-                ///   OneByOneCourseId = courseId;
-                ///   new downloadSpecificResourceToDisk().execute();
-                ///   Log.e(TAG, "Clicked Showing wait");
-                ///mListener.onCourseDownloadingProgress(OneByOneResTitle,"Please Wait","Downloading item");
-
+                OneByOneCourseId = courseId;
+                showDialogProgress();
+                downloadCompleted=false;
+                new FetchCompileDownload().execute();
             } else {
 
             }
-
         } catch (Exception err) {
             err.printStackTrace();
         }
@@ -458,20 +481,13 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                                     final String encodedkey = URLEncoder.encode(key, "utf-8");
                                     String extension = encodedkey.substring(encodedkey.lastIndexOf('.'));
                                     final String diskFileName = OneByOneResID + extension;
-                                    //activity.runOnUiThread(new Runnable() {
-                                    //    @Override
-                                    //    public void run() {
                                     String root = Environment.getExternalStorageDirectory().toString();
                                     File dirPath = new File(root + "/ole_temp");
                                     String downloadURL = sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey;
                                     Request request = new Request(downloadURL, dirPath.getAbsolutePath(), diskFileName);
                                     requests.add(request);
-
-                                    // Request request = new Request(downloadURL,dirPath.getAbsolutePath(),diskFileName);
-                                    // long downloadId = fetch.enqueue(request);
-                                    // downloadListIDs.add(downloadId);
-                                    //    }
-                                    // });
+                                    ///Save Resource Fully Downloaded Document
+                                    createCourseResourceDoc(OneByOneResID, title, openWith);
                                 }
                             }
                         }
@@ -479,23 +495,43 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                         Log.e(TAG, "Fetch -- Download this resource error " + e.getMessage());
                         ///////////// mListener.onCourseDownloadingProgress(OneByOneResTitle,"Please Wait","Downloading item");
                         /// mDialog.dismiss();
-                        alertDialogOkay("Fetch -- Error downloading file, check connection and try again");
+                        alertDialogOkay(" Error downloading file, check connection and try again");
                         e.printStackTrace();
                     }
-                    /// Log.e(TAG, "Resources for course ( "++" ) step " + resIDArrayList.get(x));
                 }
-                fetch.enqueue(requests);
+
+                try{
+                    fetch.enqueue(requests);
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            downloadPB.setProgress(0);
+                        }
+                    });
+                }catch (Exception err){
+                    downloadCompleted=false;
+                    dialogDownloadProgress.dismiss();
+                }
                 fetch.addFetchListener(new FetchListener() {
                     @Override
                     public void onUpdate(long id, int status, int progress, long downloadedBytes, long fileSize, int error) {
                         if (status == Fetch.STATUS_DOWNLOADING) {
-                            Log.e(TAG, " Down 9" + progress);
-
+                            downloadPB.setProgress(progress);
                         } else if (status == Fetch.STATUS_DONE) {
-                            Log.e(TAG, " Completed All Down 1 " + progress);
-                            fetch.release();
+                            downloadPB.setProgress(100);
+                            try {
+                                dialogDownloadProgress.dismiss();
+                                if(!downloadCompleted){
+                                    downloadCompleted=true;
+                                    alertCompletedDownload("Download completed successfully");
+                                    createCourseDoc(OneByOneCourseId, courseStepsCounter);
+                                }
+                            }catch (Exception err){
+                            }
+                           /// fetch.release();
                         } else if (error != Fetch.NO_ERROR) {
                             //An error occurred
+                            dialogDownloadProgress.dismiss();
                             Log.e(TAG, " Down Error No " + error);
                             if (error == Fetch.ERROR_HTTP_NOT_FOUND) {
                                 //handle error
@@ -503,8 +539,6 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                         }
                     }
                 });
-                //
-                /// List<Long> downloadIds = fetch.enqueue(requests);
                 return true;
             } catch (Exception e) {
                 this.exception = e;

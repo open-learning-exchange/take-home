@@ -652,7 +652,7 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
 
     @Override
     public void onCourseDownloadCompleted(String CourseId, Object data) {
-        alertDialogOkay("Download Completed");
+        ///alertDialogOkay("Download Completed");
         Fragm_Loading loading = new Fragm_Loading();
         Bundle args = new Bundle();
         args.putString("targetAction", "myCourses");
