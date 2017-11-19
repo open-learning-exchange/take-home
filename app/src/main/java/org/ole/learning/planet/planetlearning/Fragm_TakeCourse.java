@@ -5,10 +5,12 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -175,6 +177,19 @@ public class Fragm_TakeCourse extends Fragment {
         lblStepTitle = (TextView) view.findViewById(R.id.lbl_CourseStepTitle);
         lblCourseStepStatus = (TextView) view.findViewById(R.id.lbl_CourseStepStatus);
 
+
+        btnBack.setVisibility(View.VISIBLE);
+        btnBack.setText("< "+getResources().getString( R.string.bbtext_Previous));
+        btnBack.setShadowLayer(5f, -2, 1, Color.BLACK);
+        btnNext.setVisibility(View.VISIBLE);
+        btnNext.setText(getResources().getString(R.string.bbtext_Next)+" >");
+        btnNext.setShadowLayer(5f, -2, 1, Color.BLACK);
+
+        btnResources.setVisibility(View.VISIBLE);
+        btnResources.setShadowLayer(5f, -2, 1, Color.BLACK);
+        btnTakeTest.setVisibility(View.VISIBLE);
+        btnTakeTest.setShadowLayer(5f, -2, 1, Color.BLACK);
+
         loadCourseIntoArray(mCourseId);
 
         return view;
@@ -291,26 +306,42 @@ public class Fragm_TakeCourse extends Fragment {
 
         stepCurrentIndex = crs_StepIds.indexOf(StepId);
         if (stepCurrentIndex < crs_StepIds.size() - 1) {
-            btnNext.setVisibility(View.VISIBLE);
+            btnNext.setClickable(true);
+            btnNext.setTextColor(ContextCompat.getColor(getContext(),R.color.white));
+            //btnNext.setVisibility(View.VISIBLE);
         } else {
-            btnNext.setVisibility(View.GONE);
+            btnNext.setClickable(false);
+            btnNext.setTextColor(ContextCompat.getColor(getContext(),R.color.ole_ash));
+            //btnNext.setVisibility(View.GONE);
         }
         if (stepCurrentIndex > 0) {
-            btnBack.setVisibility(View.VISIBLE);
+            btnBack.setClickable(true);
+            btnBack.setTextColor(ContextCompat.getColor(getContext(),R.color.white));
+            //btnBack.setVisibility(View.VISIBLE);
         } else {
-            btnBack.setVisibility(View.GONE);
+            btnBack.setClickable(false);
+            btnBack.setTextColor(ContextCompat.getColor(getContext(),R.color.ole_ash));
+           // btnBack.setVisibility(View.GONE);
         }
         if (crs_StepNumOfQuestions.get(stepCurrentIndex) > 0) {
-            btnTakeTest.setVisibility(View.VISIBLE);
+            btnTakeTest.setClickable(true);
+            btnTakeTest.setTextColor(ContextCompat.getColor(getContext(),R.color.white));
+            //btnTakeTest.setVisibility(View.VISIBLE);
+
         } else {
-            btnTakeTest.setVisibility(View.GONE);
+            btnTakeTest.setClickable(false);
+            btnTakeTest.setTextColor(ContextCompat.getColor(getContext(),R.color.ole_ash));
+            //btnTakeTest.setVisibility(View.GONE);
         }
         if (crs_StepNumOfResources.get(stepCurrentIndex) > 0) {
-            btnResources.setVisibility(View.VISIBLE);
+            btnResources.setClickable(true);
+            btnResources.setTextColor(ContextCompat.getColor(getContext(),R.color.white));
+            //btnResources.setVisibility(View.VISIBLE);
         } else {
-            btnResources.setVisibility(View.GONE);
+            btnResources.setClickable(false);
+            btnResources.setTextColor(ContextCompat.getColor(getContext(),R.color.ole_ash));
+            //btnResources.setVisibility(View.GONE);
         }
-
 
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -336,20 +367,24 @@ public class Fragm_TakeCourse extends Fragment {
         btnTakeTest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                try {
-                    takeTestDialog(crs_StepIds.get(stepCurrentIndex), crs_StepTitles.get(stepCurrentIndex));
-                } catch (Exception except) {
-                    Log.d(TAG, "TakeTest clicked error  " + except.getMessage());
+                if(crs_StepNumOfResources.get(stepCurrentIndex) > 0) {
+                    try {
+                        takeTestDialog(crs_StepIds.get(stepCurrentIndex), crs_StepTitles.get(stepCurrentIndex));
+                    } catch (Exception except) {
+                        Log.d(TAG, "TakeTest clicked error  " + except.getMessage());
+                    }
                 }
             }
         });
         btnResources.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                try {
-                    showResourcesDialog(crs_StepIds.get(stepCurrentIndex), crs_StepTitles.get(stepCurrentIndex));
-                } catch (Exception except) {
-                    Log.d(TAG, "Resource clicked error " + except.getMessage());
+                if(crs_StepNumOfResources.get(stepCurrentIndex)>0) {
+                    try {
+                        showResourcesDialog(crs_StepIds.get(stepCurrentIndex), crs_StepTitles.get(stepCurrentIndex));
+                    } catch (Exception except) {
+                        Log.d(TAG, "Resource clicked error " + except.getMessage());
+                    }
                 }
             }
         });

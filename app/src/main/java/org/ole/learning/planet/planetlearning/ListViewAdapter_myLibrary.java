@@ -97,8 +97,6 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
     Context contextTry = null;
     String openedResourceId, openedResourceTitle = "";
     boolean openedResource = false;
-
-
     private String downloadCompleteIntentName = DownloadManager.ACTION_DOWNLOAD_COMPLETE;
     private IntentFilter downloadCompleteIntentFilter = new IntentFilter(downloadCompleteIntentName);
     private OnResouceListListener mListener;
@@ -158,7 +156,6 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
         this.mListener = null;
         mListener = (OnResouceListListener) cont;
     }
-
 
     public int getCount() {
         return data.size();

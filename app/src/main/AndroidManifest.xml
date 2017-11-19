@@ -35,7 +35,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="reverseLandscape"
+            android:screenOrientation="landscape"
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -50,18 +50,19 @@
             android:name=".FullscreenLogin"
             android:configChanges="locale|orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_login"
-            android:screenOrientation="reverseLandscape"
+            android:screenOrientation="landscape"
             android:theme="@style/AppTheme"></activity>
         <activity
             android:name=".User_Dashboard"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_user__dashboard"
-            android:screenOrientation="reverseLandscape"
+            android:screenOrientation="landscape"
             android:theme="@style/FullscreenTheme"></activity>
         <activity
             android:name=".DownloadingItems"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_downloading_items"
+            android:screenOrientation="landscape"
             android:theme="@style/FullscreenTheme"></activity>
     </application>
 

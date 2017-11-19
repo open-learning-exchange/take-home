@@ -108,7 +108,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
     List<Request> requests = new ArrayList<>();
     Dialog dialogDownloadProgress;
     ProgressBar downloadPB;
-    TextView txtResourceTitle;
+    TextView txtProgressStatus;
     String downloadingCourseTitle;
     boolean downloadCompleted = false;
 
@@ -122,75 +122,8 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
 
         fetch = Fetch.newInstance(context);
 
-
-
-/*
         ///  initialActivityLoad = true;
-        BroadcastReceiver receiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                String action = intent.getAction();
-                if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
-                    long downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0);
-                    DownloadManager.Query query = new DownloadManager.Query();
-                    query.setFilterById(enqueue);
-                    downloadManager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
-                    if(activityName.equalsIgnoreCase("myCourses")) {
-                        c = downloadManager.query(query);
-                        if (c.moveToFirst()) {
-                            int columnIndex = c.getColumnIndex(DownloadManager.COLUMN_STATUS);
-                            if (DownloadManager.STATUS_SUCCESSFUL == c.getInt(columnIndex)) {
-                                if (!singleFileDownload) {
-                                    Log.e(TAG, "Current downloaded file index -- " + resIDArrayList.indexOf(OneByOneResID));
-                                    Log.e(TAG, "Total Resource Size -- " + resIDArrayList.size());
-                                    if ((resIDArrayList.indexOf(OneByOneResID) + 1) < resIDArrayList.size()) {
-                                        int nextResID = resIDArrayList.indexOf(OneByOneResID) + 1;
-                                        Log.e(TAG, "Next to Download  -- " + OneByOneResID);
-                                        Log.e(TAG, "Index of download is to Download  -- " + resIDArrayList.indexOf(OneByOneResID));
-                                        OneByOneResID = resIDArrayList.get(nextResID);
-                                        Log.e(TAG, "New Download trigger  -- " + OneByOneResID);
-                                        new downloadSpecificResourceToDisk().execute();
-                                    } else {
 
-                                        mDialog.dismiss();
-
-                                        mListener.onCourseDownloadingProgress(OneByOneResTitle, "Please Wait", "Downloading item");
-                                        //alertDialogOkay("Download Completed");
-                                        createCourseDoc(OneByOneCourseId, courseStepsCounter);
-                                        mListener.onCourseDownloadCompleted(OneByOneResTitle, resIDArrayList);
-
-                                    }
-                                } else {
-                                    ///btnCourses.performClick();
-                                    ///libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_white));
-                                    mDialog.dismiss();
-
-                                    mListener.onCourseDownloadingProgress(OneByOneResTitle, "Please Wait", "Downloading item");
-                                    //alertDialogOkay("Download Completed");
-                                    createCourseDoc(OneByOneCourseId, courseStepsCounter);
-                                    mListener.onCourseDownloadCompleted(OneByOneResTitle, resIDArrayList);
-                                }
-                            } else if (DownloadManager.STATUS_FAILED == c.getInt(columnIndex)) {
-                                //alertDialogOkay("Download Failed for");
-                                if (resIDsList.indexOf(OneByOneResID) < resIDArrayList.size()) {
-                                    OneByOneResID = resIDArrayList.get(resIDArrayList.indexOf(OneByOneResID) + 1);
-                                    new downloadSpecificResourceToDisk().execute();
-                                } else {
-                                    mDialog.dismiss();
-
-                                    mListener.onCourseDownloadingProgress(OneByOneResTitle, "Please Wait", "Downloading item");
-                                    alertDialogOkay("Download Completed with error");
-                                    mListener.onCourseDownloadCompleted(OneByOneResTitle, resIDArrayList);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        };
-        context.registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
-
-        */
         this.mListener = null;
         mListener = (OnCourseListListener) cont;
     }
@@ -267,25 +200,17 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
     }
 
     public void showDialogProgress(){
-        AlertDialog.Builder dialogB2 = new AlertDialog.Builder(activity);
-        dialogB2.setView(R.layout.dialog_simulate_download);
+        AlertDialog.Builder dialogB2 = new AlertDialog.Builder(activity,R.style.TransparentDialog);
+        dialogB2.setView(R.layout.dialog_simulate_download_small);
         dialogB2.setCancelable(false);
         try {
             dialogDownloadProgress = dialogB2.create();
+            // dialogDownloadProgress.ActivityIndicator(this, R.style.TransparentDialog);
             dialogDownloadProgress.show();
             downloadPB = (ProgressBar)dialogDownloadProgress.findViewById(R.id.progressBarDownloading);
-            downloadPB.setScaleY(3f);
-            txtResourceTitle = (TextView) dialogDownloadProgress.findViewById(R.id.txtItemTitle);
-            txtResourceTitle.setText("Downloading");
-
-
-            /*Button btnClose = (Button) dialogResources.findViewById(R.id.btnCloseDlg);
-            btnClose.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    dialogResources.dismiss();
-                }
-            });*/
+            txtProgressStatus = (TextView) dialogDownloadProgress.findViewById(R.id.txtProgressStatus);
+            txtProgressStatus.setText("Downloading, please wait");
+            //downloadPB.setScaleY(3f);
 
         } catch (Exception err) {
             err.printStackTrace();
@@ -517,6 +442,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                     public void onUpdate(long id, int status, int progress, long downloadedBytes, long fileSize, int error) {
                         if (status == Fetch.STATUS_DOWNLOADING) {
                             downloadPB.setProgress(progress);
+                            txtProgressStatus.setText(progress +"/ 100");
                         } else if (status == Fetch.STATUS_DONE) {
                             downloadPB.setProgress(100);
                             try {
@@ -528,11 +454,14 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                                 }
                             }catch (Exception err){
                             }
-                           /// fetch.release();
+                            fetch.release();
+                            fetch = Fetch.newInstance(context);
                         } else if (error != Fetch.NO_ERROR) {
                             //An error occurred
                             dialogDownloadProgress.dismiss();
                             Log.e(TAG, " Down Error No " + error);
+                            fetch.release();
+                            fetch = Fetch.newInstance(context);
                             if (error == Fetch.ERROR_HTTP_NOT_FOUND) {
                                 //handle error
                             }

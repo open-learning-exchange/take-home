@@ -83,8 +83,11 @@
                             android:textStyle="bold" />
                     </LinearLayout>
                 </LinearLayout>
+
+
             </LinearLayout>
         </LinearLayout>
+
 
         <LinearLayout
             android:id="@+id/lt_MainContent"
@@ -147,29 +150,9 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="4"
-                android:gravity="left|right|center_vertical|center_horizontal"
-                android:orientation="horizontal"
-                android:weightSum="6">
-
-                <Button
-                    android:id="@+id/btnCourseBack"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@null"
-                    android:text="Back"
-                    android:textColor="@color/white"
-                    android:visibility="invisible" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_gravity="center_vertical|center_horizontal"
-                android:layout_weight="4"
-                android:gravity="center_vertical|center_horizontal|center"
+                android:layout_gravity="left|center_vertical|center_horizontal"
+                android:layout_weight="8"
+                android:gravity="left|center_vertical|center_horizontal|center"
                 android:orientation="horizontal"
                 android:weightSum="6">
 
@@ -181,10 +164,10 @@
                     android:layout_marginRight="3dp"
                     android:layout_marginTop="3dp"
                     android:layout_weight="1"
-                    android:background="@drawable/rounded_corners_darkblue_btn"
+                    android:background="@null"
                     android:text="Resources"
                     android:textColor="@color/white"
-                    android:visibility="invisible" />
+                    android:visibility="visible" />
 
                 <Button
                     android:id="@+id/btnCourseTakeTest"
@@ -194,10 +177,10 @@
                     android:layout_marginLeft="3dp"
                     android:layout_marginTop="3dp"
                     android:layout_weight="1"
-                    android:background="@drawable/rounded_corners_darkblue_btn"
+                    android:background="@null"
                     android:text="Take Test"
                     android:textColor="@color/white"
-                    android:visibility="invisible" />
+                    android:visibility="visible" />
 
             </LinearLayout>
 
@@ -210,14 +193,25 @@
                 android:weightSum="6">
 
                 <Button
+                    android:id="@+id/btnCourseBack"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:text="@string/bbtext_Previous"
+                    android:textAlignment="textEnd"
+                    android:textColor="@color/ole_white"
+                    android:visibility="visible" />
+
+                <Button
                     android:id="@+id/btnCourseNext"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:background="@null"
-                    android:text="Next"
+                    android:text="@string/bbtext_Next"
                     android:textColor="@color/white"
-                    android:visibility="invisible" />
+                    android:visibility="visible" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
