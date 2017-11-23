@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.Log;
@@ -49,8 +50,10 @@ import java.util.Set;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse.OnFragmentInteractionListener, ListViewAdapter_myCourses.OnCourseListListener,
-        Fragm_myCourses.OnFragmentInteractionListener, Fragm_Loading.OnFragmentInteractionListener, ListViewAdapter_myLibrary.OnResouceListListener{
+public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse.OnFragmentInteractionListener,
+        ListViewAdapter_myCourses.OnmyCourseListListener, Fragm_myCourses.OnFragmentInteractionListener,
+        ListViewAdapter_myLibrary.OnResouceListListener,Fragm_Loading.OnFragmentInteractionListener,
+        ListViewAdapter_Courses.OnCourseListListener, Fragm_Courses.OnFragmentInteractionListener  {
     private View mControlsView;
     String TAG = "MYAPP";
     public static final String PREFS_NAME = "MyPrefsFile";
@@ -352,6 +355,7 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
             @Override
             public void onClick(View viewIn) {
                 try {
+                    openCourses();
                 } catch (Exception except) {
                     Log.d(TAG, "Courses click action error " + except.getMessage());
                 }
@@ -562,13 +566,13 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
         lt_myTeams.setBackgroundDrawable(getResources().getDrawable(R.drawable.border));
         lt_myMembers.setBackgroundColor(Color.TRANSPARENT);
         lt_myMembers.setBackgroundDrawable(getResources().getDrawable(R.drawable.border));
-        lblHome.setTextColor(getResources().getColor(R.color.ole_white));
-        lblLibrary.setTextColor(getResources().getColor(R.color.ole_white));
-        lblCourses.setTextColor(getResources().getColor(R.color.ole_white));
-        lblMeetups.setTextColor(getResources().getColor(R.color.ole_white));
-        lblMembers.setTextColor(getResources().getColor(R.color.ole_white));
-        lblReports.setTextColor(getResources().getColor(R.color.ole_white));
-        lblFeedback.setTextColor(getResources().getColor(R.color.ole_white));
+        lblHome.setTextColor(ContextCompat.getColor(context,R.color.ole_white));
+        lblLibrary.setTextColor(ContextCompat.getColor(context,R.color.ole_white));
+        lblCourses.setTextColor(ContextCompat.getColor(context,R.color.ole_white));
+        lblMeetups.setTextColor(ContextCompat.getColor(context,R.color.ole_white));
+        lblMembers.setTextColor(ContextCompat.getColor(context,R.color.ole_white));
+        lblReports.setTextColor(ContextCompat.getColor(context,R.color.ole_white));
+        lblFeedback.setTextColor(ContextCompat.getColor(context,R.color.ole_white));
     }
 
     public void openLibrary() {
@@ -582,7 +586,21 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
         transaction.addToBackStack(null);
         transaction.commit();
         resetActiveButton();
-        lblLibrary.setTextColor(getResources().getColor(R.color.ole_yellow));
+        lblLibrary.setTextColor(ContextCompat.getColor(context,R.color.ole_yellow));
+    }
+
+    public void openCourses() {
+        Fragm_Loading loading = new Fragm_Loading();
+        Bundle args = new Bundle();
+        args.putString("targetAction", "Courses");
+        args.putString("sys_usercouchId", sys_usercouchId);
+        loading.setArguments(args);
+        final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fmlt_container, loading);
+        transaction.addToBackStack(null);
+        transaction.commit();
+        resetActiveButton();
+        lblCourses.setTextColor(ContextCompat.getColor(context,R.color.ole_yellow));
     }
 
     public void openMyLibrary() {
@@ -621,7 +639,7 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
 
     @Override
     public void onFinishPageLoad(Fragment fragToCall, String actionTarget) {
-        if (actionTarget.equalsIgnoreCase("myLibrary") || actionTarget.equalsIgnoreCase("myCourses") || actionTarget.equalsIgnoreCase("Library")) {
+        if (actionTarget.equalsIgnoreCase("myLibrary") || actionTarget.equalsIgnoreCase("myCourses") || actionTarget.equalsIgnoreCase("Library")  || actionTarget.equalsIgnoreCase("Courses")) {
             Bundle args = new Bundle();
             args.putString("sys_usercouchId", sys_usercouchId);
             fragToCall.setArguments(args);

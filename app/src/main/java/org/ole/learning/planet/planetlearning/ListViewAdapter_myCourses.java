@@ -102,7 +102,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
     private DownloadManager dm;
     Cursor c;
     LogHouse logHouse = new LogHouse();
-    private OnCourseListListener mListener;
+    private OnmyCourseListListener mListener;
     Fetch fetch;
     List<Long> downloadListIDs = new ArrayList<>();
     List<Request> requests = new ArrayList<>();
@@ -125,7 +125,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
         ///  initialActivityLoad = true;
 
         this.mListener = null;
-        mListener = (OnCourseListListener) cont;
+        mListener = (OnmyCourseListListener) cont;
     }
 
     public int getCount() {
@@ -500,7 +500,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
         enqueue = downloadManager.enqueue(request);
     }
 
-    public interface OnCourseListListener {
+    public interface OnmyCourseListListener {
         void onTakeCourseOpen(String CourseId);
         void onCourseDownloadCompleted(String CourseId, Object data);
         void onCourseDownloadingProgress(String itemTitle, String status, String message);

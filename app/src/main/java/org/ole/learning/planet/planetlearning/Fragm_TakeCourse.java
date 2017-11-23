@@ -190,7 +190,7 @@ public class Fragm_TakeCourse extends Fragment {
         btnTakeTest.setVisibility(View.VISIBLE);
         btnTakeTest.setShadowLayer(5f, -2, 1, Color.BLACK);
 
-        loadCourseIntoArray(mCourseId);
+       // loadCourseIntoArray(mCourseId);
 
         return view;
     }
@@ -481,7 +481,8 @@ public class Fragm_TakeCourse extends Fragment {
         }
 
         if (quesionCurrentIndex > 0) {
-            btnQueBack.setVisibility(View.VISIBLE);
+            btnQueBack.setVisibility(View.GONE);
+
         } else {
             btnQueBack.setVisibility(View.GONE);
         }
