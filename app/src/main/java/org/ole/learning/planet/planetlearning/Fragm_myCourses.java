@@ -187,28 +187,7 @@ public class Fragm_myCourses extends Fragment {
     public void LoadMyCourses() {
         try {
             /// Todo remove bellow code
-            /*
-            try {
-                AndroidContext androidContext = new AndroidContext(context);
-                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                Database dbOffline_courses = manager.getDatabase("offline_courses");
-                dbOffline_courses.delete();
-            }catch(Exception err){
-                err.printStackTrace();
-            }
 
-            try {
-                AndroidContext androidContext = new AndroidContext(context);
-                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                Database dboffline_course_resources = manager.getDatabase("offline_course_resources");
-                dboffline_course_resources.delete();
-            }catch(Exception err){
-                err.printStackTrace();
-            }
-            */
-
-
-            //maximus
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database course_db = manager.getExistingDatabase("courses");
             Query orderedQuery = chViews.ReadCourses(course_db).createQuery();

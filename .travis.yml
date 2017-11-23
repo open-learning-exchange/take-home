@@ -55,21 +55,13 @@ android:
 notifications:
   email: false
 
-before_deploy:
-- cp $TRAVIS_BUILD_DIR/androidkeystore.jks $HOME
-- cd app/build/outputs/apk/
-- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore $HOME/androidkeystore.jks -storepass $storepass -keypass $keypass app-release-unsigned.apk ExampleKeystoreAlias
-# Verification
-- jarsigner -verify app-release-unsigned.apk
-- "${ANDROID_HOME}/build-tools/25.0.2/zipalign -v 4 app-release-unsigned.apk TakeHomeAPK.apk"
-
 deploy:
   provider: releases
-  file: TakeHomeAPK.apk
+  api_key:
+    secure: "6b6e3e14e9cb23553e46e7254e915b9af2410a39"
+  file: "PlanetLearning/build/outputs/apk/PlanetLearning*release*.apk"
+  file_glob: "true"
   skip_cleanup: true
   on:
+    branch: master
     repo: open-learning-exchange/take-home
-    tags: true
-    jdk: oraclejdk8
-  api_key:
-    secure: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCZNi10cLA+B5aMjF3IZ3cDPEa4pcF08uVpkqrscsUADrt62YFnMoyBcH3Kv7Yf2L/7P6hUndbMJ3heh/yRdJ8npYE64AA1k4aBzD6MbivbtWJk8aK12ddEqSiFqVCc1oAb0MDfMk/fBFV43JijS6+UuZYqUfUzYyaNe+Obd91hrtjHxyYTeaWa7cG7Sg2KE8dKriSkKCxcPToDWovnbbU+5S7Z4dj0UiTcah+1VWNCkDyoGaocGjx9TxzEBo4LNn2TGTODp6+knuOaklllXZvuf6iozyRb7LROXMH//8DnmxRIs7I3C8strQH6dBQEXfB6QpoqyshTLhxYlfMSLaQ/ leonardmensah@Leonards-MBP-2.local.tld"

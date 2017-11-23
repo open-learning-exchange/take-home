@@ -262,6 +262,28 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
     }
 
     public void createCourseResourceDoc(String manualResId, String manualResTitle, String manualResopenWith) {
+
+         /*
+            try {
+                AndroidContext androidContext = new AndroidContext(context);
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbOffline_courses = manager.getDatabase("offline_courses");
+                dbOffline_courses.delete();
+            }catch(Exception err){
+                err.printStackTrace();
+            }
+
+            try {
+                AndroidContext androidContext = new AndroidContext(context);
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dboffline_course_resources = manager.getDatabase("offline_course_resources");
+                dboffline_course_resources.delete();
+            }catch(Exception err){
+                err.printStackTrace();
+            }
+            */
+
+
         Database database = null;
         try {
             AndroidContext androidContext = new AndroidContext(context);
