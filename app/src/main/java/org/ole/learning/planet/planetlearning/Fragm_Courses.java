@@ -158,6 +158,7 @@ public class Fragm_Courses extends Fragment {
         restorePref();
         LoadCourses();
 
+        readLocalAdmission();
         list = (ListView) rootView.findViewById(R.id.material_list);
         adapter = new ListViewAdapter_Courses(resIDArrayList, getActivity(), context, materialList);
         list.setAdapter(adapter);
@@ -185,8 +186,41 @@ public class Fragm_Courses extends Fragment {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+    public void readLocalAdmission(){
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database admission_course_db = manager.getExistingDatabase("local_courses_admission");
+            Query orderedQuery = chViews.ReadAdmissionCourseList(admission_course_db).createQuery();
+            orderedQuery.setDescending(true);
+            QueryEnumerator results = orderedQuery.run();
+            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document doc = admission_course_db.getExistingDocument(docId);
+                Map<String, Object> properties = doc.getProperties();
+                Log.e(TAG,"local courses "+properties.toString());
+                /*ArrayList courseMembers = (ArrayList) properties.get("members");
+                boolean admitted = false;
+                for (int cnt = 0; cnt < courseMembers.size(); cnt++) {
+                    if (sys_usercouchId.equalsIgnoreCase(courseMembers.get(cnt).toString())) {
+                        admitted = true;
+                    }
+                }*/
+
+            }
+        } catch (Exception err) {
+            Log.e("MyCouch", "Updating local member visits on device " + err.getMessage());
+            err.getMessage();
+        }
+    }
 
     public void LoadCourses() {
+
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        ArrayList local_Admitted_Courses = new ArrayList();
         try {
             /// Todo remove bellow code
             /*
@@ -208,8 +242,26 @@ public class Fragm_Courses extends Fragment {
                 err.printStackTrace();
             }
             */
-
-
+            try {
+                manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database admission_course_db = manager.getExistingDatabase("local_courses_admission");
+                Query orderedQuery = chViews.ReadAdmissionCourseList(admission_course_db).createQuery();
+                orderedQuery.setDescending(true);
+                QueryEnumerator results = orderedQuery.run();
+                for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                    QueryRow row = it.next();
+                    String docId = (String) row.getValue();
+                    Document doc = admission_course_db.getExistingDocument(docId);
+                    Map<String, Object> properties = doc.getProperties();
+                    ArrayList courseMembers = (ArrayList) properties.get("members");
+                    if(courseMembers.contains(sys_usercouchId)){
+                        local_Admitted_Courses.add(docId);
+                    }
+                }
+            } catch (Exception err) {
+                Log.e("MyCouch", "Compiling user specific locally admitted courses " + err.getMessage());
+                err.getMessage();
+            }
             Log.e(TAG, "Loading Courses Only");
 
             //maximus
@@ -229,13 +281,7 @@ public class Fragm_Courses extends Fragment {
                 Document doc = course_db.getExistingDocument(docId);
                 Map<String, Object> properties = doc.getProperties();
                 ArrayList courseMembers = (ArrayList) properties.get("members");
-                boolean admitted = false;
-                for (int cnt = 0; cnt < courseMembers.size(); cnt++) {
-                    if (sys_usercouchId.equalsIgnoreCase(courseMembers.get(cnt).toString())) {
-                        admitted = true;
-                    }
-                }
-                if (!admitted) {
+                if (!courseMembers.contains(sys_usercouchId) && !local_Admitted_Courses.contains(docId)) {
                     mycourseTitile = ((String) properties.get("CourseTitle"));
                     mycourseId = ((String) properties.get("_id"));
                     //// Get Steps

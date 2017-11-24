@@ -327,19 +327,41 @@ public class ListViewAdapter_Courses extends BaseAdapter {
             Document retrievedDocument = members.getExistingDocument(courseId);
             if (retrievedDocument != null) {
                 Map<String, Object> properties = retrievedDocument.getProperties();
-                List<String> arry_members = new ArrayList<String>();
-                arry_members.add(sys_usercouchId);
                 if (properties.containsKey("members")) {
-                    Map<String, Object> newProperties = new HashMap<String, Object>();
+                    Map<String, Object> newProperties = new HashMap<>();
                     newProperties.putAll(retrievedDocument.getProperties());
-                    List<String> l1 = Arrays.asList( (String[]) properties.get("members"));
-                    l1.addAll(arry_members);
-                    newProperties.put("members", l1);
-                    retrievedDocument.putProperties(newProperties);
+                    List<String> ext_ary_datesAdmit = (List<String>) properties.get("dateAdmitted");
+                    List<String> ext_ary_members = (List<String>) properties.get("members");
+                    if(!ext_ary_members.contains(sys_usercouchId)) {
+                        ext_ary_members.add(sys_usercouchId);
+                        newProperties.put("members", ext_ary_members);
+                        Long tsLong = System.currentTimeMillis() / 1000;
+                        String ts = tsLong.toString();
+                        ext_ary_datesAdmit.add(ts);
+                        newProperties.put("dateAdmitted", ext_ary_datesAdmit);
+                        retrievedDocument.putProperties(newProperties);
+                        Log.e(TAG, "Existing Doc but new entry - " +sys_usercouchId);
+                    }else{
+                        Log.e(TAG, "Already contains - " +sys_usercouchId);
+                    }
                 }
+            }else{
+                Document newDocument = members.getDocument(courseId);
+                Map<String, Object> newProperties = new HashMap<>();
+                List<String> ary_members = new ArrayList<>();
+                List<String> ary_datesAdmit = new ArrayList<>();
+                ary_members.add(sys_usercouchId);
+                newProperties.put("members", ary_members);
+                Long tsLong = System.currentTimeMillis()/1000;
+                String ts = tsLong.toString();
+                ary_datesAdmit.add(ts);
+                newProperties.put("dateAdmitted", ary_datesAdmit);
+                newDocument.putProperties(newProperties);
+                Log.e(TAG, "New entry - " +sys_usercouchId);
             }
         } catch (Exception err) {
-            Log.e("MyCouch", "Updating local member visits on device " + err.getMessage());
+            Log.e("MyCouch", "local_courses_admission on device " + err.getMessage());
+            err.printStackTrace();
         }
 
     }

@@ -185,9 +185,31 @@ public class Fragm_myCourses extends Fragment {
     }
 
     public void LoadMyCourses() {
+        AndroidContext androidContext = new AndroidContext(context);
+        Manager manager = null;
+        ArrayList local_Admitted_Courses = new ArrayList();
         try {
-            /// Todo remove bellow code
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database admission_course_db = manager.getExistingDatabase("local_courses_admission");
+            Query orderedQuery = chViews.ReadAdmissionCourseList(admission_course_db).createQuery();
+            orderedQuery.setDescending(true);
+            QueryEnumerator results = orderedQuery.run();
+            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document doc = admission_course_db.getExistingDocument(docId);
+                Map<String, Object> properties = doc.getProperties();
+                ArrayList courseMembers = (ArrayList) properties.get("members");
+                if(courseMembers.contains(sys_usercouchId)){
+                    local_Admitted_Courses.add(docId);
+                }
+            }
+        } catch (Exception err) {
+            Log.e("MyCouch", "Compiling user specific locally admitted courses " + err.getMessage());
+            err.getMessage();
+        }
 
+        try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database course_db = manager.getExistingDatabase("courses");
             Query orderedQuery = chViews.ReadCourses(course_db).createQuery();
@@ -204,8 +226,7 @@ public class Fragm_myCourses extends Fragment {
                 Document doc = course_db.getExistingDocument(docId);
                 Map<String, Object> properties = doc.getProperties();
                 ArrayList courseMembers = (ArrayList) properties.get("members");
-                for (int cnt = 0; cnt < courseMembers.size(); cnt++) {
-                    if (sys_usercouchId.equals(courseMembers.get(cnt).toString())) {
+                    if (courseMembers.contains(sys_usercouchId) || local_Admitted_Courses.contains(docId)) {
                         mycourseTitile = ((String) properties.get("CourseTitle"));
                         mycourseId = ((String) properties.get("_id"));
                         //// Get Steps
@@ -221,9 +242,9 @@ public class Fragm_myCourses extends Fragment {
                             docId = (String) row.getValue();
                             doc = coursestep_Db.getExistingDocument(docId);
                             Map<String, Object> coursestep_properties = doc.getProperties();
-                            if (mycourseId.equals((String) coursestep_properties.get("courseId"))) {
+                            if (mycourseId.equals(coursestep_properties.get("courseId"))) {
                                 course_step_resourceId = (ArrayList) coursestep_properties.get("resourceId");
-                                Log.e(TAG, "Course Step title " + ((String) coursestep_properties.get("title")) + " Step ID " + docId);
+                                Log.e(TAG, "Course Step title " + coursestep_properties.get("title") + " Step ID " + docId);
                                 Log.e(TAG, "Course Step Resources - " + course_step_resourceId.size() + " ");
                                 courseStepsCounter++;
                             }
@@ -236,7 +257,7 @@ public class Fragm_myCourses extends Fragment {
                             HashMap<String, String> map = new HashMap<>();
                             map.put(KEY_ID, ((String) properties.get("_id")));
                             map.put(KEY_TITLE, ((String) properties.get("CourseTitle")));
-                            Log.e(TAG, "Course item title " + ((String) properties.get("CourseTitle")) + " ");
+                            Log.e(TAG, "Course item title " + properties.get("CourseTitle") + " ");
                             String desc = (String) properties.get("description");
                             if (desc.length() > 100) {
                                 desc = desc.substring(0, 100);
@@ -292,7 +313,7 @@ public class Fragm_myCourses extends Fragment {
                         }
                         coursestep_Db.close();
                     }
-                }
+
             }
             course_db.close();
 
