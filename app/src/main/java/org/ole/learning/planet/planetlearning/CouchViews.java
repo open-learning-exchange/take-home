@@ -5,6 +5,7 @@ import com.couchbase.lite.Emitter;
 import com.couchbase.lite.Mapper;
 import com.couchbase.lite.View;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -52,15 +53,27 @@ public class CouchViews {
         );
         return shelfListByIdView;
     }
+    public View ReadAdmissionCourseList(Database db) {
+        View AdmissionCourseByIdView = db.getView("AdmissionCourseById");
+        AdmissionCourseByIdView.setMap(
+                new Mapper(){
+                    @Override
+                    public void map(Map<String, Object> document,Emitter emitter) {
+                        emitter.emit((ArrayList) document.get("members"), (String) document.get("_id"));
+                    }
+                }, "3"
+        );
+        return AdmissionCourseByIdView;
+    }
     public View ReadCourseList(Database db) {
         View CourseListByMemberIdView = db.getView("CourseByMemberID");
         CourseListByMemberIdView.setMap(
                 new Mapper(){
                     @Override
                     public void map(Map<String, Object> document,Emitter emitter) {
-                        emitter.emit((String) document.get("memberId"), (String) document.get("_id"));
+                        emitter.emit((ArrayList) document.get("members"), (String) document.get("_id"));
                     }
-                }, "1"
+                }, "2"
         );
         return CourseListByMemberIdView;
     }
