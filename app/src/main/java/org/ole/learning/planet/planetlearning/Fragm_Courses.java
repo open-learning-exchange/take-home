@@ -159,7 +159,6 @@ public class Fragm_Courses extends Fragment {
         LoadCourses();
 
         readLocalAdmission();
-
         list = (ListView) rootView.findViewById(R.id.material_list);
         adapter = new ListViewAdapter_Courses(resIDArrayList, getActivity(), context, materialList);
         list.setAdapter(adapter);
@@ -187,8 +186,6 @@ public class Fragm_Courses extends Fragment {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
-
-
     public void readLocalAdmission(){
         AndroidContext androidContext = new AndroidContext(context);
         Manager manager = null;
@@ -245,7 +242,6 @@ public class Fragm_Courses extends Fragment {
                 err.printStackTrace();
             }
             */
-
             try {
                 manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                 Database admission_course_db = manager.getExistingDatabase("local_courses_admission");
@@ -266,8 +262,6 @@ public class Fragm_Courses extends Fragment {
                 Log.e("MyCouch", "Compiling user specific locally admitted courses " + err.getMessage());
                 err.getMessage();
             }
-
-
             Log.e(TAG, "Loading Courses Only");
 
             //maximus
