@@ -38,12 +38,12 @@ import java.util.Map;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link Fragm_myCourses.OnFragmentInteractionListener} interface
+ * {@link Fragm_Courses.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link Fragm_myCourses#newInstance} factory method to
+ * Use the {@link Fragm_Courses#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class Fragm_myCourses extends Fragment {
+public class Fragm_Courses extends Fragment {
     static final String KEY_MATERIALS = "materials"; // parent node
     static final String KEY_ID = "id";
     static final String KEY_TITLE = "title";
@@ -81,7 +81,7 @@ public class Fragm_myCourses extends Fragment {
     private List<String> resIDArrayList = new ArrayList<>();
     private List<String> courseIDArrayList = new ArrayList<>();
     ListView list;
-    ListViewAdapter_myCourses adapter;
+    ListViewAdapter_Courses adapter;
     ArrayList<HashMap<String, String>> materialList;
 
     ////
@@ -103,7 +103,7 @@ public class Fragm_myCourses extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
-    public Fragm_myCourses() {
+    public Fragm_Courses() {
         // Required empty public constructor
     }
 
@@ -113,15 +113,17 @@ public class Fragm_myCourses extends Fragment {
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment Fragm_myCourses.
+     * @return A new instance of fragment Fragm_Courses.
      */
     // TODO: Rename and change types and number of parameters
-    public static Fragm_myCourses newInstance(String param1, String param2) {
-        Fragm_myCourses fragment = new Fragm_myCourses();
+    public static Fragm_Courses newInstance(String param1, String param2) {
+        Fragm_Courses fragment = new Fragm_Courses();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
+
+        Log.e(TAG,"Command to open courses 1");
 
         return fragment;
     }
@@ -129,7 +131,7 @@ public class Fragm_myCourses extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        Log.e(TAG,"Command to open courses 2");
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
@@ -154,10 +156,10 @@ public class Fragm_myCourses extends Fragment {
         mShortAnimationDuration = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
         restorePref();
-        LoadMyCourses();
+        LoadCourses();
 
         list = (ListView) rootView.findViewById(R.id.material_list);
-        adapter = new ListViewAdapter_myCourses(resIDArrayList, getActivity(), context, materialList);
+        adapter = new ListViewAdapter_Courses(resIDArrayList, getActivity(), context, materialList);
         list.setAdapter(adapter);
         return rootView;
     }
@@ -184,10 +186,33 @@ public class Fragm_myCourses extends Fragment {
         void onFragmentInteraction(Uri uri);
     }
 
-    public void LoadMyCourses() {
+    public void LoadCourses() {
         try {
             /// Todo remove bellow code
+            /*
+            try {
+                AndroidContext androidContext = new AndroidContext(context);
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbOffline_courses = manager.getDatabase("offline_courses");
+                dbOffline_courses.delete();
+            }catch(Exception err){
+                err.printStackTrace();
+            }
 
+            try {
+                AndroidContext androidContext = new AndroidContext(context);
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dboffline_course_resources = manager.getDatabase("offline_course_resources");
+                dboffline_course_resources.delete();
+            }catch(Exception err){
+                err.printStackTrace();
+            }
+            */
+
+
+            Log.e(TAG, "Loading Courses Only");
+
+            //maximus
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database course_db = manager.getExistingDatabase("courses");
             Query orderedQuery = chViews.ReadCourses(course_db).createQuery();
@@ -204,94 +229,87 @@ public class Fragm_myCourses extends Fragment {
                 Document doc = course_db.getExistingDocument(docId);
                 Map<String, Object> properties = doc.getProperties();
                 ArrayList courseMembers = (ArrayList) properties.get("members");
+                boolean admitted = false;
                 for (int cnt = 0; cnt < courseMembers.size(); cnt++) {
-                    if (sys_usercouchId.equals(courseMembers.get(cnt).toString())) {
-                        mycourseTitile = ((String) properties.get("CourseTitle"));
-                        mycourseId = ((String) properties.get("_id"));
-                        //// Get Steps
-                        manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                        Database coursestep_Db = manager.getExistingDatabase("coursestep");
-                        orderedQuery = chViews.ReadCourseSteps(coursestep_Db).createQuery();
-                        orderedQuery.setDescending(true);
-                        results = orderedQuery.run();
-                        int courseStepsCounter = 0;
-                        ArrayList course_step_resourceId = null;
-                        for (Iterator<QueryRow> item = results; item.hasNext(); ) {
-                            row = item.next();
-                            docId = (String) row.getValue();
-                            doc = coursestep_Db.getExistingDocument(docId);
-                            Map<String, Object> coursestep_properties = doc.getProperties();
-                            if (mycourseId.equals((String) coursestep_properties.get("courseId"))) {
-                                course_step_resourceId = (ArrayList) coursestep_properties.get("resourceId");
-                                Log.e(TAG, "Course Step title " + ((String) coursestep_properties.get("title")) + " Step ID " + docId);
-                                Log.e(TAG, "Course Step Resources - " + course_step_resourceId.size() + " ");
-                                courseStepsCounter++;
-                            }
-                        }
-                        if (courseStepsCounter > 0) {
-                            courseIdList[csLstCnt] = mycourseId;
-                            courseTitleList[csLstCnt] = mycourseTitile;
-                            courseIDArrayList.add(mycourseId);
-
-                            HashMap<String, String> map = new HashMap<>();
-                            map.put(KEY_ID, ((String) properties.get("_id")));
-                            map.put(KEY_TITLE, ((String) properties.get("CourseTitle")));
-                            Log.e(TAG, "Course item title " + ((String) properties.get("CourseTitle")) + " ");
-                            String desc = (String) properties.get("description");
-                            if (desc.length() > 100) {
-                                desc = desc.substring(0, 100);
-                            }
-                            String dateFrom, dateTo, timeFrom, timeTo, buildDescription;
-                            try {
-                                dateFrom = ((String) properties.get("startDate") == "") ? "" : ("Date : " + ((String) properties.get("startDate")));
-                            } catch (Exception err) {
-                                dateFrom = "";
-                            }
-                            try {
-                                dateTo = ((String) properties.get("endDate") == "") ? "" : (" - " + ((String) properties.get("endDate")));
-                            } catch (Exception err) {
-                                dateTo = "";
-                            }
-                            try {
-                                timeFrom = ((String) properties.get("startTime") == "") ? "" : ("  Time : " + ((String) properties.get("startTime")));
-                            } catch (Exception err) {
-                                timeFrom = "";
-                            }
-                            try {
-                                timeTo = ((String) properties.get("endTime") == "") ? "" : (" - " + ((String) properties.get("endTime")));
-                            } catch (Exception err) {
-                                timeTo = "";
-                            }
-                            buildDescription = "Description : " + desc + " \n" +
-                                    "Number of steps : " + courseStepsCounter + "  " + dateFrom + dateTo + timeFrom + timeTo + "\n";
-
-                            map.put(KEY_DESCRIPTION, buildDescription);
-                            map.put(KEY_DETAILS, ((String) properties.get("_id")));
-                            map.put(KEY_FEEDBACK, ((String) properties.get("_id")));
-                            map.put(KEY_DELETE, ((String) properties.get("_id")));
-                            map.put(KEY_RATING, (((String) properties.get("averageRating")) == "") ? "2.2" : (String) properties.get("averageRating"));
-                            map.put(KEY_TOTALNUM_RATING, "Rating  (" + properties.get("averageRating") + ")");
-                            map.put(KEY_FEMALE_RATING, "");
-                            map.put(KEY_MALE_RATING, "");
-                            ///map.put(KEY_THUMB_URL, parser.getValue(e, KEY_THUMB_URL));
-                            Database local_downloaded_courses = manager.getDatabase("offline_courses");
-                            Document local_downloaded_doc = local_downloaded_courses.getExistingDocument((String) properties.get("_id"));
-                            if (local_downloaded_doc != null) {
-                                map.put(KEY_RESOURCE_STATUS, "downloaded");
-                            } else {
-                                if (course_step_resourceId.size() < 1) {
-                                    map.put(KEY_RESOURCE_STATUS, "downloaded");
-                                    createCourseDoc((String) properties.get("_id"), course_step_resourceId.size());
-                                } else {
-                                    map.put(KEY_RESOURCE_STATUS, "not downloaded");
-                                }
-                            }
-                            materialList.add(map);
-                            rsLstCnt++;
-                            csLstCnt++;
-                        }
-                        coursestep_Db.close();
+                    if (sys_usercouchId.equalsIgnoreCase(courseMembers.get(cnt).toString())) {
+                        admitted = true;
                     }
+                }
+                if (!admitted) {
+                    mycourseTitile = ((String) properties.get("CourseTitle"));
+                    mycourseId = ((String) properties.get("_id"));
+                    //// Get Steps
+                    manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                    Database coursestep_Db = manager.getExistingDatabase("coursestep");
+                    orderedQuery = chViews.ReadCourseSteps(coursestep_Db).createQuery();
+                    orderedQuery.setDescending(true);
+                    results = orderedQuery.run();
+                    int courseStepsCounter = 0;
+                    ArrayList course_step_resourceId = null;
+                    for (Iterator<QueryRow> item = results; item.hasNext(); ) {
+                        row = item.next();
+                        docId = (String) row.getValue();
+                        doc = coursestep_Db.getExistingDocument(docId);
+                        Map<String, Object> coursestep_properties = doc.getProperties();
+                        if (mycourseId.equals((String) coursestep_properties.get("courseId"))) {
+                            course_step_resourceId = (ArrayList) coursestep_properties.get("resourceId");
+                            Log.e(TAG, "Course Step title " + ((String) coursestep_properties.get("title")) + " Step ID " + docId);
+                            Log.e(TAG, "Course Step Resources - " + course_step_resourceId.size() + " ");
+                            courseStepsCounter++;
+                        }
+                    }
+                    if (courseStepsCounter > 0) {
+                        courseIdList[csLstCnt] = mycourseId;
+                        courseTitleList[csLstCnt] = mycourseTitile;
+                        courseIDArrayList.add(mycourseId);
+
+                        HashMap<String, String> map = new HashMap<>();
+                        map.put(KEY_ID, ((String) properties.get("_id")));
+                        map.put(KEY_TITLE, ((String) properties.get("CourseTitle")));
+                        Log.e(TAG, "Course item title course only " + ((String) properties.get("CourseTitle")) + " ");
+                        String desc = (String) properties.get("description");
+                        if (desc.length() > 100) {
+                            desc = desc.substring(0, 100);
+                        }
+                        String dateFrom, dateTo, timeFrom, timeTo, buildDescription;
+                        try {
+                            dateFrom = ((String) properties.get("startDate") == "") ? "" : ("Date : " + ((String) properties.get("startDate")));
+                        } catch (Exception err) {
+                            dateFrom = "";
+                        }
+                        try {
+                            dateTo = ((String) properties.get("endDate") == "") ? "" : (" - " + ((String) properties.get("endDate")));
+                        } catch (Exception err) {
+                            dateTo = "";
+                        }
+                        try {
+                            timeFrom = ((String) properties.get("startTime") == "") ? "" : ("  Time : " + ((String) properties.get("startTime")));
+                        } catch (Exception err) {
+                            timeFrom = "";
+                        }
+                        try {
+                            timeTo = ((String) properties.get("endTime") == "") ? "" : (" - " + ((String) properties.get("endTime")));
+                        } catch (Exception err) {
+                            timeTo = "";
+                        }
+                        buildDescription = "Description : " + desc + " \n" +
+                                "Number of steps : " + courseStepsCounter + "  " + dateFrom + dateTo + timeFrom + timeTo + "\n";
+
+                        map.put(KEY_DESCRIPTION, buildDescription);
+                        map.put(KEY_DETAILS, ((String) properties.get("_id")));
+                        map.put(KEY_FEEDBACK, ((String) properties.get("_id")));
+                        map.put(KEY_DELETE, ((String) properties.get("_id")));
+                        map.put(KEY_RATING, (((String) properties.get("averageRating")) == "") ? "2.2" : (String) properties.get("averageRating"));
+                        map.put(KEY_TOTALNUM_RATING, "Rating  (" + properties.get("averageRating") + ")");
+                        map.put(KEY_FEMALE_RATING, "");
+                        map.put(KEY_MALE_RATING, "");
+                        ///map.put(KEY_THUMB_URL, parser.getValue(e, KEY_THUMB_URL));
+                        map.put(KEY_RESOURCE_STATUS, "Admission");
+                        materialList.add(map);
+                        rsLstCnt++;
+                        csLstCnt++;
+                    }
+                    coursestep_Db.close();
                 }
             }
             course_db.close();
@@ -364,34 +382,6 @@ public class Fragm_myCourses extends Fragment {
         sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload", true);
         sys_servername = settings.getString("pf_server_name", " ");
         sys_serverversion = settings.getString("pf_server_version", " ");
-    }
-
-    private void crossfadeShowLoading(final View fromView, View toView) {
-
-        // Set the content view to 0% opacity but visible, so that it is visible
-        // (but fully transparent) during the animation.
-        fromView.setAlpha(0f);
-        fromView.setVisibility(View.VISIBLE);
-
-        // Animate the content view to 100% opacity, and clear any animation
-        // listener set on the view.
-        fromView.animate()
-                .alpha(1f)
-                .setDuration(mShortAnimationDuration)
-                .setListener(null);
-
-        // Animate the loading view to 0% opacity. After the animation ends,
-        // set its visibility to GONE as an optimization step (it won't
-        // participate in layout passes, etc.)
-        fromView.animate()
-                .alpha(0f)
-                .setDuration(mShortAnimationDuration)
-                .setListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        fromView.setVisibility(View.GONE);
-                    }
-                });
     }
 
     public void alertDialogOkay(String Message) {

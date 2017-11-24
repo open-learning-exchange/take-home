@@ -104,4 +104,6 @@
     <string name="version">version 2.1.1</string>
 
     <string name="title_activity_downloading_items">DownloadingItems</string>
+    <string name="bbtext_Next">next</string>
+    <string name="bbtext_Previous">prev</string>
 </resources>

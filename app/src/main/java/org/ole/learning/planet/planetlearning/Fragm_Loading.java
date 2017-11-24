@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +28,7 @@ public class Fragm_Loading extends Fragment {
     // TODO: Rename and change types of parameters
     String requestedAction;
     String mParam2;
+    String TAG = "MYAPP";
 
     private OnFragmentInteractionListener mListener;
 
@@ -90,14 +92,15 @@ public class Fragm_Loading extends Fragment {
                 if(requestedAction.equalsIgnoreCase("myLibrary")){
                     Fragm_myLibrary fg_myLibrary = new Fragm_myLibrary();
                     mListener.onFinishPageLoad(fg_myLibrary,"myLibrary");
-
                 }else if(requestedAction.equalsIgnoreCase("myCourses")) {
                     Fragm_myCourses fg_myCourses = new Fragm_myCourses();
                     mListener.onFinishPageLoad(fg_myCourses, "myCourses");
-
                 }else if(requestedAction.equalsIgnoreCase("Library")) {
                     Fragm_Library fg_Library = new Fragm_Library();
                     mListener.onFinishPageLoad(fg_Library, "Library");
+                }else if(requestedAction.equalsIgnoreCase("Courses")) {
+                    Fragm_Courses fg_Courses = new Fragm_Courses();
+                    mListener.onFinishPageLoad(fg_Courses, "Courses");
                 }
             }
         }, 1500);

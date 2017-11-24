@@ -5,6 +5,7 @@ package org.ole.learning.planet.planetlearning;
  */
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -27,9 +28,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
@@ -98,10 +102,17 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
     private DownloadManager dm;
     Cursor c;
     LogHouse logHouse = new LogHouse();
-    private OnCourseListListener mListener;
+    private OnmyCourseListListener mListener;
     Fetch fetch;
     List<Long> downloadListIDs = new ArrayList<>();
     List<Request> requests = new ArrayList<>();
+    Dialog dialogDownloadProgress;
+    ProgressBar downloadPB;
+    TextView txtProgressStatus;
+    String downloadingCourseTitle;
+    boolean downloadCompleted = false;
+
+
     public ListViewAdapter_myCourses(final List<String> resIDsList, Activity a, Context cont, ArrayList<HashMap<String, String>> d) {
         activity = a;
         data = d;
@@ -111,96 +122,10 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
 
         fetch = Fetch.newInstance(context);
 
-
-
-/*
         ///  initialActivityLoad = true;
-        BroadcastReceiver receiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                String action = intent.getAction();
-                if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
-                    long downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, 0);
-                    DownloadManager.Query query = new DownloadManager.Query();
-                    query.setFilterById(enqueue);
-                    downloadManager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
-                    if(activityName.equalsIgnoreCase("myCourses")) {
-                        c = downloadManager.query(query);
-                        if (c.moveToFirst()) {
-                            int columnIndex = c.getColumnIndex(DownloadManager.COLUMN_STATUS);
-                            if (DownloadManager.STATUS_SUCCESSFUL == c.getInt(columnIndex)) {
-                                if (!singleFileDownload) {
-                                    Log.e(TAG, "Current downloaded file index -- " + resIDArrayList.indexOf(OneByOneResID));
-                                    Log.e(TAG, "Total Resource Size -- " + resIDArrayList.size());
-                                    if ((resIDArrayList.indexOf(OneByOneResID) + 1) < resIDArrayList.size()) {
-                                        int nextResID = resIDArrayList.indexOf(OneByOneResID) + 1;
-                                        Log.e(TAG, "Next to Download  -- " + OneByOneResID);
-                                        Log.e(TAG, "Index of download is to Download  -- " + resIDArrayList.indexOf(OneByOneResID));
-                                        OneByOneResID = resIDArrayList.get(nextResID);
-                                        Log.e(TAG, "New Download trigger  -- " + OneByOneResID);
-                                        new downloadSpecificResourceToDisk().execute();
-                                    } else {
 
-                                        mDialog.dismiss();
-
-                                        mListener.onCourseDownloadingProgress(OneByOneResTitle, "Please Wait", "Downloading item");
-                                        //alertDialogOkay("Download Completed");
-                                        createCourseDoc(OneByOneCourseId, courseStepsCounter);
-                                        mListener.onCourseDownloadCompleted(OneByOneResTitle, resIDArrayList);
-
-                                    }
-                                } else {
-                                    ///btnCourses.performClick();
-                                    ///libraryButtons[resButtonId].setTextColor(getResources().getColor(R.color.ole_white));
-                                    mDialog.dismiss();
-
-                                    mListener.onCourseDownloadingProgress(OneByOneResTitle, "Please Wait", "Downloading item");
-                                    //alertDialogOkay("Download Completed");
-                                    createCourseDoc(OneByOneCourseId, courseStepsCounter);
-                                    mListener.onCourseDownloadCompleted(OneByOneResTitle, resIDArrayList);
-                                }
-                            } else if (DownloadManager.STATUS_FAILED == c.getInt(columnIndex)) {
-                                //alertDialogOkay("Download Failed for");
-                                if (resIDsList.indexOf(OneByOneResID) < resIDArrayList.size()) {
-                                    OneByOneResID = resIDArrayList.get(resIDArrayList.indexOf(OneByOneResID) + 1);
-                                    new downloadSpecificResourceToDisk().execute();
-                                } else {
-                                    mDialog.dismiss();
-
-                                    mListener.onCourseDownloadingProgress(OneByOneResTitle, "Please Wait", "Downloading item");
-                                    alertDialogOkay("Download Completed with error");
-                                    mListener.onCourseDownloadCompleted(OneByOneResTitle, resIDArrayList);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        };
-        context.registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
-
-        */
         this.mListener = null;
-        mListener = (OnCourseListListener) cont;
-
-
-        fetch.addFetchListener(new FetchListener() {
-
-            @Override
-            public void onUpdate(long id, int status, int progress, long downloadedBytes, long fileSize, int error) {
-                if (downloadId == id && status == Fetch.STATUS_DOWNLOADING) {
-                    Log.d(TAG, "downloading ooo." + progress);
-                    //progressBar.setProgress(progress);
-                } else if (error != Fetch.NO_ERROR) {
-                    //An error occurred
-
-                    if (error == Fetch.ERROR_HTTP_NOT_FOUND) {
-                        //handle error
-                    }
-
-                }
-            }
-        });
+        mListener = (OnmyCourseListListener) cont;
     }
 
     public int getCount() {
@@ -274,6 +199,24 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
         return vi;
     }
 
+    public void showDialogProgress(){
+        AlertDialog.Builder dialogB2 = new AlertDialog.Builder(activity,R.style.TransparentDialog);
+        dialogB2.setView(R.layout.dialog_simulate_download_small);
+        dialogB2.setCancelable(false);
+        try {
+            dialogDownloadProgress = dialogB2.create();
+            // dialogDownloadProgress.ActivityIndicator(this, R.style.TransparentDialog);
+            dialogDownloadProgress.show();
+            downloadPB = (ProgressBar)dialogDownloadProgress.findViewById(R.id.progressBarDownloading);
+            txtProgressStatus = (TextView) dialogDownloadProgress.findViewById(R.id.txtProgressStatus);
+            txtProgressStatus.setText("Downloading, please wait");
+            //downloadPB.setScaleY(3f);
+
+        } catch (Exception err) {
+            err.printStackTrace();
+        }
+    }
+
     public void alertDialogOkay(String Message) {
         AlertDialog.Builder builder1 = new AlertDialog.Builder(activity);
         builder1.setMessage(Message);
@@ -281,6 +224,21 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
         builder1.setNegativeButton("Okay",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert11 = builder1.create();
+        alert11.show();
+    }
+
+    public void alertCompletedDownload(String Message) {
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(activity);
+        builder1.setMessage(Message);
+        builder1.setCancelable(true);
+        builder1.setNegativeButton("Continue",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        mListener.onCourseDownloadCompleted(OneByOneResTitle, resIDArrayList);
                         dialog.cancel();
                     }
                 });
@@ -304,6 +262,28 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
     }
 
     public void createCourseResourceDoc(String manualResId, String manualResTitle, String manualResopenWith) {
+
+         /*
+            try {
+                AndroidContext androidContext = new AndroidContext(context);
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbOffline_courses = manager.getDatabase("offline_courses");
+                dbOffline_courses.delete();
+            }catch(Exception err){
+                err.printStackTrace();
+            }
+
+            try {
+                AndroidContext androidContext = new AndroidContext(context);
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dboffline_course_resources = manager.getDatabase("offline_course_resources");
+                dboffline_course_resources.delete();
+            }catch(Exception err){
+                err.printStackTrace();
+            }
+            */
+
+
         Database database = null;
         try {
             AndroidContext androidContext = new AndroidContext(context);
@@ -347,10 +327,11 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
             Document document = database.getDocument(manualCourseId);
             try {
                 document.putProperties(properties);
-            } catch (CouchbaseLiteException e) {
+            } catch (Exception e) {
                 Log.e(TAG, "Cannot course details in offline courses" + e.getMessage());
             }
         } catch (Exception e) {
+            Log.e(TAG, "Create Course error " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -390,31 +371,20 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                             resIDArrayList.add(String.valueOf(resourceList.get(cnt)));
                         }
                     }
-                    Log.e(TAG, "Course Step title " + ((String) coursestep_properties.get("title")) + " ");
+                    downloadingCourseTitle = ((String) coursestep_properties.get("title"));
+                    Log.e(TAG, "Course Step title " + downloadingCourseTitle);
                     courseStepsCounter++;
                 }
             }
             fetch.removeRequests();
-            new FetchCompileDownload().execute();
-
-
             if (resIDArrayList.size() > 0) {
-                ///  OneByOneResID = resIDArrayList.get(0);
-                //  mDialog = new ProgressDialog(activity.getWindow().getContext());
-                //  mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-                //  mDialog.setMessage("Please wait...");
-                //  mDialog.setCancelable(false);
-                //  mDialog.show();
-                // /  singleFileDownload = false;
-                ///   OneByOneCourseId = courseId;
-                ///   new downloadSpecificResourceToDisk().execute();
-                ///   Log.e(TAG, "Clicked Showing wait");
-                ///mListener.onCourseDownloadingProgress(OneByOneResTitle,"Please Wait","Downloading item");
-
+                OneByOneCourseId = courseId;
+                showDialogProgress();
+                downloadCompleted=false;
+                new FetchCompileDownload().execute();
             } else {
 
             }
-
         } catch (Exception err) {
             err.printStackTrace();
         }
@@ -458,20 +428,13 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                                     final String encodedkey = URLEncoder.encode(key, "utf-8");
                                     String extension = encodedkey.substring(encodedkey.lastIndexOf('.'));
                                     final String diskFileName = OneByOneResID + extension;
-                                    //activity.runOnUiThread(new Runnable() {
-                                    //    @Override
-                                    //    public void run() {
                                     String root = Environment.getExternalStorageDirectory().toString();
                                     File dirPath = new File(root + "/ole_temp");
                                     String downloadURL = sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey;
                                     Request request = new Request(downloadURL, dirPath.getAbsolutePath(), diskFileName);
                                     requests.add(request);
-
-                                    // Request request = new Request(downloadURL,dirPath.getAbsolutePath(),diskFileName);
-                                    // long downloadId = fetch.enqueue(request);
-                                    // downloadListIDs.add(downloadId);
-                                    //    }
-                                    // });
+                                    ///Save Resource Fully Downloaded Document
+                                    createCourseResourceDoc(OneByOneResID, title, openWith);
                                 }
                             }
                         }
@@ -479,32 +442,54 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
                         Log.e(TAG, "Fetch -- Download this resource error " + e.getMessage());
                         ///////////// mListener.onCourseDownloadingProgress(OneByOneResTitle,"Please Wait","Downloading item");
                         /// mDialog.dismiss();
-                        alertDialogOkay("Fetch -- Error downloading file, check connection and try again");
+                        alertDialogOkay(" Error downloading file, check connection and try again");
                         e.printStackTrace();
                     }
-                    /// Log.e(TAG, "Resources for course ( "++" ) step " + resIDArrayList.get(x));
                 }
-                fetch.enqueue(requests);
+
+                try{
+                    fetch.enqueue(requests);
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            downloadPB.setProgress(0);
+                        }
+                    });
+                }catch (Exception err){
+                    downloadCompleted=false;
+                    dialogDownloadProgress.dismiss();
+                }
                 fetch.addFetchListener(new FetchListener() {
                     @Override
                     public void onUpdate(long id, int status, int progress, long downloadedBytes, long fileSize, int error) {
                         if (status == Fetch.STATUS_DOWNLOADING) {
-                            Log.e(TAG, " Down 9" + progress);
-
+                            downloadPB.setProgress(progress);
+                            txtProgressStatus.setText(progress +"/ 100");
                         } else if (status == Fetch.STATUS_DONE) {
-                            Log.e(TAG, " Completed All Down 1 " + progress);
+                            downloadPB.setProgress(100);
+                            try {
+                                dialogDownloadProgress.dismiss();
+                                if(!downloadCompleted){
+                                    downloadCompleted=true;
+                                    alertCompletedDownload("Download completed successfully");
+                                    createCourseDoc(OneByOneCourseId, courseStepsCounter);
+                                }
+                            }catch (Exception err){
+                            }
                             fetch.release();
+                            fetch = Fetch.newInstance(context);
                         } else if (error != Fetch.NO_ERROR) {
                             //An error occurred
+                            dialogDownloadProgress.dismiss();
                             Log.e(TAG, " Down Error No " + error);
+                            fetch.release();
+                            fetch = Fetch.newInstance(context);
                             if (error == Fetch.ERROR_HTTP_NOT_FOUND) {
                                 //handle error
                             }
                         }
                     }
                 });
-                //
-                /// List<Long> downloadIds = fetch.enqueue(requests);
                 return true;
             } catch (Exception e) {
                 this.exception = e;
@@ -537,7 +522,7 @@ public class ListViewAdapter_myCourses extends BaseAdapter {
         enqueue = downloadManager.enqueue(request);
     }
 
-    public interface OnCourseListListener {
+    public interface OnmyCourseListListener {
         void onTakeCourseOpen(String CourseId);
         void onCourseDownloadCompleted(String CourseId, Object data);
         void onCourseDownloadingProgress(String itemTitle, String status, String message);

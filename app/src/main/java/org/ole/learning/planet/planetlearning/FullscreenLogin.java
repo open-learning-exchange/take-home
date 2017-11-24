@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -23,7 +24,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.DatePicker;
 import android.widget.EditText;
 
 import com.couchbase.lite.Database;
@@ -58,12 +58,10 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -77,6 +75,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 /**
@@ -102,7 +102,7 @@ public class FullscreenLogin extends AppCompatActivity {
     int sys_uservisits_Int;
     String Serverdate = null;
     private Dialog dialog, promptDialog;
-    private ProgressDialog mDialog;
+   /// private ProgressDialog mDialog;
     JSONObject jsonServerData;
     final Context context = this;
     String[] databaseList = {"members", "meetups", "usermeetups", "assignments",
@@ -123,6 +123,9 @@ public class FullscreenLogin extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
     Button SignInButton;
     private static final int REQUEST_WRITE_STORAGE = 112;
+    Dialog dialogDownloadProgress;
+    ProgressBar downloadPB;
+    TextView txtProgressStatus;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -201,6 +204,7 @@ public class FullscreenLogin extends AppCompatActivity {
         //
 
         restorePref();
+
         ////startServiceCommand();
         btnFeedback = (Button) findViewById(R.id.btnFeedback);
         btnFeedback.setOnClickListener(new View.OnClickListener() {
@@ -247,7 +251,25 @@ public class FullscreenLogin extends AppCompatActivity {
         if (!hasPermission) {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_STORAGE);
         }
+
+        boolean isAppInstalled = appInstalledOrNot("com.adobe.reader");
+        if(!isAppInstalled) {
+            alertInstallAdobeReader("This application requires adobe reader. Click continue to install it");
+        }else{
+
+        }
     }
+    private boolean appInstalledOrNot(String uri) {
+        PackageManager pm = getPackageManager();
+        try {
+            pm.getPackageInfo(uri, PackageManager.GET_ACTIVITIES);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+        }
+
+        return false;
+    }
+
 
     @Override
     public void onResume() {
@@ -469,10 +491,11 @@ public class FullscreenLogin extends AppCompatActivity {
     }
     ////////
     private void TestConnectionToServer(String textURL) {
-        mDialog = new ProgressDialog(context);
-        mDialog.setMessage("Please wait. Connecting to server...");
-        mDialog.setCancelable(false);
-        mDialog.show();
+        //mDialog = new ProgressDialog(context);
+        //mDialog.setMessage("Please wait. Connecting to server...");
+        //mDialog.setCancelable(false);
+        //mDialog.show();
+        showDialogProgress();
         final Fuel ful = new Fuel();
         ful.get(textURL + "/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
             @Override
@@ -482,11 +505,11 @@ public class FullscreenLogin extends AppCompatActivity {
                     myList.clear();
                     myList = Arrays.asList(s.split(","));
                     if (myList.size() < 8) {
-                        mDialog.dismiss();
+                        dialogDownloadProgress.dismiss();
                         alertDialogOkay("Check the server address again. What i connected to wasn't the BeLL Server");
                         dialogSyncButton.setVisibility(View.INVISIBLE);
                     } else {
-                        mDialog.dismiss();
+                        dialogDownloadProgress.dismiss();
                         alertDialogOkay("Test successful. You can now click on \"Save and Proceed\" ");
                         dialogSyncButton.setVisibility(View.VISIBLE);
                     }
@@ -498,7 +521,7 @@ public class FullscreenLogin extends AppCompatActivity {
 
             @Override
             public void failure(Request request, Response response, FuelError fuelError) {
-                mDialog.dismiss();
+                dialogDownloadProgress.dismiss();
                 alertDialogOkay("Device couldn't reach server. Check and try again");
                 dialogSyncButton.setVisibility(View.INVISIBLE);
                 Log.e("MyCouch", " " + fuelError);
@@ -768,8 +791,8 @@ public class FullscreenLogin extends AppCompatActivity {
         dialog.show();
         final EditText txtSuncURL = (EditText) dialog.findViewById(R.id.txtNewSyncURL);
         txtSuncURL.setText(sys_oldSyncServerURL);
-        Button TestConnButton = (Button) dialog.findViewById(R.id.btnTestCnnection);
-        TestConnButton.setOnClickListener(new View.OnClickListener() {
+        Button testConnButton = (Button) dialog.findViewById(R.id.btnTestCnnection);
+        testConnButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 TestConnectionToServer(txtSuncURL.getText().toString());
@@ -802,11 +825,13 @@ public class FullscreenLogin extends AppCompatActivity {
                 editor.putString("pf_sysncUrl", sys_oldSyncServerURL);
                 editor.commit();
                 dialog.dismiss();
-                mDialog = new ProgressDialog(context);
-                mDialog.setMessage("Please wait...");
-                mDialog.setCancelable(false);
+               //mDialog = new ProgressDialog(context);
+                //mDialog.setMessage("Please wait...");
+                //mDialog.setCancelable(false);
+
                 try {
-                    mDialog.show();
+                    showDialogProgress();
+                    //mDialog.show();
                     syncNotifier();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -868,11 +893,15 @@ public class FullscreenLogin extends AppCompatActivity {
         }
         Set<String> mwr = settings.getStringSet("membersWithResource", null);
         try {
-            sys_membersWithResource = mwr.toArray();
-            Log.e("MYAPP", " membersWithResource  = " + sys_membersWithResource.length);
+            if(mwr!=null){
+                sys_membersWithResource = mwr.toArray();
+            }else {
+                sys_membersWithResource = null;
+            }
 
         } catch (Exception err) {
-            Log.e("MYAPP", " Error creating  sys_membersWithResource");
+            Log.e("MYAPP", " Error creating  sys_membersWithResource ");
+            err.printStackTrace();
         }
         try {
             //           serviceIntent = new Intent(context, ServerSearchService.class);
@@ -882,6 +911,23 @@ public class FullscreenLogin extends AppCompatActivity {
         }
     }
 
+    public void showDialogProgress(){
+        AlertDialog.Builder dialogB2 = new AlertDialog.Builder(context,R.style.TransparentDialog);
+        dialogB2.setView(R.layout.dialog_simulate_download_small);
+        dialogB2.setCancelable(false);
+        try {
+            dialogDownloadProgress = dialogB2.create();
+           // dialogDownloadProgress.ActivityIndicator(this, R.style.TransparentDialog);
+            dialogDownloadProgress.show();
+            downloadPB = (ProgressBar)dialogDownloadProgress.findViewById(R.id.progressBarDownloading);
+            txtProgressStatus = (TextView) dialogDownloadProgress.findViewById(R.id.txtProgressStatus);
+            txtProgressStatus.setText("Please wait");
+            //downloadPB.setScaleY(3f);
+
+        } catch (Exception err) {
+            err.printStackTrace();
+        }
+    }
     /*
     public void startServiceCommand() {
         try {
@@ -1004,14 +1050,17 @@ public class FullscreenLogin extends AppCompatActivity {
                         @Override
                         public void run() {
                             if (openMemberList) {
-                                mDialog.dismiss();
+                                dialogDownloadProgress.dismiss();;
+                                //mDialog.dismiss();
                                 openMemberList = false;
                                 alertDialogOkay("Completed. Thank you for waiting, you can now \" Sign In \" .");
                                 syncmembers = false;
                                 return;
                             }
                             Log.d("runOnUiThread", "running pull members");
-                            mDialog.setMessage("Downloading, please wait ... " + databaseList[syncCnt] + " [" + (syncCnt + 1) + " / " + databaseList.length + "]");
+                            txtProgressStatus.setText("Synchronizing, please wait ... " + databaseList[syncCnt] + " [" + (syncCnt + 1) + " / " + databaseList.length + "]");
+                            //downloadPB.setProgress(syncCnt+1);
+                            ///mDialog.setMessage("Downloading, please wait ... " + databaseList[syncCnt] + " [" + (syncCnt + 1) + " / " + databaseList.length + "]");
                         }
                     });
                     try {
@@ -1024,6 +1073,28 @@ public class FullscreenLogin extends AppCompatActivity {
         });
         th.start();
     }
+
+    public void alertInstallAdobeReader(String Message) {
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
+        builder1.setMessage(Message);
+        builder1.setCancelable(true);
+        builder1.setNegativeButton("Continue",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        String root = Environment.getExternalStorageDirectory().toString();
+                        File myDir = new File(Environment.getExternalStorageDirectory().toString() + "/ole_temp2");
+                        File dst = new File(myDir, "adobe_reader.apk");
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setDataAndType(Uri.fromFile(dst), "application/vnd.android.package-archive");
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        context.startActivity(intent);
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert11 = builder1.create();
+        alert11.show();
+    }
+
 
     public void alertDialogOkay(String Message) {
         AlertDialog.Builder builder1 = new AlertDialog.Builder(context);

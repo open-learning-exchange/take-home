@@ -93,10 +93,15 @@ public class Fragm_Library extends Fragment {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        restorePref();
-        LoadShadowResourceList();
 
-        list=(ListView)rootView.findViewById(R.id.material_list);
+        try {
+            restorePref();
+            LoadShadowResourceList();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        list= rootView.findViewById(R.id.material_list);
         adapter=new ListViewAdapter_Library(getActivity(), materialList);
         list.setAdapter(adapter);
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
