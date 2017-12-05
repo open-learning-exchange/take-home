@@ -208,7 +208,6 @@ public class Fragm_Courses extends Fragment {
                         admitted = true;
                     }
                 }*/
-               // mListener.onCourseDownloadCompleted(OneByOneResTitle, resIDArrayList);
 
             }
         } catch (Exception err) {
