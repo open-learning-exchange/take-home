@@ -107,6 +107,7 @@ public class ListViewAdapter_myLibrary extends BaseAdapter {
         data = d;
         contextTry = cont;
 
+
         context = cont.getApplicationContext();
         inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         imageLoader = new ImageLoader(activity.getApplicationContext());

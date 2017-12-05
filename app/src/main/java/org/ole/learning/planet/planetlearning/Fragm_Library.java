@@ -39,7 +39,7 @@ import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
 
-public class Fragm_Library extends Fragment {
+public class Fragm_Library extends OpenResource {
    // static final String URL = "http://api.androidhive.info/music/music.xml";
     static final String KEY_MATERIALS = "materials"; // parent node
     static final String KEY_ID = "id";

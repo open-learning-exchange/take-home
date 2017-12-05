@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -39,6 +40,7 @@ import com.couchbase.lite.android.AndroidContext;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +55,7 @@ import us.feras.mdv.MarkdownView;
  * Use the {@link Fragm_TakeCourse#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class Fragm_TakeCourse extends Fragment {
+public class Fragm_TakeCourse extends OpenResource {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "sys_usercouchId";
@@ -69,6 +71,14 @@ public class Fragm_TakeCourse extends Fragment {
     Dialog dialogTest, dialogResources;
     private ProgressDialog mDialog;
     String openedResourceId, openedResourceTitle;
+    /////////////////////////////
+    public static final String PREFS_NAME = "MyPrefsFile";
+    SharedPreferences settings;
+    String sys_oldSyncServerURL, sys_username, sys_lastSyncDate,
+            sys_password, sys_usercouchId, sys_userfirstname, sys_userlastname,
+            sys_usergender, sys_uservisits, sys_servername, sys_serverversion = "";
+    Boolean sys_singlefilestreamdownload, sys_multiplefilestreamdownload;
+    int sys_uservisits_Int=0;
 
     ///////////////////////////////////////////
 
@@ -111,12 +121,10 @@ public class Fragm_TakeCourse extends Fragment {
     List<String> rs_OpenWith = new ArrayList<>();
     List<String> rs_Title = new ArrayList<>();
     List<String> rs_Description = new ArrayList<>();
-
-    LinearLayout lt_ResListHolder;
+    List<Boolean> stepQuizResultHolder = new ArrayList<>();
     TextView lbl_ResStepTitle;
-    TextView rs_ResourceTextView[];
 
-    // TODO: Rename and change types of parameters
+    int points = 0;
     private String mCourseId;
     private String mMemberId;
 
@@ -166,16 +174,16 @@ public class Fragm_TakeCourse extends Fragment {
                              Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragm_take_course, container, false);
-        markdownCourseDescContent = (MarkdownView) view.findViewById(R.id.markdownCourseDescriptionContent);
+        markdownCourseDescContent = view.findViewById(R.id.markdownCourseDescriptionContent);
         markdownCourseDescContent.loadMarkdown("");
 
-        btnBack = (Button) view.findViewById(R.id.btnCourseBack);
-        btnNext = (Button) view.findViewById(R.id.btnCourseNext);
-        btnResources = (Button) view.findViewById(R.id.btnCourseResources);
-        btnTakeTest = (Button) view.findViewById(R.id.btnCourseTakeTest);
-        lblCourseTitle = (TextView) view.findViewById(R.id.lbl_CourseTitle);
-        lblStepTitle = (TextView) view.findViewById(R.id.lbl_CourseStepTitle);
-        lblCourseStepStatus = (TextView) view.findViewById(R.id.lbl_CourseStepStatus);
+        btnBack = view.findViewById(R.id.btnCourseBack);
+        btnNext = view.findViewById(R.id.btnCourseNext);
+        btnResources = view.findViewById(R.id.btnCourseResources);
+        btnTakeTest =  view.findViewById(R.id.btnCourseTakeTest);
+        lblCourseTitle =  view.findViewById(R.id.lbl_CourseTitle);
+        lblStepTitle =  view.findViewById(R.id.lbl_CourseStepTitle);
+        lblCourseStepStatus =  view.findViewById(R.id.lbl_CourseStepStatus);
 
 
         btnBack.setVisibility(View.VISIBLE);
@@ -190,7 +198,7 @@ public class Fragm_TakeCourse extends Fragment {
         btnTakeTest.setVisibility(View.VISIBLE);
         btnTakeTest.setShadowLayer(5f, -2, 1, Color.BLACK);
 
-       // loadCourseIntoArray(mCourseId);
+        loadCourseIntoArray(mCourseId);
 
         return view;
     }
@@ -227,6 +235,7 @@ public class Fragm_TakeCourse extends Fragment {
 
     public void loadCourseIntoArray(String courseId) {
         try {
+            restorePref();
             Log.e(TAG, "Take Course " + " " + courseId);
             AndroidContext androidContext = new AndroidContext(getContext());
             Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
@@ -257,14 +266,18 @@ public class Fragm_TakeCourse extends Fragment {
                     crs_tempStepIds.add((String) coursestep_properties.get("_id"));
                     crs_tempStepTitles.add((String) coursestep_properties.get("title"));
                     crs_tempStepDescription.add((String) coursestep_properties.get("description"));
-                    crs_tempStepSeqNum.add((String) coursestep_properties.get("step"));
-                    crs_tempAidStepSeqNum.add((String) coursestep_properties.get("step"));
-                    crs_StepSeqNum.add((String) coursestep_properties.get("step"));
-                    ArrayList course_Questions;
+                    crs_tempStepSeqNum.add(String.valueOf(coursestep_properties.get("step")));
+                    crs_tempAidStepSeqNum.add(String.valueOf( coursestep_properties.get("step")));
+                    crs_StepSeqNum.add(String.valueOf( coursestep_properties.get("step")));
+                    List course_Questions;
                     try {
+                        Log.e(TAG, "Questions " + coursestep_properties.get("questionslist") + " ");
                         course_Questions = (ArrayList) coursestep_properties.get("questionslist");
-                        Log.e(TAG, "Questions " + course_Questions.size() + " ");
-                        crs_tempStepNumOfQuestions.add(course_Questions.size());
+                        if(course_Questions!=null){
+                            crs_tempStepNumOfQuestions.add(course_Questions.size());
+                        }else{
+                            crs_tempStepNumOfQuestions.add(0);
+                        }
                     } catch (Exception err) {
                         crs_tempStepNumOfQuestions.add(0);
                         err.printStackTrace();
@@ -367,11 +380,13 @@ public class Fragm_TakeCourse extends Fragment {
         btnTakeTest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(crs_StepNumOfResources.get(stepCurrentIndex) > 0) {
+                if(crs_StepNumOfQuestions.get(stepCurrentIndex) > 0) {
                     try {
+                        Log.d(TAG, "TakeTest clicked");
                         takeTestDialog(crs_StepIds.get(stepCurrentIndex), crs_StepTitles.get(stepCurrentIndex));
                     } catch (Exception except) {
                         Log.d(TAG, "TakeTest clicked error  " + except.getMessage());
+                        except.printStackTrace();
                     }
                 }
             }
@@ -401,6 +416,7 @@ public class Fragm_TakeCourse extends Fragment {
         qn_Marks.clear();
         qn_CorrectAnswer.clear();
         qn_NoOptions.clear();
+        stepQuizResultHolder.clear();
         ArrayList course_QuestionList = null;
         try {
             AndroidContext androidContext = new AndroidContext(getContext());
@@ -494,7 +510,7 @@ public class Fragm_TakeCourse extends Fragment {
                     if (CheckAnsBeforeNext(qn_Ids.get(quesionCurrentIndex), totalNumOfQuestions)) {
                         if ((quesionCurrentIndex + 1) == totalNumOfQuestions) {
                             Log.d(TAG, "Last question ");
-                            ///dialogTest.dismiss();
+                            getSavePoints(crs_StepIds.get(stepCurrentIndex), stepCurrentIndex);
                         } else {
                             QuestionUILoader(qn_Ids.get(quesionCurrentIndex + 1), totalNumOfQuestions);
                         }
@@ -516,7 +532,7 @@ public class Fragm_TakeCourse extends Fragment {
             }
         });
 
-        lt_QueMultilineHolder = (LinearLayout) dialogTest.findViewById(R.id.lt_QueMultilineHolder);
+        lt_QueMultilineHolder = dialogTest.findViewById(R.id.lt_QueMultilineHolder);
         lbl_QueStatus.setText((quesionCurrentIndex + 1) + " of " + numberOfQuestions);
         markdownQueDescContent.loadMarkdown(qn_Statement.get(quesionCurrentIndex));
         lt_QueMultipleChoiceHolder.setVisibility(View.GONE);
@@ -551,47 +567,221 @@ public class Fragm_TakeCourse extends Fragment {
         totalNumOfQuestions = numberOfQuestions;
         quesionCurrentIndex = qn_Ids.indexOf(questionID);
         boolean correctAnswrGiven = false;
-        if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Multiple Choice")) {
-            int noOfOptions = qn_OptionsCheckbox.length;
-            for (int x = 0; x < noOfOptions; x++) {
-                if (qn_OptionsCheckbox[x].isChecked()) {
-                    ArrayList qCorrectAnsArray = qn_CorrectAnswer.get(quesionCurrentIndex);
-                    for (int ca = 0; ca < qCorrectAnsArray.size(); ca++) {
-                        if ((qCorrectAnsArray.get(ca) + "").equalsIgnoreCase((qn_OptionsCheckbox[x].getText() + ""))) {
-                            correctAnswrGiven = true;
-                        } else {
-                            correctAnswrGiven = false;
+        //// Save response to local_courseanswer
+        AndroidContext androidContext = new AndroidContext(getContext());
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database local_member_course_answer = manager.getDatabase("local_member_course_answer");
+            Map<String, Object> newCourseAnsProperties = new HashMap<>();
+            List<String> ary_Answer = new ArrayList<>();
+            ary_Answer.clear();
+            if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Multiple Choice")) {
+                int noOfOptions = qn_OptionsCheckbox.length;
+                for (int x = 0; x < noOfOptions; x++) {
+                    if (qn_OptionsCheckbox[x].isChecked()) {
+                        ArrayList qCorrectAnsArray = qn_CorrectAnswer.get(quesionCurrentIndex);
+                        //save user's selection
+                        ary_Answer.add(qn_OptionsCheckbox[x].getText().toString());
+                        for (int ca = 0; ca < qCorrectAnsArray.size(); ca++) {
+                            //check selection with right answer array
+                            if ((qCorrectAnsArray.get(ca) + "").equalsIgnoreCase((qn_OptionsCheckbox[x].getText() + ""))) {
+                                correctAnswrGiven = true;
+                            } else {
+                                if(!qn_Marks.get(quesionCurrentIndex).equalsIgnoreCase("")){
+                                    newCourseAnsProperties.put("AttemptMarks",Integer.parseInt(qn_Marks.get(quesionCurrentIndex)));
+                                }else {
+                                    newCourseAnsProperties.put("AttemptMarks",1);
+                                }
+                                correctAnswrGiven = false;
+                            }
+                            Log.e(TAG, qCorrectAnsArray.get(ca) + "");
                         }
-                        Log.e(TAG, qCorrectAnsArray.get(ca) + "");
+                        Log.d(TAG, quesionCurrentIndex + " Size " + qn_CorrectAnswer.get(quesionCurrentIndex) + " Marks " + qn_Marks.get(quesionCurrentIndex));
+                    } else {
+
                     }
-                    Log.d(TAG, quesionCurrentIndex + " Size " + qn_CorrectAnswer.get(quesionCurrentIndex) + " Marks " + qn_Marks.get(quesionCurrentIndex));
-                } else {
-
                 }
-            }
-            if (correctAnswrGiven) {
-                alertDialogOkay("That's the correct answer, well done");
-                Log.d(TAG, "That's the correct answer, Well Done");
+                if (correctAnswrGiven) {
+                    stepQuizResultHolder.add(correctAnswrGiven);
+                    alertDialogOkay("That's the correct answer, well done");
+                    Log.d(TAG, "That's the correct answer, Well Done");
 
-            } else {
-                Log.d(TAG, "Oops, Wrong answer!!");
-                alertDialogOkay("Oops, Wrong answer!! ");
+                } else {
+                    stepQuizResultHolder.add(correctAnswrGiven);
+                    Log.d(TAG, "Oops, Wrong answer!!");
+                    alertDialogOkay("Oops, Wrong answer!! ");
+                }
+                newCourseAnsProperties.put("kind","courseanswer");
+                newCourseAnsProperties.put("pqattempts",getCourseAttempt());
+                newCourseAnsProperties.put("QuestionID",qn_Ids.get(quesionCurrentIndex));
+                newCourseAnsProperties.put("MemberID",sys_usercouchId);
+                newCourseAnsProperties.put("StepID",crs_StepIds.get(stepCurrentIndex));
+                newCourseAnsProperties.put("Answer",ary_Answer);
+                Document document = local_member_course_answer.createDocument();
+                document.putProperties(newCourseAnsProperties);
+                Log.e(TAG, "Course Ans DB properties = "+ newCourseAnsProperties);
+                return true;
+            } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Comment/Essay Box")) {
+                Log.d(TAG, "Comment/Essay Box");
+                txt_QueMultilineAns.setText("");
+                return true;
+            } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Single Textbox")) {
+                Log.d(TAG, "Single Textbox");
+                txt_QueSinglelineAns.setText("");
+                return true;
+            } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Attachment")) {
+                Log.d(TAG, "Attachment");
+                return true;
             }
+            Log.d(TAG, "Not handled.." + qn_Type.get(quesionCurrentIndex));
             return true;
-        } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Comment/Essay Box")) {
-            Log.d(TAG, "Comment/Essay Box");
-
-            return true;
-        } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Single Textbox")) {
-            Log.d(TAG, "Single Textbox");
-            return true;
-        } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Attachment")) {
-            Log.d(TAG, "Attachment");
-            return true;
+        }catch(Exception err){
+            Log.d(TAG, "Quiz Error.." + err.getMessage());
+            err.printStackTrace();
+            return false;
         }
-        Log.d(TAG, "Not handled.." + qn_Type.get(quesionCurrentIndex));
 
-        return true;
+    }
+    public int getCourseAttempt(){
+        AndroidContext androidContext = new AndroidContext(getContext());
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database local_member_course_progress = manager.getDatabase("local_member_course_progress");
+            Query orderedQuery = chViews.ReadMemberCourseProgByMemberIdCourceId(local_member_course_progress,mCourseId,sys_usercouchId).createQuery();
+            orderedQuery.setDescending(true);
+            QueryEnumerator results = orderedQuery.run();
+            if(results.getCount()>0) {
+                for (Iterator<QueryRow> c_prg = results; c_prg.hasNext(); ) {
+                    QueryRow row = c_prg.next();
+                    String docId = (String) row.getValue();
+                    Document mem_course_prog_doc = local_member_course_progress.getExistingDocument(docId);
+                    Map<String, Object> mem_course_prog_properties = new HashMap<>();
+                    mem_course_prog_properties.putAll(mem_course_prog_doc.getProperties());
+                    return ((List<Integer>) mem_course_prog_properties.get("pqAttempts")).size();
+                }
+            }else{
+                return 1;
+            }
+        } catch (Exception err) {
+            Log.e(TAG, "getCourseAttempt - local_courses_admission " + err.getMessage());
+            err.printStackTrace();
+        }
+        return 0;
+    }
+    public void getSavePoints(String stepId, int stepNo){
+        Log.e(TAG, "Save Details = courseId : "+ mCourseId + " StepID "+ stepId + " stepNo "+ stepNo );
+        Log.e(TAG, "Result : "+ stepQuizResultHolder  );
+        AndroidContext androidContext = new AndroidContext(getContext());
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database local_member_course_progress = manager.getDatabase("local_member_course_progress");
+            //local_member_course_progress.delete();
+
+            //local_member_course_progress = manager.getDatabase("local_member_course_progress");
+            Query orderedQuery = chViews.ReadMemberCourseProgByMemberIdCourceId(local_member_course_progress,mCourseId,sys_usercouchId).createQuery();
+            orderedQuery.setDescending(true);
+            QueryEnumerator results = orderedQuery.run();
+            if(results.getCount()>0) {
+                for (Iterator<QueryRow> c_prg = results; c_prg.hasNext(); ) {
+                    QueryRow row = c_prg.next();
+                    String docId = (String) row.getValue();
+                    Document mem_course_prog_doc = local_member_course_progress.getExistingDocument(docId);
+                    Map<String, Object> mem_course_prog_properties = new HashMap<>();
+                    mem_course_prog_properties.putAll(mem_course_prog_doc.getProperties());
+                    List<Integer> ary_pqAttempts = (List<Integer>) mem_course_prog_properties.get("pqAttempts");
+                    List<String> ary_stepsResult = (List<String>) mem_course_prog_properties.get("stepsResult");
+                    List<String> ary_stepsStatus = (List<String>) mem_course_prog_properties.get("stepsStatus");
+                    Log.e(TAG, "STEPS NO " + crs_StepIds.size() + " IDS" + crs_StepIds);
+                    for (int x=0; x<crs_StepIds.size();x++){
+                        if(crs_StepIds.get(x).equalsIgnoreCase(stepId)){
+                            ary_pqAttempts.add(1);
+                            ary_stepsStatus.add("1");
+                            points=0;
+                            for(int cnt=0;cnt < stepQuizResultHolder.size();cnt++){
+                                if(stepQuizResultHolder.get(cnt)){
+                                    try{
+                                        points = (points + Integer.parseInt(qn_Marks.get(cnt)));
+                                    }catch (Exception intErr){
+                                        points++;
+                                    }
+
+                                }
+                            }
+                            ary_stepsResult.add(""+points+"");
+                        }
+                    }
+                    mem_course_prog_properties.put("pqAttempts",ary_pqAttempts );
+                    mem_course_prog_properties.put("stepsResult",ary_stepsResult );
+                    mem_course_prog_properties.put("stepsStatus", ary_stepsStatus);
+                    mem_course_prog_doc.putProperties(mem_course_prog_properties);
+                    Log.e(TAG, "member course progress Exist data " + mem_course_prog_properties);
+                }
+            }else{
+                //// Following BeLL structure
+                Map<String, Object> newProperties = new HashMap<>();
+                List<Integer> ary_pqAttempts = new ArrayList<>();
+                List<String> ary_stepsResult = new ArrayList<>();
+                List<String> ary_stepsStatus = new ArrayList<>();
+                for (int x=0; x<crs_StepIds.size();x++){
+                    ary_pqAttempts.add(0);
+                    ary_stepsResult.add(null);
+                    ary_stepsStatus.add(null);
+                }
+                newProperties.put("stepsIds", crs_StepIds);
+                newProperties.put("memberId", sys_usercouchId);
+                newProperties.put("courseId", mCourseId);
+                newProperties.put("kind", "course-member-result");
+                for (int x=0; x<crs_StepIds.size();x++){
+                    if(crs_StepIds.get(x).equalsIgnoreCase(stepId)){
+                        ary_pqAttempts.add(1);
+                        ary_stepsStatus.add("1");
+                        int points=0;
+                        for(int cnt=0;cnt < stepQuizResultHolder.size();cnt++){
+                            if(stepQuizResultHolder.get(cnt)){
+                                points++;
+                            }
+                        }
+                        ary_stepsResult.add(""+points+"");
+                    }
+                }
+                newProperties.put("pqAttempts",ary_pqAttempts );
+                newProperties.put("stepsResult",ary_stepsResult );
+                newProperties.put("stepsStatus", ary_stepsStatus);
+                ////// Saving course step result.
+                Document document = local_member_course_progress.createDocument();
+                document.putProperties(newProperties);
+                Log.e(TAG, "New member course progress data " + newProperties);
+            }
+            dialogTest.dismiss();
+            alertDialogOkay("Your score for this step was "+ points);
+        } catch (Exception err) {
+            Log.e(TAG, "local_courses_admission on device " + err.getMessage());
+            err.printStackTrace();
+        }
+
+
+    }
+
+    public void restorePref() {
+        // Restore preferences
+        settings = getActivity().getSharedPreferences(PREFS_NAME, 0);
+        sys_username = settings.getString("pf_username", "");
+        sys_oldSyncServerURL = settings.getString("pf_sysncUrl", "http://");
+        sys_lastSyncDate = settings.getString("pf_lastSyncDate", "");
+        sys_password = settings.getString("pf_password", "");
+        sys_usercouchId = settings.getString("pf_usercouchId", "");
+        sys_userfirstname = settings.getString("pf_userfirstname", "");
+        sys_userlastname = settings.getString("pf_userlastname", "");
+        sys_usergender = settings.getString("pf_usergender", "");
+        sys_uservisits = settings.getString("pf_uservisits", "");
+        sys_uservisits_Int = settings.getInt("pf_uservisits_Int", 0);
+        sys_singlefilestreamdownload = settings.getBoolean("pf_singlefilestreamdownload", true);
+        sys_multiplefilestreamdownload = settings.getBoolean("multiplefilestreamdownload", true);
+        sys_servername = settings.getString("pf_server_name", " ");
+        sys_serverversion = settings.getString("pf_server_version", " ");
     }
     public void showResourcesDialog(String StepId, String StepTitle) {
         rs_Ids.clear();
@@ -786,7 +976,6 @@ public class Fragm_TakeCourse extends Fragment {
         }
         return true;
     }
-
     public void alertDialogOkay(String Message) {
         AlertDialog.Builder builder1 = new AlertDialog.Builder(getContext());
         builder1.setMessage(Message);

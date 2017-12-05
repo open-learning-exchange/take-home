@@ -746,6 +746,22 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
         });
         dialog.show();
     }
+
+    @Override
+    public void onCourseAdmission(String CourseId) {
+        ///alertDialogOkay("Download Completed");
+        Fragm_Loading loading = new Fragm_Loading();
+        Bundle args = new Bundle();
+        args.putString("targetAction", "myCourses");
+        args.putString("sys_usercouchId", sys_usercouchId);
+        loading.setArguments(args);
+        final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fmlt_container, loading);
+        transaction.addToBackStack(null);
+        transaction.commit();
+        resetActiveButton();
+        lt_myCourses.setBackgroundColor(getResources().getColor(R.color.ole_blueLine));
+    }
     /*
     public void saveRating(int rate, String comment, String resourceId) {
         AndroidContext androidContext = new AndroidContext(context);

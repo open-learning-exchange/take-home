@@ -188,53 +188,6 @@ public class ListViewAdapter_Courses extends BaseAdapter {
         return vi;
     }
 
-    public void showDialogProgress(){
-        AlertDialog.Builder dialogB2 = new AlertDialog.Builder(activity,R.style.TransparentDialog);
-        dialogB2.setView(R.layout.dialog_simulate_download_small);
-        dialogB2.setCancelable(false);
-        try {
-            dialogDownloadProgress = dialogB2.create();
-            // dialogDownloadProgress.ActivityIndicator(this, R.style.TransparentDialog);
-            dialogDownloadProgress.show();
-            downloadPB = (ProgressBar)dialogDownloadProgress.findViewById(R.id.progressBarDownloading);
-            txtProgressStatus = (TextView) dialogDownloadProgress.findViewById(R.id.txtProgressStatus);
-            txtProgressStatus.setText("Downloading, please wait");
-            //downloadPB.setScaleY(3f);
-
-        } catch (Exception err) {
-            err.printStackTrace();
-        }
-    }
-
-    public void alertDialogOkay(String Message) {
-        AlertDialog.Builder builder1 = new AlertDialog.Builder(activity);
-        builder1.setMessage(Message);
-        builder1.setCancelable(true);
-        builder1.setNegativeButton("Okay",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                    }
-                });
-        AlertDialog alert11 = builder1.create();
-        alert11.show();
-    }
-
-    public void alertCompletedDownload(String Message) {
-        AlertDialog.Builder builder1 = new AlertDialog.Builder(activity);
-        builder1.setMessage(Message);
-        builder1.setCancelable(true);
-        builder1.setNegativeButton("Continue",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        mListener.onCourseDownloadCompleted(OneByOneResTitle, resIDArrayList);
-                        dialog.cancel();
-                    }
-                });
-        AlertDialog alert11 = builder1.create();
-        alert11.show();
-    }
-
     public void restorePreferences(Activity activity) {
         settings = activity.getSharedPreferences(PREFS_NAME, 0);
         sys_username = settings.getString("pf_username", "");
@@ -250,70 +203,14 @@ public class ListViewAdapter_Courses extends BaseAdapter {
         sys_serverversion = settings.getString("pf_server_version", " ");
     }
 
-    public void createCourseResourceDoc(String manualResId, String manualResTitle, String manualResopenWith) {
-        Database database = null;
-        try {
-            AndroidContext androidContext = new AndroidContext(context);
-            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-            database = manager.getDatabase("offline_course_resources");
-
-            ///Document doc = database.getExistingDocument(manualResId);
-            //Map<String, Object> existing_properties = doc.getProperties();
-            //if(existing_properties == null){
-            Log.e(TAG, "File does not exist");
-            Map<String, Object> properties = new HashMap<>();
-            properties.put("title", manualResTitle);
-            properties.put("openWith", manualResopenWith);
-            properties.put("localfile", "yes");
-            // properties.put("resourceType", manualResType);
-            Document document = database.getDocument(manualResId);
-            try {
-                document.putProperties(properties);
-            } catch (CouchbaseLiteException e) {
-                Log.e(TAG, "Cannot save document", e);
-            }
-            // }else{
-            //     Log.e("MyCouch", "File already exist");
-            // }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    public void createCourseDoc(String manualCourseId, int numberOfSteps) {
-        Database database = null;
-        try {
-            AndroidContext androidContext = new AndroidContext(context);
-            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-            database = manager.getDatabase("offline_courses");
-            Map<String, Object> properties = new HashMap<>();
-            properties.put("Steps", numberOfSteps);
-            properties.put("localfile", "yes");
-            Document document = database.getDocument(manualCourseId);
-            try {
-                document.putProperties(properties);
-            } catch (Exception e) {
-                Log.e(TAG, "Cannot course details in offline courses" + e.getMessage());
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Create Course error " + e.getMessage());
-            e.printStackTrace();
-        }
-
-    }
-
     public void buttonAction(String courseId, String action) {
         switch (action) {
             case "Open":
-                mListener.onTakeCourseOpen(courseId);
                 Log.i(TAG, "Open Clicked ********** " + courseId);
                 break;
             case "admission":
                 restorePreferences(activity);
                 admission(courseId);
-               // downloadCourseResources(courseId);
                 break;
         }
     }
@@ -359,6 +256,8 @@ public class ListViewAdapter_Courses extends BaseAdapter {
                 newDocument.putProperties(newProperties);
                 Log.e(TAG, "New entry - " +sys_usercouchId);
             }
+            mListener.onCourseAdmission(courseId);
+
         } catch (Exception err) {
             Log.e("MyCouch", "local_courses_admission on device " + err.getMessage());
             err.printStackTrace();
@@ -366,183 +265,8 @@ public class ListViewAdapter_Courses extends BaseAdapter {
 
     }
 
-    public void downloadCourseResources(String courseId) {
-        try {
-            resIDArrayList.clear();
-            AndroidContext androidContext = new AndroidContext(context);
-            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-            Database coursestep_Db = manager.getExistingDatabase("coursestep");
-            Query orderedQuery = chViews.ReadCourseSteps(coursestep_Db).createQuery();
-            orderedQuery.setDescending(true);
-            QueryEnumerator results = orderedQuery.run();
-            courseStepsCounter = 0;
-            for (Iterator<QueryRow> item = results; item.hasNext(); ) {
-                QueryRow row = item.next();
-                String docId = (String) row.getValue();
-                Document doc = coursestep_Db.getExistingDocument(docId);
-                Map<String, Object> coursestep_properties = doc.getProperties();
-                if (courseId.equals((String) coursestep_properties.get("courseId"))) {
-                    ArrayList resourceList = (ArrayList<String>) coursestep_properties.get("resourceId");
-                    for (int cnt = 0; cnt < resourceList.size(); cnt++) {
-                        if (!resIDArrayList.contains(String.valueOf(resourceList.get(cnt)))) {
-                            resIDArrayList.add(String.valueOf(resourceList.get(cnt)));
-                        }
-                    }
-                    downloadingCourseTitle = ((String) coursestep_properties.get("title"));
-                    Log.e(TAG, "Course Step title " + downloadingCourseTitle);
-                    courseStepsCounter++;
-                }
-            }
-            fetch.removeRequests();
-            if (resIDArrayList.size() > 0) {
-                OneByOneCourseId = courseId;
-                showDialogProgress();
-                downloadCompleted=false;
-                new FetchCompileDownload().execute();
-            } else {
-
-            }
-        } catch (Exception err) {
-            err.printStackTrace();
-        }
-    }
-
-    class FetchCompileDownload extends AsyncTask<String, Void, Boolean> {
-
-        private Exception exception;
-
-        protected Boolean doInBackground(String... urls) {
-            try {
-                for (int x = 0; x < resIDArrayList.size(); x++) {
-                    OneByOneResID = resIDArrayList.get(x);
-                    try {
-                        URI uri = URI.create(sys_oldSyncServerURL);
-                        String url_Scheme = uri.getScheme();
-                        String url_Host = uri.getHost();
-                        int url_Port = uri.getPort();
-                        String url_user = null, url_pwd = null;
-                        if (sys_oldSyncServerURL.contains("@")) {
-                            String[] userinfo = uri.getUserInfo().split(":");
-                            url_user = userinfo[0];
-                            url_pwd = userinfo[1];
-                        }
-                        CouchDbClientAndroid dbClient = new CouchDbClientAndroid("resources", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
-                        Log.e(TAG, "Has resources -- " + OneByOneResID);
-                        if (dbClient.contains(OneByOneResID)) {
-                            /// Handle with Json
-                            JsonObject jsonObject = dbClient.find(JsonObject.class, OneByOneResID);
-                            JsonObject jsonAttachments = jsonObject.getAsJsonObject("_attachments");
-                            final String openWith = (String) jsonObject.get("openWith").getAsString();
-                            final String title = jsonObject.get("title").getAsString();
-                            OneByOneResTitle = title;
-                            Log.e(TAG, "Open With -- " + openWith);
-                            if (!openWith.equalsIgnoreCase("HTML")) {
-                                JSONObject _attachments = new JSONObject(jsonAttachments.toString());
-                                Iterator<String> keys = _attachments.keys();
-                                if (keys.hasNext()) {
-                                    String key = (String) keys.next();
-                                    Log.e(TAG, "-- " + key);
-                                    final String encodedkey = URLEncoder.encode(key, "utf-8");
-                                    String extension = encodedkey.substring(encodedkey.lastIndexOf('.'));
-                                    final String diskFileName = OneByOneResID + extension;
-                                    String root = Environment.getExternalStorageDirectory().toString();
-                                    File dirPath = new File(root + "/ole_temp");
-                                    String downloadURL = sys_oldSyncServerURL + "/resources/" + OneByOneResID + "/" + encodedkey;
-                                    Request request = new Request(downloadURL, dirPath.getAbsolutePath(), diskFileName);
-                                    requests.add(request);
-                                    ///Save Resource Fully Downloaded Document
-                                    createCourseResourceDoc(OneByOneResID, title, openWith);
-                                }
-                            }
-                        }
-                    } catch (Exception e) {
-                        Log.e(TAG, "Fetch -- Download this resource error " + e.getMessage());
-                        ///////////// mListener.onCourseDownloadingProgress(OneByOneResTitle,"Please Wait","Downloading item");
-                        /// mDialog.dismiss();
-                        alertDialogOkay(" Error downloading file, check connection and try again");
-                        e.printStackTrace();
-                    }
-                }
-
-                try{
-                    fetch.enqueue(requests);
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            downloadPB.setProgress(0);
-                        }
-                    });
-                }catch (Exception err){
-                    downloadCompleted=false;
-                    dialogDownloadProgress.dismiss();
-                }
-                fetch.addFetchListener(new FetchListener() {
-                    @Override
-                    public void onUpdate(long id, int status, int progress, long downloadedBytes, long fileSize, int error) {
-                        if (status == Fetch.STATUS_DOWNLOADING) {
-                            downloadPB.setProgress(progress);
-                            txtProgressStatus.setText(progress +"/ 100");
-                        } else if (status == Fetch.STATUS_DONE) {
-                            downloadPB.setProgress(100);
-                            try {
-                                dialogDownloadProgress.dismiss();
-                                if(!downloadCompleted){
-                                    downloadCompleted=true;
-                                    alertCompletedDownload("Download completed successfully");
-                                    createCourseDoc(OneByOneCourseId, courseStepsCounter);
-                                }
-                            }catch (Exception err){
-                            }
-                            fetch.release();
-                            fetch = Fetch.newInstance(context);
-                        } else if (error != Fetch.NO_ERROR) {
-                            //An error occurred
-                            dialogDownloadProgress.dismiss();
-                            Log.e(TAG, " Down Error No " + error);
-                            fetch.release();
-                            fetch = Fetch.newInstance(context);
-                            if (error == Fetch.ERROR_HTTP_NOT_FOUND) {
-                                //handle error
-                            }
-                        }
-                    }
-                });
-                return true;
-            } catch (Exception e) {
-                this.exception = e;
-                return false;
-            }
-        }
-
-        protected void onPostExecute() {
-            // TODO: check this.exception
-            // TODO: do something with the feed
-        }
-    }
-
-    public void downloadWithDownloadManagerSingleFile(String fileURL, String FileName) {
-        String url = fileURL;
-        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-        request.setDescription(OneByOneResID + "-" + OneByOneResTitle);
-        request.setTitle(OneByOneResTitle);
-        // in order for this if to run, you must use the android 3.2 to compile your app
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            request.allowScanningByMediaScanner();
-            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        }
-        Log.e(TAG, " Destination is " + FileName);
-        request.setDestinationInExternalPublicDir("ole_temp", FileName);
-        // get download service and enqueue file
-        mDialog.setMessage("Downloading  \" " + OneByOneResTitle + " \" . please wait...");
-        mListener.onCourseDownloadingProgress(OneByOneResTitle, "Please Wait", "Downloading item");
-        downloadManager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
-        enqueue = downloadManager.enqueue(request);
-    }
-
     public interface OnCourseListListener {
-        void onTakeCourseOpen(String CourseId);
-        void onCourseDownloadCompleted(String CourseId, Object data);
-        void onCourseDownloadingProgress(String itemTitle, String status, String message);
+        void onCourseAdmission(String CourseId);
     }
 
 }

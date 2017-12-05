@@ -59,7 +59,7 @@ deploy:
   provider: releases
   api_key:
     secure: "6b6e3e14e9cb23553e46e7254e915b9af2410a39"
-  file: "PlanetLearning/build/outputs/apk/PlanetLearning*release*.apk"
+  file: "app/build/outputs/apk/*"
   file_glob: "true"
   skip_cleanup: true
   on:
