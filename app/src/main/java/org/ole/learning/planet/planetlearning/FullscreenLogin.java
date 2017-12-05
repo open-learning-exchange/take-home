@@ -106,7 +106,7 @@ public class FullscreenLogin extends AppCompatActivity {
     JSONObject jsonServerData;
     final Context context = this;
     String[] databaseList = {"members", "meetups", "usermeetups", "assignments",
-            "assignmentpaper", "courseanswer", "coursequestion", "courses", "courseschedule", "coursestep", "membercourseprogress",
+            "assignmentpaper", "courseanswer", "coursequestion", "courses","coursestep", "courseschedule", "membercourseprogress",
             "calendar", "groups", "invitations", "configurations", "requests", "shelf", "languages"};
     Replication[] push = new Replication[databaseList.length];
     Replication[] pull = new Replication[databaseList.length];
@@ -120,11 +120,14 @@ public class FullscreenLogin extends AppCompatActivity {
     Button dialogSyncButton, btnFeedback;
     Boolean wipeClean = false;
     Intent serviceIntent;
-    private static final String TAG = "LoginActivity";
+    private static final String TAG = "MYAPP";
     Button SignInButton;
     private static final int REQUEST_WRITE_STORAGE = 112;
     Dialog dialogDownloadProgress;
+    Dialog dialogFeedbackProgress;
     ProgressBar downloadPB;
+    ProgressBar downloadFeedbackPB;
+    TextView txtFeedbackProgressStatus;
     TextView txtProgressStatus;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -211,10 +214,7 @@ public class FullscreenLogin extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 final Fuel ful = new Fuel();
-                final ProgressDialog feedbackDialog = new ProgressDialog(context);
-                feedbackDialog.setMessage("Sending feedback data. Please wait ..");
-                feedbackDialog.setCancelable(false);
-                feedbackDialog.show();
+                showFeedbackProgress();
                 ful.get(sys_oldSyncServerURL + "/_all_dbs").responseString(new com.github.kittinunf.fuel.core.Handler<String>() {
                     @Override
                     public void success(Request request, Response response, String s) {
@@ -222,16 +222,19 @@ public class FullscreenLogin extends AppCompatActivity {
                             List<String> myList = new ArrayList<String>();
                             myList.clear();
                             myList = Arrays.asList(s.split(","));
-                            Log.e("MyCouch", "-- " + myList.size());
+                            Log.e(TAG, "-- " + myList.size());
                             if (myList.size() < 8) {
                                 alertDialogOkay("Check WiFi connection and try again");
-                                feedbackDialog.dismiss();
+                                dialogFeedbackProgress.dismiss();
                             } else {
-                                sendfeedbackToServer(feedbackDialog);
+                                UpdateCoursesDatabase updateCoursesDatabase = new UpdateCoursesDatabase();
+                                updateCoursesDatabase.execute();
+
+                                //////////////////sendfeedbackToServer(feedbackDialog);
                             }
 
                         } catch (Exception e) {
-                            feedbackDialog.dismiss();
+                            dialogFeedbackProgress.dismiss();
                             alertDialogOkay("Device couldn't reach server. Check and try again");
                             e.printStackTrace();
                         }
@@ -239,9 +242,9 @@ public class FullscreenLogin extends AppCompatActivity {
 
                     @Override
                     public void failure(Request request, Response response, FuelError fuelError) {
-                        feedbackDialog.dismiss();
+                        dialogFeedbackProgress.dismiss();
                         alertDialogOkay("Device couldn't reach server. Check and try again");
-                        Log.e("MyCouch", " " + fuelError);
+                        Log.e(TAG, " " + fuelError);
                     }
                 });
             }
@@ -303,7 +306,7 @@ public class FullscreenLogin extends AppCompatActivity {
         } catch (Exception err) {
             feedbackDialog.dismiss();
             alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-            Log.e("MyCouch", "Getting date from server" + err);
+            Log.e(TAG, "Getting date from server" + err);
         }
         try {
             Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
@@ -330,7 +333,7 @@ public class FullscreenLogin extends AppCompatActivity {
         } catch (Exception err) {
             feedbackDialog.dismiss();
             alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-            Log.e("MyCouch", "reading resource rating error " + err);
+            Log.e(TAG, "reading resource rating error " + err);
         }
         try {
             Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
@@ -344,7 +347,7 @@ public class FullscreenLogin extends AppCompatActivity {
                 Document doc = visits.getExistingDocument(docId);
                 Map<String, Object> properties = doc.getProperties();
                 int numOfVisits = ((Integer) properties.get("noOfVisits"));
-                Log.e("MyCouch", "Number Of visits for " + docId + " is " + numOfVisits);
+                Log.e(TAG, "Number Of visits for " + docId + " is " + numOfVisits);
                 // Update server members with visits
                 UpdateMemberVisitsDocument nwUpdateMemberVisits = new UpdateMemberVisitsDocument();
                 nwUpdateMemberVisits.setMemberId(docId);
@@ -356,7 +359,7 @@ public class FullscreenLogin extends AppCompatActivity {
         } catch (Exception err) {
             feedbackDialog.dismiss();
             alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-            Log.e("MyCouch", "reading visits error " + err);
+            Log.e(TAG, "reading visits error " + err);
         }
         //// Read activitylog database details
         try {
@@ -381,7 +384,7 @@ public class FullscreenLogin extends AppCompatActivity {
         } catch (Exception err) {
             feedbackDialog.dismiss();
             alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-            Log.e("MyCouch", "reading activity log " + err);
+            Log.e(TAG, "reading activity log " + err);
         }
 
         try {
@@ -409,7 +412,7 @@ public class FullscreenLogin extends AppCompatActivity {
         } catch (Exception err) {
             feedbackDialog.dismiss();
             alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-            Log.e("MyCouch", "reading resource rating error " + err);
+            Log.e(TAG, "reading resource rating error " + err);
         }
         try {
             Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
@@ -423,7 +426,7 @@ public class FullscreenLogin extends AppCompatActivity {
                 Document doc = visits.getExistingDocument(docId);
                 Map<String, Object> properties = doc.getProperties();
                 int numOfVisits = ((Integer) properties.get("noOfVisits"));
-                Log.e("MyCouch", "Number Of visits for " + docId + " is " + numOfVisits);
+                Log.e(TAG, "Number Of visits for " + docId + " is " + numOfVisits);
                 // Update server members with visits
                 UpdateMemberVisitsDocument nwUpdateMemberVisits = new UpdateMemberVisitsDocument();
                 nwUpdateMemberVisits.setMemberId(docId);
@@ -435,7 +438,7 @@ public class FullscreenLogin extends AppCompatActivity {
         } catch (Exception err) {
             feedbackDialog.dismiss();
             alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-            Log.e("MyCouch", "reading visits error " + err);
+            Log.e(TAG, "reading visits error " + err);
         }
         //// Read activitylog database details
         try {
@@ -473,11 +476,198 @@ public class FullscreenLogin extends AppCompatActivity {
             updateUI();
             feedbackDialog.dismiss();
             alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-            Log.e("MyCouch", "reading activity log error " + err);
+            Log.e(TAG, "reading activity log error " + err);
         }
 
 
     }
+
+    public void sendCourseToServer(ProgressDialog feedbackDialog) {
+        Database local_member_course_progress, local_member_course_answer,local_courses_admission;
+        Database resourceRating, activitylog, visits;
+
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            local_member_course_progress = manager.getDatabase("local_member_course_progress");
+            local_member_course_answer = manager.getDatabase("local_member_course_answer");
+            local_courses_admission = manager.getDatabase("local_courses_admission");
+            //ReadMemberCourseProg(local_member_course_progress);
+            //ReadCourseMemberAnswers(local_member_course_answer);
+           // ReadAdmissionCourseList(local_courses_admission)
+
+            /*
+            Query orderedQuery = chViews.ReadResourceRatingByIdView(resourceRating).createQuery();
+            orderedQuery.setDescending(true);
+            QueryEnumerator results = orderedQuery.run();
+            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document doc = resourceRating.getExistingDocument(docId);
+                Map<String, Object> properties = doc.getProperties();
+                int sum = ((int) properties.get("sum"));
+                int timesRated = ((Integer) properties.get("timesRated"));
+                // Update server resources with new ratings
+                UpdateResourceDocument nwUpdateResDoc = new UpdateResourceDocument();
+                nwUpdateResDoc.setResourceId(docId);
+                nwUpdateResDoc.setSum(sum);
+                nwUpdateResDoc.setTimesRated(timesRated);
+                nwUpdateResDoc.execute("");
+            }
+            Database dbResources = manager.getDatabase("resourcerating");
+            dbResources.delete();
+            */
+        } catch (Exception err) {
+            feedbackDialog.dismiss();
+            alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+            Log.e(TAG, "reading resource rating error " + err);
+        }
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            visits = manager.getDatabase("visits");
+            Query orderedQuery = chViews.ReadMemberVisitsId(visits).createQuery();
+            orderedQuery.setDescending(true);
+            QueryEnumerator results = orderedQuery.run();
+            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document doc = visits.getExistingDocument(docId);
+                Map<String, Object> properties = doc.getProperties();
+                int numOfVisits = ((Integer) properties.get("noOfVisits"));
+                Log.e(TAG, "Number Of visits for " + docId + " is " + numOfVisits);
+                // Update server members with visits
+                UpdateMemberVisitsDocument nwUpdateMemberVisits = new UpdateMemberVisitsDocument();
+                nwUpdateMemberVisits.setMemberId(docId);
+                nwUpdateMemberVisits.setSumVisits(numOfVisits);
+                nwUpdateMemberVisits.execute("");
+            }
+            Database visitsdb = manager.getDatabase("visits");
+            visitsdb.delete();
+        } catch (Exception err) {
+            feedbackDialog.dismiss();
+            alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+            Log.e(TAG, "reading visits error " + err);
+        }
+        //// Read activitylog database details
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            activitylog = manager.getDatabase("activitylog");
+            @SuppressLint("WifiManagerLeak") WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+            String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+            Document doc = activitylog.getExistingDocument(m_WLANMAC);
+            Map<String, Object> properties = doc.getProperties();
+            // Update server resources with new ratings
+            UpdateActivityLogDatabase nwActivityLog = new UpdateActivityLogDatabase();
+            if (properties.get("female_visits") != null) {
+                nwActivityLog.set_female_visits(((Integer) properties.get("female_visits")));
+            } else {
+                nwActivityLog.set_female_visits(0);
+            }
+            if (properties.get("male_visits") != null) {
+                nwActivityLog.set_male_visits(((Integer) properties.get("male_visits")));
+            } else {
+                nwActivityLog.set_male_visits(0);
+            }
+        } catch (Exception err) {
+            feedbackDialog.dismiss();
+            alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+            Log.e(TAG, "reading activity log " + err);
+        }
+
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            resourceRating = manager.getDatabase("resourcerating");
+            Query orderedQuery = chViews.ReadResourceRatingByIdView(resourceRating).createQuery();
+            orderedQuery.setDescending(true);
+            QueryEnumerator results = orderedQuery.run();
+            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document doc = resourceRating.getExistingDocument(docId);
+                Map<String, Object> properties = doc.getProperties();
+                int sum = ((int) properties.get("sum"));
+                int timesRated = ((Integer) properties.get("timesRated"));
+                // Update server resources with new ratings
+                UpdateResourceDocument nwUpdateResDoc = new UpdateResourceDocument();
+                nwUpdateResDoc.setResourceId(docId);
+                nwUpdateResDoc.setSum(sum);
+                nwUpdateResDoc.setTimesRated(timesRated);
+                nwUpdateResDoc.execute("");
+            }
+            Database dbResources = manager.getDatabase("resourcerating");
+            dbResources.delete();
+        } catch (Exception err) {
+            feedbackDialog.dismiss();
+            alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+            Log.e(TAG, "reading resource rating error " + err);
+        }
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            visits = manager.getDatabase("visits");
+            Query orderedQuery = chViews.ReadMemberVisitsId(visits).createQuery();
+            orderedQuery.setDescending(true);
+            QueryEnumerator results = orderedQuery.run();
+            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                QueryRow row = it.next();
+                String docId = (String) row.getValue();
+                Document doc = visits.getExistingDocument(docId);
+                Map<String, Object> properties = doc.getProperties();
+                int numOfVisits = ((Integer) properties.get("noOfVisits"));
+                Log.e(TAG, "Number Of visits for " + docId + " is " + numOfVisits);
+                // Update server members with visits
+                UpdateMemberVisitsDocument nwUpdateMemberVisits = new UpdateMemberVisitsDocument();
+                nwUpdateMemberVisits.setMemberId(docId);
+                nwUpdateMemberVisits.setSumVisits(numOfVisits);
+                nwUpdateMemberVisits.execute("");
+            }
+            Database dbResources = manager.getDatabase("visits");
+            dbResources.delete();
+        } catch (Exception err) {
+            feedbackDialog.dismiss();
+            alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+            Log.e(TAG, "reading visits error " + err);
+        }
+        //// Read activitylog database details
+        try {
+            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            activitylog = manager.getDatabase("activitylog");
+            @SuppressLint("WifiManagerLeak") WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+            String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+            Document doc = activitylog.getExistingDocument(m_WLANMAC);
+            Map<String, Object> properties = doc.getProperties();
+            // Update server resources with new ratings
+            UpdateActivityLogDatabase nwActivityLog = new UpdateActivityLogDatabase();
+            if (properties.get("female_visits") != null) {
+                nwActivityLog.set_female_visits(((Integer) properties.get("female_visits")));
+            } else {
+                nwActivityLog.set_female_visits(0);
+            }
+            if (properties.get("male_visits") != null) {
+                nwActivityLog.set_male_visits(((Integer) properties.get("male_visits")));
+            } else {
+                nwActivityLog.set_male_visits(0);
+            }
+            nwActivityLog.set_female_opened((ArrayList) properties.get("female_opened"));
+            nwActivityLog.set_female_rating(((ArrayList) properties.get("female_rating")));
+            nwActivityLog.set_female_timesRated(((ArrayList) properties.get("female_timesRated")));
+            nwActivityLog.set_male_opened(((ArrayList) properties.get("male_opened")));
+            nwActivityLog.set_male_rating(((ArrayList) properties.get("male_rating")));
+            nwActivityLog.set_male_timesRated(((ArrayList) properties.get("male_timesRated")));
+            nwActivityLog.set_resources_names(((ArrayList) properties.get("resources_names")));
+            nwActivityLog.set_resources_opened(((ArrayList) properties.get("resources_opened")));
+            nwActivityLog.set_resourcesIds(((ArrayList) properties.get("resourcesIds")));
+            nwActivityLog.execute("");
+            feedbackDialog.dismiss();
+            updateUI();
+        } catch (Exception err) {
+            updateUI();
+            feedbackDialog.dismiss();
+            alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
+            Log.e(TAG, "reading activity log error " + err);
+        }
+
+
+    }
+
     public void setLocale(String lang) {
         Locale myLocale = new Locale(lang);
         Resources res = getResources();
@@ -524,7 +714,7 @@ public class FullscreenLogin extends AppCompatActivity {
                 dialogDownloadProgress.dismiss();
                 alertDialogOkay("Device couldn't reach server. Check and try again");
                 dialogSyncButton.setVisibility(View.INVISIBLE);
-                Log.e("MyCouch", " " + fuelError);
+                Log.e(TAG, " " + fuelError);
             }
         });
     }
@@ -808,7 +998,7 @@ public class FullscreenLogin extends AppCompatActivity {
                 } else {
                     wipeClean = false;
                 }
-                Log.e("MYAPP", " Wipe clean is now " + isChecked);
+                Log.e(TAG, " Wipe clean is now " + isChecked);
             }
         });
 
@@ -900,14 +1090,14 @@ public class FullscreenLogin extends AppCompatActivity {
             }
 
         } catch (Exception err) {
-            Log.e("MYAPP", " Error creating  sys_membersWithResource ");
+            Log.e(TAG, " Error creating  sys_membersWithResource ");
             err.printStackTrace();
         }
         try {
             //           serviceIntent = new Intent(context, ServerSearchService.class);
 //            context.stopService(serviceIntent);
         } catch (Exception error) {
-            Log.e("MYAPP", " Creating Service error " + error.getMessage());
+            Log.e(TAG, " Creating Service error " + error.getMessage());
         }
     }
 
@@ -924,6 +1114,21 @@ public class FullscreenLogin extends AppCompatActivity {
             txtProgressStatus.setText("Please wait");
             //downloadPB.setScaleY(3f);
 
+        } catch (Exception err) {
+            err.printStackTrace();
+        }
+    }
+
+    public void showFeedbackProgress(){
+        AlertDialog.Builder dialogB2 = new AlertDialog.Builder(context,R.style.TransparentDialog);
+        dialogB2.setView(R.layout.dialog_simulate_download_small);
+        dialogB2.setCancelable(false);
+        try {
+            dialogFeedbackProgress = dialogB2.create();
+            dialogFeedbackProgress.show();
+            downloadFeedbackPB= (ProgressBar)dialogFeedbackProgress.findViewById(R.id.progressBarDownloading);
+            txtFeedbackProgressStatus = (TextView) dialogFeedbackProgress.findViewById(R.id.txtProgressStatus);
+            txtFeedbackProgressStatus.setText("Please wait");
         } catch (Exception err) {
             err.printStackTrace();
         }
@@ -955,7 +1160,7 @@ public class FullscreenLogin extends AppCompatActivity {
             newRunCreateFilterTask.execute("");
 
         } catch (Exception err) {
-            Log.e("MYAPP", err.getMessage());
+            Log.e(TAG, err.getMessage());
         }
         try {
 
@@ -973,12 +1178,12 @@ public class FullscreenLogin extends AppCompatActivity {
             newRunCreateViewTask.execute("");
 
         } catch (Exception err) {
-            Log.e("MYAPP", err.getMessage());
+            Log.e(TAG, err.getMessage());
         }
-        ResourcesJson rsj = new ResourcesJson();
-        if (rsj.ResourcesJson(sys_oldSyncServerURL, "resources", androidContext)) {
+        ///ResourcesJson rsj = new ResourcesJson();
+       ///// if (rsj.ResourcesJson(sys_oldSyncServerURL, "resources", androidContext)) {
             startSyncProcess();
-        }
+        ///}
         ///// End creating design Document
     }
 
@@ -988,7 +1193,7 @@ public class FullscreenLogin extends AppCompatActivity {
                 try {
                     Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                     Database db = manager.getDatabase(databaseList[cnt]);
-                    Log.e("MYAPP", "Deleting " + databaseList[cnt]);
+                    Log.e(TAG, "Deleting " + databaseList[cnt]);
                     db.delete();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -1016,6 +1221,42 @@ public class FullscreenLogin extends AppCompatActivity {
             } catch (Exception err) {
                 err.printStackTrace();
             }
+            try {
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbcourses_admission = manager.getDatabase("local_courses_admission");
+                dbcourses_admission.delete();
+            } catch (Exception err) {
+                err.printStackTrace();
+            }
+            try {
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbOffline_course_resources = manager.getDatabase("offline_course_resources");
+                dbOffline_course_resources.delete();
+            } catch (Exception err) {
+                err.printStackTrace();
+            }
+            try {
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbResource_rating = manager.getDatabase("resourcerating");
+                dbResource_rating.delete();
+            } catch (Exception err) {
+                err.printStackTrace();
+            }
+            try {
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbActivitylog = manager.getDatabase("activitylog");
+                dbActivitylog.delete();
+            } catch (Exception err) {
+                err.printStackTrace();
+            }
+
+            try {
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbVisits = manager.getDatabase("visits");
+                dbVisits.delete();
+            } catch (Exception err) {
+                err.printStackTrace();
+            }
 
             try {
                 String root = Environment.getExternalStorageDirectory().toString();
@@ -1025,20 +1266,22 @@ public class FullscreenLogin extends AppCompatActivity {
                     System.out.println(" " + myDir.getAbsolutePath());
                     File temp = new File(myDir.getAbsolutePath() + "/" + flist[i]);
                     if (temp.isDirectory()) {
-                        Log.d("Delete ", " Deleting " + temp.getName());
+                        Log.d(TAG, " Deleting " + temp.getName());
                         temp.delete();
                     } else {
                         temp.delete();
                     }
                 }
             } catch (Exception err) {
-                Log.e("MYAPP", " Deleting materials from ole_tem directory ");
+                Log.e(TAG, " Deleting materials from ole_temp directory ");
+                err.printStackTrace();
             }
         }
     }
 
     public void startSyncProcess() {
         /// Start Syncing databases from server
+        syncmembers = true;
         new FullscreenLogin.TestAsyncPull().execute();
         Log.e("MyCouch", "syncNotifier Running");
         final Thread th = new Thread(new Runnable() {
@@ -1127,7 +1370,7 @@ public class FullscreenLogin extends AppCompatActivity {
             }
             in.close();
             out.close();
-            Log.e("tag", "Adobe Reader Copied " + dst.toString());
+            Log.e("tag", "APK Copied " + dst.toString());
         } catch (Exception err) {
             err.printStackTrace();
         }
@@ -1243,6 +1486,7 @@ public class FullscreenLogin extends AppCompatActivity {
                                 new FullscreenLogin.TestAsyncPull().execute();
                             } else {
                                 Log.e("MyCouch", "Sync Completed");
+                                dialogDownloadProgress.dismiss();
                                 if (!openMemberList) {
                                     openMemberList = true;
                                 }
@@ -1842,6 +2086,329 @@ public class FullscreenLogin extends AppCompatActivity {
         protected void onPostExecute(String message) {
             // TODO: check this.exception
             // TODO: do something with the message
+        }
+    }
+
+    //// Courses
+
+    class UpdateCoursesDatabase extends AsyncTask<String, Void, String> {
+        private int cls_male_visits, cls_female_visits;
+        private ArrayList cls_male_rating, cls_male_timesRated, cls_female_timesRated, cls_female_rating, cls_resourcesIds;
+        private ArrayList cls_male_opened, cls_female_opened, cls_resources_names, cls_resources_opened;
+
+        public void set_resourcesIds(ArrayList resourcesIds) {
+            cls_resourcesIds = resourcesIds;
+        }
+
+        ;
+
+        public void set_resources_names(ArrayList resources_names) {
+            cls_resources_names = resources_names;
+        }
+
+        ;
+
+        public void set_resources_opened(ArrayList resources_opened) {
+            cls_resources_opened = resources_opened;
+        }
+
+        ;
+
+        public void set_male_visits(int male_visits) {
+            cls_male_visits = male_visits;
+        }
+
+        ;
+
+        public void set_female_visits(int female_visits) {
+            cls_female_visits = female_visits;
+        }
+
+        ;
+
+        public void set_male_rating(ArrayList male_rating) {
+            cls_male_rating = male_rating;
+        }
+
+        ;
+
+        public void set_female_rating(ArrayList female_rating) {
+            cls_female_rating = female_rating;
+        }
+
+        ;
+
+        public void set_male_timesRated(ArrayList male_timesRated) {
+            cls_male_timesRated = male_timesRated;
+        }
+
+        ;
+
+        public void set_female_timesRated(ArrayList female_timesRated) {
+            cls_female_timesRated = female_timesRated;
+        }
+
+        ;
+
+        public void set_male_opened(ArrayList male_opened) {
+            cls_male_opened = male_opened;
+        }
+
+        ;
+
+        public void set_female_opened(ArrayList female_opened) {
+            cls_female_opened = female_opened;
+        }
+
+        ;
+
+        protected String doInBackground(String... urls) {
+            try {
+                URI uri = URI.create(sys_oldSyncServerURL);
+                String url_Scheme = uri.getScheme();
+                String url_Host = uri.getHost();
+                int url_Port = uri.getPort();
+                String url_user = null, url_pwd = null;
+                if (sys_oldSyncServerURL.contains("@")) {
+                    String[] userinfo = uri.getUserInfo().split(":");
+                    url_user = userinfo[0];
+                    url_pwd = userinfo[1];
+                }
+                CouchDbClientAndroid dbClient = new CouchDbClientAndroid("courses", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+                org.lightcouch.View view = dbClient.view("bell/GetCourseByID").includeDocs(false);
+                List<Map> results = view.reduce(false).includeDocs(false).query(Map.class);
+                //String todaysActivityDocId = null;
+                String docIdStr = null;
+                int i = 0;
+                if (results.size() != 0) {
+                    while (i < results.size()) {
+                        LinkedTreeMap treemap = (LinkedTreeMap) results.get(i).get("value");
+                        Gson gson = new Gson();
+                        JsonObject jsonObject = gson.toJsonTree(treemap).getAsJsonObject();
+                        docIdStr = jsonObject.get("_id").getAsString();
+                        Log.e(TAG, i + " " + docIdStr + " - " + jsonObject.get("_id").toString());
+
+                        i++;
+                    }
+                    //// Check if activitylog document for today exist
+                    /*if (docDateStr != null && todaysActivityDocId != null) {
+                        try {
+                            Gson gson = new Gson();
+                            JsonParser parser = new JsonParser();
+                            JsonObject jsonObject = dbClient.find(JsonObject.class, todaysActivityDocId);
+                            //female_opened
+                            JsonArray female_opened_Array = jsonObject.get("female_opened").getAsJsonArray();
+                            JsonElement female_opened_Element = parser.parse(gson.toJson(cls_female_opened));
+                            Log.e("MyCouch", "Begun -- ");
+                            try {
+                                female_opened_Array.addAll(female_opened_Element.getAsJsonArray());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to female_opened " + err.getLocalizedMessage());
+                            }
+                            //male_rating
+                            JsonArray male_rating_Array = jsonObject.get("male_rating").getAsJsonArray();
+                            JsonElement male_rating_Element = parser.parse(gson.toJson(cls_male_rating));
+                            try {
+                                male_rating_Array.addAll(male_rating_Element.getAsJsonArray());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to male_rating " + err.getLocalizedMessage());
+                            }
+
+                            //male_timesRated
+                            JsonArray male_timesRated_Array = jsonObject.get("male_timesRated").getAsJsonArray();
+                            JsonElement male_timesRated_Element = parser.parse(gson.toJson(cls_male_timesRated));
+                            try {
+                                male_timesRated_Array.addAll(male_timesRated_Element.getAsJsonArray());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to male_timesRated " + err.getLocalizedMessage());
+                            }
+                            //female_timesRated
+                            JsonArray female_timesRated_Array = jsonObject.get("female_timesRated").getAsJsonArray();
+                            JsonElement female_timesRated_Element = parser.parse(gson.toJson(cls_female_timesRated));
+                            try {
+                                female_timesRated_Array.addAll(female_timesRated_Element.getAsJsonArray());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to female_timesRated " + err.getLocalizedMessage());
+                            }
+                            //female_rating
+                            JsonArray female_rating_Array = jsonObject.get("female_rating").getAsJsonArray();
+                            JsonElement female_rating_Element = parser.parse(gson.toJson(cls_female_rating));
+                            try {
+                                female_rating_Array.addAll(female_rating_Element.getAsJsonArray());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to female_rating " + err.getLocalizedMessage());
+                            }
+                            //resourcesIds
+                            JsonArray resourcesIds_Array = jsonObject.get("resourcesIds").getAsJsonArray();
+                            JsonElement resourcesIds_Element = parser.parse(gson.toJson(cls_resourcesIds));
+                            try {
+                                resourcesIds_Array.addAll(resourcesIds_Element.getAsJsonArray());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to resourcesIds " + err.getLocalizedMessage());
+                            }
+                            //male_opened
+                            JsonArray male_opened_Array = jsonObject.get("male_opened").getAsJsonArray();
+                            JsonElement male_opened_Element = parser.parse(gson.toJson(cls_male_opened));
+                            try {
+                                male_opened_Array.addAll(male_opened_Element.getAsJsonArray());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to male_opened " + err.getLocalizedMessage());
+                            }
+                            //resources_names
+                            JsonArray resources_names_Array = jsonObject.get("resources_names").getAsJsonArray();
+                            JsonElement resources_names_Element = parser.parse(gson.toJson(cls_resources_names));
+                            try {
+                                resources_names_Array.addAll(resources_names_Element.getAsJsonArray());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to resources_names " + err.getLocalizedMessage());
+                            }
+                            //resources_opened
+                            JsonArray resources_opened_Array = jsonObject.get("resources_opened").getAsJsonArray();
+                            JsonElement resources_opened_Element = parser.parse(gson.toJson(cls_resources_opened));
+                            try {
+                                resources_opened_Array.addAll(resources_opened_Element.getAsJsonArray());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to resources_opened " + err.getLocalizedMessage());
+                            }
+                            Log.e("MyCouch", "Ended -- ");
+                            int totalMaleVisits = (cls_male_visits + jsonObject.get("male_visits").getAsInt());
+                            jsonObject.addProperty("male_visits", totalMaleVisits);
+                            int totalFemaleVisits = (cls_female_visits + jsonObject.get("female_visits").getAsInt());
+                            jsonObject.addProperty("female_visits", totalFemaleVisits);
+                            jsonObject.add("female_opened", female_opened_Array);
+                            jsonObject.add("male_rating", male_rating_Array);
+                            jsonObject.add("male_timesRated", male_timesRated_Array);
+                            jsonObject.add("female_timesRated", female_timesRated_Array);
+                            jsonObject.add("female_rating", female_rating_Array);
+                            jsonObject.add("resourcesIds", resourcesIds_Array);
+                            jsonObject.add("male_opened", male_opened_Array);
+                            jsonObject.add("resources_names", resources_names_Array);
+                            jsonObject.add("resources_opened", resources_opened_Array);
+                            dbClient.update(jsonObject);
+                        } catch (Exception err) {
+                            Log.e("MyCouch", "Error updating existing activity log " + err.getMessage());
+                        }
+                    } else {
+                        try {
+                            Gson gson = new Gson();
+                            JsonParser parser = new JsonParser();
+                            JsonObject jsonObject = new JsonObject();
+                            Log.e("MyCouch", "Begun New Activity Resource -- ");
+                            //female_opened
+                            JsonArray female_opened_Array = new JsonArray();
+                            JsonElement female_opened_Element = parser.parse(gson.toJson(cls_female_opened));
+                            try {
+                                female_opened_Array.addAll(female_opened_Element.getAsJsonArray());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to female_opened " + err.getLocalizedMessage());
+                            }
+                            //male_rating
+                            JsonArray male_rating_Array = new JsonArray();
+                            JsonElement male_rating_Element = parser.parse(gson.toJson(cls_male_rating));
+                            try {
+                                male_rating_Array.addAll(male_rating_Element.getAsJsonArray());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to male_rating " + err.getLocalizedMessage());
+                            }
+                            //male_timesRated
+                            JsonArray male_timesRated_Array = new JsonArray();
+                            JsonElement male_timesRated_Element = parser.parse(gson.toJson(cls_male_timesRated));
+                            try {
+                                male_timesRated_Array.addAll(male_timesRated_Element.getAsJsonArray());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to male_timesRated " + err.getLocalizedMessage());
+                            }
+                            //female_timesRated
+                            JsonArray female_timesRated_Array = new JsonArray();
+                            JsonElement female_timesRated_Element = parser.parse(gson.toJson(cls_female_timesRated));
+                            try {
+                                female_timesRated_Array.addAll(female_timesRated_Element.getAsJsonArray());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to female_timesRated " + err.getLocalizedMessage());
+                            }
+                            //female_rating
+                            JsonArray female_rating_Array = new JsonArray();
+                            JsonElement female_rating_Element = parser.parse(gson.toJson(cls_female_rating));
+                            try {
+                                female_rating_Array.addAll(female_rating_Element.getAsJsonArray());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to female_rating " + err.getLocalizedMessage());
+                            }
+                            //resourcesIds
+                            JsonArray resourcesIds_Array = new JsonArray();
+                            JsonElement resourcesIds_Element = parser.parse(gson.toJson(cls_resourcesIds));
+                            try {
+                                resourcesIds_Array.addAll(resourcesIds_Element.getAsJsonArray());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to resourcesIds " + err.getLocalizedMessage());
+                            }
+                            //male_opened
+                            JsonArray male_opened_Array = new JsonArray();
+                            JsonElement male_opened_Element = parser.parse(gson.toJson(cls_male_opened));
+                            try {
+                                male_opened_Array.addAll(male_opened_Element.getAsJsonArray());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to male_opened " + err.getLocalizedMessage());
+                            }
+                            //resources_names
+                            JsonArray resources_names_Array = new JsonArray();
+                            JsonElement resources_names_Element = parser.parse(gson.toJson(cls_resources_names));
+                            try {
+                                resources_names_Array.addAll(resources_names_Element.getAsJsonArray());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Got to resources_names " + err.getLocalizedMessage());
+                            }
+                            //resources_opened
+                            Log.e("MyCouch", "Ended New Activity Resource -- ");
+                            JsonArray resources_opened_Array = new JsonArray();
+                            JsonElement resources_opened_Element = parser.parse(gson.toJson(cls_resources_opened));
+                            try {
+                                resources_opened_Array.addAll(resources_opened_Element.getAsJsonArray());
+                            } catch (Exception err) {
+                                Log.e("MyCouch", "Opened resources null " + err.getMessage());
+                                err.printStackTrace();
+                            }
+                            Log.e("MyCouch", "Rating " + female_opened_Array);
+                            jsonObject.addProperty("logDate", Serverdate);
+                            jsonObject.addProperty("male_visits", cls_male_visits);
+                            jsonObject.addProperty("female_visits", cls_female_visits);
+                            jsonObject.add("female_opened", female_opened_Array);
+                            jsonObject.add("male_rating", male_rating_Array);
+                            jsonObject.add("male_timesRated", male_timesRated_Array);
+                            jsonObject.add("female_timesRated", female_timesRated_Array);
+                            jsonObject.add("female_rating", female_rating_Array);
+                            jsonObject.add("resourcesIds", resourcesIds_Array);
+                            jsonObject.add("male_opened", male_opened_Array);
+                            jsonObject.add("resources_names", resources_names_Array);
+                            jsonObject.add("resources_opened", resources_opened_Array);
+                            dbClient.save(jsonObject);
+                        } catch (Exception err) {
+                            Log.e("MyCouch", "Error writing new activity log data " + err.getMessage());
+                            err.printStackTrace();
+                        }
+                    }*/
+                }
+                return "";
+            } catch (Exception e) {
+                Log.e("MyCouch", e.getMessage());
+                return null;
+            }
+        }
+
+        protected void onPostExecute(String message) {
+            try {
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database activitylog = manager.getDatabase("activitylog");
+                activitylog.delete();
+                btnFeedback.setTextColor(getResources().getColor(R.color.ole_white));
+                btnFeedback.setEnabled(false);
+                //WifiManager wm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+                //String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+                //Document doc = activitylog.getExistingDocument(m_WLANMAC);
+                //doc.delete();
+            } catch (Exception err) {
+                Log.e("MyCouch", "Error deleting document from activitylog " + err.getMessage());
+            }
         }
     }
 }

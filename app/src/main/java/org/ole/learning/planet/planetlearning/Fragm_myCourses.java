@@ -43,7 +43,7 @@ import java.util.Map;
  * Use the {@link Fragm_myCourses#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class Fragm_myCourses extends Fragment {
+public class Fragm_myCourses extends OpenResource {
     static final String KEY_MATERIALS = "materials"; // parent node
     static final String KEY_ID = "id";
     static final String KEY_TITLE = "title";
@@ -320,31 +320,6 @@ public class Fragm_myCourses extends Fragment {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public int getIconType(String myresExt) {
-        int img = R.drawable.web;
-        switch (myresExt) {
-            case "Flow Video Player":
-                img = R.drawable.video;
-                break;
-            case "MP3":
-                img = R.drawable.mp3;
-                break;
-            case "PDF.js":
-                img = R.drawable.pdf;
-                break;
-            case "HTML":
-                img = R.drawable.htmlimage;
-                break;
-            case "-":
-                img = R.drawable.web;
-                break;
-            default:
-                img = R.drawable.unknownresource1;
-                break;
-        }
-        return img;
     }
 
     public void createCourseDoc(String manualCourseId, int numberOfSteps) {

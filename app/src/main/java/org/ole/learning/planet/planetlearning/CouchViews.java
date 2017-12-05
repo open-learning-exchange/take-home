@@ -95,14 +95,14 @@ public class CouchViews {
                 new Mapper(){
                     @Override
                     public void map(Map<String, Object> document,Emitter emitter) {
-                        emitter.emit((String) document.get("step"), (String) document.get("_id"));
+                        emitter.emit((String) document.get("_id"), (String) document.get("_id"));
                     }
-                }, "4"
+                }, "5"
         );
         return CourseSteps;
     }
     public View ReadCourseStepsByCourseID(Database db,final String courseId) {
-        View CourseSteps = db.getView("Coursestep");
+        View CourseSteps = db.getView("CourseStepsByCourseID");
         CourseSteps.setMap(
                 new Mapper(){
                     @Override
@@ -114,6 +114,44 @@ public class CouchViews {
                 }, "2"
         );
         return CourseSteps;
+    }
+    public View ReadMemberCourseProgByMemberIdCourceId(Database db,final String courseId,final String memberId) {
+        View CourseProgMemCourseID = db.getView("CourseMemberCourseId");
+        CourseProgMemCourseID.setMap(
+                new Mapper(){
+                    @Override
+                    public void map(Map<String, Object> document,Emitter emitter) {
+                        if (courseId.equals(document.get("courseId")) && memberId.equals(document.get("memberId"))) {
+                            emitter.emit((String) document.get("courseId"), (String) document.get("_id"));
+                        }
+                    }
+                }, "4"
+        );
+        return CourseProgMemCourseID;
+    }
+    public View ReadCourseMemberAnswers(Database db) {
+        View CourseMemberAnswers = db.getView("CourseMemAnswers");
+        CourseMemberAnswers.setMap(
+                new Mapper(){
+                    @Override
+                    public void map(Map<String, Object> document,Emitter emitter) {
+                        emitter.emit((String) document.get("courseId"), (String) document.get("_id"));
+                    }
+                }, "3"
+        );
+        return CourseMemberAnswers;
+    }
+    public View ReadMemberCourseProg(Database db) {
+        View CourseProg = db.getView("CourseProg");
+        CourseProg.setMap(
+                new Mapper(){
+                    @Override
+                    public void map(Map<String, Object> document,Emitter emitter) {
+                        emitter.emit((String) document.get("courseId"), (String) document.get("_id"));
+                    }
+                }, "2"
+        );
+        return CourseProg;
     }
     public View ReadMemberVisits(Database db) {
         View VisitsByMemberIdView = db.getView("visits");

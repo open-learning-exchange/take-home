@@ -30,7 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class Fragm_myLibrary extends Fragment {
+public class Fragm_myLibrary  extends OpenResource {
     static final String KEY_MATERIALS = "materials"; // parent node
     static final String KEY_ID = "id";
     static final String KEY_TITLE = "title";

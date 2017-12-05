@@ -208,6 +208,7 @@ public class Fragm_Courses extends Fragment {
                         admitted = true;
                     }
                 }*/
+               // mListener.onCourseDownloadCompleted(OneByOneResTitle, resIDArrayList);
 
             }
         } catch (Exception err) {
@@ -286,7 +287,7 @@ public class Fragm_Courses extends Fragment {
                     mycourseId = ((String) properties.get("_id"));
                     //// Get Steps
                     manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                    Database coursestep_Db = manager.getExistingDatabase("coursestep");
+                    Database coursestep_Db = manager.getDatabase("coursestep");
                     orderedQuery = chViews.ReadCourseSteps(coursestep_Db).createQuery();
                     orderedQuery.setDescending(true);
                     results = orderedQuery.run();
