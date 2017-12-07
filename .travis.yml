@@ -1,61 +1,61 @@
 language: android
 sudo: false
 jdk: oraclejdk8
-
 before_install:
- - chmod +x gradlew
-
+- chmod +x gradlew
 before_script:
-  - echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a  
-  - emulator -avd test -no-skin -no-audio -no-window &
-  - android-wait-for-emulator
-  - adb shell input keyevent 82 & 
- 
+- echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a
+- emulator -avd test -no-skin -no-audio -no-window &
+- android-wait-for-emulator
+- adb shell input keyevent 82 &
 install:
-  - echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2"
-  - echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout-solver;1.0.2"
-  - echo y | android update sdk -u -a -t tools
-  - echo y | android update sdk -u -a -t platform-tools
-  - echo y | android update sdk -u -a -t build-tools-25.0.2
-  - echo y | android update sdk -u -a -t android-25
-  - echo y | android update sdk -u -a -t extra-google-m2repository
-  - echo y | android update sdk -u -a -t extra-android-m2repository
- 
+- echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2"
+- echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout-solver;1.0.2"
+- echo y | android update sdk -u -a -t tools
+- echo y | android update sdk -u -a -t platform-tools
+- echo y | android update sdk -u -a -t build-tools-25.0.2
+- echo y | android update sdk -u -a -t android-25
+- echo y | android update sdk -u -a -t extra-google-m2repository
+- echo y | android update sdk -u -a -t extra-android-m2repository
 env:
- global:
- - ANDROID_API=25
- - EMULATOR_API=21
- - ANDROID_BUILD_TOOLS=25.0.2
- - ADB_INSTALL_TIMEOUT=5 # minutes
- 
-
- 
+  global:
+  - ANDROID_API=25
+  - EMULATOR_API=21
+  - ANDROID_BUILD_TOOLS=25.0.2
+  - ADB_INSTALL_TIMEOUT=5
 android:
- components:
- - tools
- - platform-tools
- - build-tools-$ANDROID_BUILD_TOOLS
- - android-$ANDROID_API
- - android-$EMULATOR_API_LEVEL
- - extra-google-m2repository
- - extra-android-m2repository # for design library
- - addon-google_apis-google-19 # google play services
- - sys-img-armeabi-v7a-addon-google_apis-google-$ANDROID_API_LEVEL
- - sys-img-armeabi-v7a-addon-google_apis-google-$EMULATOR_API_LEVEL
- - build-tools-23.0.1
- - android-24
- - android-23
- - android-22
- - sys-img-armeabi-v7a-android-22 
- - extra-android-support
- - extra-android-m2repository
- licenses:
- - android-sdk-preview-license-.+
- - android-sdk-license-.+
- - google-gdk-license-.+
- 
-
- 
+  components:
+  - tools
+  - platform-tools
+  - build-tools-$ANDROID_BUILD_TOOLS
+  - android-$ANDROID_API
+  - android-$EMULATOR_API_LEVEL
+  - extra-google-m2repository
+  - extra-android-m2repository
+  - addon-google_apis-google-19
+  - sys-img-armeabi-v7a-addon-google_apis-google-$ANDROID_API_LEVEL
+  - sys-img-armeabi-v7a-addon-google_apis-google-$EMULATOR_API_LEVEL
+  - build-tools-23.0.1
+  - android-24
+  - android-23
+  - android-22
+  - sys-img-armeabi-v7a-android-22
+  - extra-android-support
+  - extra-android-m2repository
+  licenses:
+  - android-sdk-preview-license-.+
+  - android-sdk-license-.+
+  - google-gdk-license-.+
 notifications:
-  email: false  
- 
+  email: false
+deploy:
+  provider: releases
+  api_key:
+    secure: SsB16hAZr8k4ToXXW2A6nW3sgxqFcLztrhsJy0yadZ6bTf5gaBx5O9mHbQPGE3U1RYdDK9kuFJw/h0m5A1JEMKKvAWB50wcXxsWBwoWiKMOlMIdG1MzRZog5dNvaugbWcLOJqdjSsMy1dwPNQTkFU1V1DvdcDeK0tSSliMjy8bvW0ozs4KQX8lV8U16h9zQQUZifzPlCXdVzam6rW8mPNPJvENg5hYjcw31niUJv3tkdaRnezO6PxXrpuC4vbrfRxcgAq2BoU8gBPIJsVBY56RWo0LQjyK1rMT7ToBtBg/txHmg0fysdl4lf+TvIB3jL3tVQJgNMWswc0tA6M1zu8nu04KisvYql/oYXVgb8d6Ek5XciPMD6OJsLA51yOZbz5WsfniN6s1HfU7/9NyKsQtF/lf3AKrT6V/cNvgA+vc/ko8XOFwlUduQ69aRAMl19scrbbprHNFopNqZ+JdBWt12etsU55lxbZwDJhM9F17J8llJ0Iu5vfVJfwIGohD3ccHOyor1+ABlmfu3Y0+XIgsbmIF7mtgzMhpuA304YmMB2rLa27EhGjamGrELUisg2JE2elO5ApGU12GLBd1fdtB4lC06wHIDk/WUTScFkd69LlzqeXKpLDjsy9KqpcESJHhgGDccFeJk2UkvzWn/7YP9qCUsfWkIJEHVx2ML1hdM=
+  file_glob: true
+  file: app/build/outputs/apk/*
+  on:
+    repo: kylemathias/take-home
+    branch: kyle_travis
+    after_success:
+    - sh set_tags.sh
