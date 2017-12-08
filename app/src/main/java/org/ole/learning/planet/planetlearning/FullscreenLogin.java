@@ -227,8 +227,11 @@ public class FullscreenLogin extends AppCompatActivity {
                                 alertDialogOkay("Check WiFi connection and try again");
                                 dialogFeedbackProgress.dismiss();
                             } else {
-                                UpdateCoursesDatabase updateCoursesDatabase = new UpdateCoursesDatabase();
-                                updateCoursesDatabase.execute();
+                                UpdateMemberCourseProgressDatabase updateMemberCourseProgressDatabase = new UpdateMemberCourseProgressDatabase();
+                                updateMemberCourseProgressDatabase.execute();
+
+                                //UpdateCoursesDatabase updateCoursesDatabase = new UpdateCoursesDatabase();
+                                //updateCoursesDatabase.execute();
 
                                 //////////////////sendfeedbackToServer(feedbackDialog);
                             }
@@ -2025,6 +2028,34 @@ public class FullscreenLogin extends AppCompatActivity {
         });*/
     }
 
+    public JsonArray ConvertStringToJsonArray(List<String> list ) {
+        Gson gson = new Gson();
+        JsonParser parser = new JsonParser();
+        JsonArray _Array = new JsonArray();
+        JsonElement _Element = parser.parse(gson.toJson(list));
+        try {
+            _Array.addAll(_Element.getAsJsonArray());
+            return _Array;
+        }catch(Exception err){
+            err.printStackTrace();
+            return null;
+        }
+    }
+
+    public JsonArray ConvertToJsonArray(List<Integer> list ) {
+        Gson gson = new Gson();
+        JsonParser parser = new JsonParser();
+        JsonArray _Array = new JsonArray();
+        JsonElement _Element = parser.parse(gson.toJson(list));
+        try {
+            _Array.addAll(_Element.getAsJsonArray());
+            return _Array;
+        }catch(Exception err){
+            err.printStackTrace();
+            return null;
+        }
+    }
+
     class GetServerDate extends AsyncTask<String, Void, String> {
         private Exception exception;
         private String cls_dbName;
@@ -2176,6 +2207,224 @@ public class FullscreenLogin extends AppCompatActivity {
                 Log.e("MyCouch", e.getMessage());
                 return null;
             }
+        }
+
+        protected void onPostExecute(String message) {
+            try {
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database activitylog = manager.getDatabase("activitylog");
+                activitylog.delete();
+                btnFeedback.setTextColor(getResources().getColor(R.color.ole_white));
+                btnFeedback.setEnabled(false);
+                //WifiManager wm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+                //String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+                //Document doc = activitylog.getExistingDocument(m_WLANMAC);
+                //doc.delete();
+            } catch (Exception err) {
+                Log.e("MyCouch", "Error deleting document from activitylog " + err.getMessage());
+            }
+        }
+    }
+
+    class UpdateMemberCourseProgressDatabase extends AsyncTask<String, Void, String> {
+        private ArrayList local_coursemembers;
+        protected String doInBackground(String... urls) {
+            AndroidContext androidContext = new AndroidContext(context);
+            Manager manager = null;
+            try {
+                manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database local_member_course_progress = manager.getDatabase("local_member_course_progress");
+                Query orderedQuery = chViews.ReadMemberCourseProg(local_member_course_progress).createQuery();
+                orderedQuery.setDescending(true);
+                QueryEnumerator results = orderedQuery.run();
+                if(results.getCount()>0) {
+                    for (Iterator<QueryRow> c_prg = results; c_prg.hasNext(); ) {
+                        QueryRow row = c_prg.next();
+                        String docId = (String) row.getValue();
+                        Document mem_course_prog_doc = local_member_course_progress.getExistingDocument(docId);
+                        Map<String, Object> mem_course_prog_properties = new HashMap<>();
+                        mem_course_prog_properties.putAll(mem_course_prog_doc.getProperties());
+                        List<Integer> ary_pqAttempts = (List<Integer>) mem_course_prog_properties.get("pqAttempts");
+                        List<String> ary_stepsResult = (List<String>) mem_course_prog_properties.get("stepsResult");
+                        List<String> ary_stepsStatus = (List<String>) mem_course_prog_properties.get("stepsStatus");
+                        List<String> ary_stepsIDs = (List<String>) mem_course_prog_properties.get("stepsIds");
+                        String memberId = (String) mem_course_prog_properties.get("memberId");
+                        String courseId = (String)  mem_course_prog_properties.get("courseId");
+                        try {
+                            URI uri = URI.create(sys_oldSyncServerURL);
+                            String url_Scheme = uri.getScheme();
+                            String url_Host = uri.getHost();
+                            int url_Port = uri.getPort();
+                            String url_user = null, url_pwd = null;
+                            if (sys_oldSyncServerURL.contains("@")) {
+                                String[] userinfo = uri.getUserInfo().split(":");
+                                url_user = userinfo[0];
+                                url_pwd = userinfo[1];
+                            }
+                            CouchDbClientAndroid dbClient = new CouchDbClientAndroid("membercourseprogress", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+                            org.lightcouch.View view = dbClient.view("bell/GetMemberCourseResult").includeDocs(true);
+                            ArrayList<String> keys = new ArrayList<String>();
+                            keys.add(memberId);
+                            keys.add(courseId);
+                            List<Map> online_results = view.key(keys).reduce(false).query(Map.class);
+                            String docIdStr = null;
+                            int i = 0;
+                            Log.e(TAG, "Starting result " + online_results );
+                            if (online_results.size() != 0) {
+                                while (i < online_results.size()) {
+                                    LinkedTreeMap treemap = (LinkedTreeMap) online_results.get(i);
+                                    Log.e(TAG, "Reading Tree " + treemap);
+                                    Gson gson = new Gson();
+                                    JsonObject jsonObject = gson.toJsonTree(treemap).getAsJsonObject();
+                                    docIdStr = jsonObject.get("_id").getAsString();
+                                    Log.e(TAG, "Reading online membercourseprogress " + docIdStr);
+                                    /*if(local_Admitted_Courses.contains(docIdStr)){
+                                        Log.e(TAG,"New admission on course id"+ docIdStr);
+                                        JsonParser parser = new JsonParser();
+                                        JsonObject jsonDocObject = dbClient.find(JsonObject.class, docIdStr );
+                                        //female_opened
+                                        JsonArray members_Array = jsonDocObject.get("members").getAsJsonArray();
+                                        manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                                        Database admission_course_db = manager.getExistingDatabase("local_courses_admission");
+                                        Document doc = admission_course_db.getExistingDocument(docIdStr);
+                                        Map<String, Object> properties = doc.getProperties();
+                                        local_coursemembers = (ArrayList) properties.get("members");
+                                        try {
+                                            for(int x=0;x<members_Array.size();x++){
+                                                if(local_coursemembers.contains(members_Array.get(x).getAsString())){
+                                                    local_coursemembers.remove(local_coursemembers.indexOf(members_Array.get(x).getAsString()));
+                                                }
+                                            }
+                                            JsonElement members_Element = parser.parse(gson.toJson(local_coursemembers));
+                                            members_Array.addAll(members_Element.getAsJsonArray());
+                                            Log.e(TAG, docIdStr + " Included all is " + members_Array);
+                                            jsonObject.add("members", members_Array);
+                                            dbClient.update(jsonObject);
+                                        } catch (Exception err) {
+                                            Log.e(TAG, "Got to Saving course members into db " + err.getLocalizedMessage());
+                                            err.printStackTrace();
+                                        }
+                                        dialogFeedbackProgress.dismiss();
+                                    }*/
+                                    Log.e(TAG, i + " " + docIdStr + " - " + jsonObject.get("_id").toString());
+                                    i++;
+                                }
+                            }else{
+                                // create a new document
+                                Gson gson = new Gson();
+                                JsonParser parser = new JsonParser();
+                                JsonObject jsonObject = new JsonObject();
+                                jsonObject.addProperty("kind", "course-member-result");
+                                jsonObject.addProperty("memberId", memberId);
+                                jsonObject.addProperty("courseId", courseId);
+                                jsonObject.add("stepsIds", ConvertStringToJsonArray(ary_stepsIDs));
+                                jsonObject.add("stepsResult",ConvertStringToJsonArray(ary_stepsResult));
+                                jsonObject.add("stepsStatus", ConvertStringToJsonArray(ary_stepsStatus));
+                                jsonObject.add("pqAttempts", ConvertToJsonArray(ary_pqAttempts));
+                                dbClient.save(jsonObject);
+                            }
+                            dialogFeedbackProgress.dismiss();
+                            return "";
+                        } catch (Exception e) {
+                            Log.e("MyCouch", e.getMessage());
+                            e.printStackTrace();
+                            return null;
+                        }
+                    }
+                }
+            } catch (Exception err) {
+                Log.e(TAG, "local_courses_admission on device " + err.getMessage());
+                err.printStackTrace();
+            }
+
+
+
+
+
+           /*
+           AndroidContext androidContext = new AndroidContext(context);
+            Manager manager = null;
+            ArrayList local_Admitted_Courses = new ArrayList();
+            try {
+                manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database admission_course_db = manager.getExistingDatabase("local_courses_admission");
+                Query orderedQuery = chViews.ReadAdmissionCourseList(admission_course_db).createQuery();
+                orderedQuery.setDescending(true);
+                QueryEnumerator results = orderedQuery.run();
+                for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                    QueryRow row = it.next();
+                    String docId = (String) row.getValue();
+                    Document doc = admission_course_db.getExistingDocument(docId);
+                    Map<String, Object> properties = doc.getProperties();
+                    ArrayList courseMembers = (ArrayList) properties.get("members");
+                    if(courseMembers.contains(sys_usercouchId)){
+                        local_Admitted_Courses.add(docId);
+                    }
+                }
+            } catch (Exception err) {
+                Log.e("MyCouch", "Compiling user specific locally admitted courses " + err.getMessage());
+                err.getMessage();
+            }
+            try {
+                URI uri = URI.create(sys_oldSyncServerURL);
+                String url_Scheme = uri.getScheme();
+                String url_Host = uri.getHost();
+                int url_Port = uri.getPort();
+                String url_user = null, url_pwd = null;
+                if (sys_oldSyncServerURL.contains("@")) {
+                    String[] userinfo = uri.getUserInfo().split(":");
+                    url_user = userinfo[0];
+                    url_pwd = userinfo[1];
+                }
+                CouchDbClientAndroid dbClient = new CouchDbClientAndroid("courses", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+                org.lightcouch.View view = dbClient.view("bell/GetCourseByID").includeDocs(false);
+                List<Map> results = view.reduce(false).includeDocs(false).query(Map.class);
+                String docIdStr = null;
+                int i = 0;
+                if (results.size() != 0) {
+                    while (i < results.size()) {
+                        LinkedTreeMap treemap = (LinkedTreeMap) results.get(i).get("value");
+                        Gson gson = new Gson();
+                        JsonObject jsonObject = gson.toJsonTree(treemap).getAsJsonObject();
+                        docIdStr = jsonObject.get("_id").getAsString();
+                        if(local_Admitted_Courses.contains(docIdStr)){
+                            Log.e(TAG,"New admission on course id"+ docIdStr);
+                            JsonParser parser = new JsonParser();
+                            JsonObject jsonDocObject = dbClient.find(JsonObject.class, docIdStr );
+                            //female_opened
+                            JsonArray members_Array = jsonDocObject.get("members").getAsJsonArray();
+                            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                            Database admission_course_db = manager.getExistingDatabase("local_courses_admission");
+                            Document doc = admission_course_db.getExistingDocument(docIdStr);
+                            Map<String, Object> properties = doc.getProperties();
+                            local_coursemembers = (ArrayList) properties.get("members");
+                            try {
+                                for(int x=0;x<members_Array.size();x++){
+                                    if(local_coursemembers.contains(members_Array.get(x).getAsString())){
+                                        local_coursemembers.remove(local_coursemembers.indexOf(members_Array.get(x).getAsString()));
+                                    }
+                                }
+                                JsonElement members_Element = parser.parse(gson.toJson(local_coursemembers));
+                                members_Array.addAll(members_Element.getAsJsonArray());
+                                Log.e(TAG, docIdStr + " Included all is " + members_Array);
+                                jsonObject.add("members", members_Array);
+                                dbClient.update(jsonObject);
+                            } catch (Exception err) {
+                                Log.e(TAG, "Got to Saving course members into db " + err.getLocalizedMessage());
+                                err.printStackTrace();
+                            }
+                            dialogFeedbackProgress.dismiss();
+                        }
+                        Log.e(TAG, i + " " + docIdStr + " - " + jsonObject.get("_id").toString());
+                        i++;
+                    }
+                }
+                return "";
+            } catch (Exception e) {
+                Log.e("MyCouch", e.getMessage());
+                return null;
+            }*/
+           return null;
         }
 
         protected void onPostExecute(String message) {

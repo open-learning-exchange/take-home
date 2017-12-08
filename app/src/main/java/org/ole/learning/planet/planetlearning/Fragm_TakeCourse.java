@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
@@ -44,6 +45,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import android.os.Handler;
 
 import us.feras.mdv.MarkdownView;
 
@@ -510,7 +512,12 @@ public class Fragm_TakeCourse extends OpenResource {
                     if (CheckAnsBeforeNext(qn_Ids.get(quesionCurrentIndex), totalNumOfQuestions)) {
                         if ((quesionCurrentIndex + 1) == totalNumOfQuestions) {
                             Log.d(TAG, "Last question ");
-                            getSavePoints(crs_StepIds.get(stepCurrentIndex), stepCurrentIndex);
+                            Handler handler = new Handler();
+                            handler.postDelayed(new Runnable() {
+                                public void run() {
+                                    getSavePoints(crs_StepIds.get(stepCurrentIndex), stepCurrentIndex);
+                                }
+                            }, 3000);
                         } else {
                             QuestionUILoader(qn_Ids.get(quesionCurrentIndex + 1), totalNumOfQuestions);
                         }
@@ -561,6 +568,16 @@ public class Fragm_TakeCourse extends OpenResource {
             lt_QueSinglelineHolder.setVisibility(View.VISIBLE);
         } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Attachment")) {
 
+        }
+    }
+    private class AnswerChecker extends AsyncTask<Void, Void, Void>
+    {
+        @Override
+        protected Void doInBackground(Void... params) {
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result) {
         }
     }
     public boolean CheckAnsBeforeNext(String questionID, int numberOfQuestions) {
@@ -691,65 +708,81 @@ public class Fragm_TakeCourse extends OpenResource {
                     Document mem_course_prog_doc = local_member_course_progress.getExistingDocument(docId);
                     Map<String, Object> mem_course_prog_properties = new HashMap<>();
                     mem_course_prog_properties.putAll(mem_course_prog_doc.getProperties());
-                    List<Integer> ary_pqAttempts = (List<Integer>) mem_course_prog_properties.get("pqAttempts");
-                    List<String> ary_stepsResult = (List<String>) mem_course_prog_properties.get("stepsResult");
-                    List<String> ary_stepsStatus = (List<String>) mem_course_prog_properties.get("stepsStatus");
                     Log.e(TAG, "STEPS NO " + crs_StepIds.size() + " IDS" + crs_StepIds);
-                    for (int x=0; x<crs_StepIds.size();x++){
-                        if(crs_StepIds.get(x).equalsIgnoreCase(stepId)){
-                            ary_pqAttempts.add(1);
-                            ary_stepsStatus.add("1");
-                            points=0;
-                            for(int cnt=0;cnt < stepQuizResultHolder.size();cnt++){
-                                if(stepQuizResultHolder.get(cnt)){
+                    List<Integer> ary_pqAttempts = (List<Integer>) mem_course_prog_properties.get("pqAttempts");
+                    List<List> ary_LstResults = (List<List>) mem_course_prog_properties.get("stepsResult");
+                    List<List> ary_LstStatus = (List<List>) mem_course_prog_properties.get("stepsStatus");
+                    List<List> temp_ary_LstResult = new ArrayList<>();
+                    List<List> temp_ary_LstStatus = new ArrayList<>();
+                    List<String> Result=null;
+                    List<String> Status=null;
+                    for (int x=0; x<crs_StepIds.size();x++) {
+                        Result = (List<String>) ary_LstResults.get(x);
+                        Status = (List<String>) ary_LstStatus.get(x);
+                        if(crs_StepIds.get(x).equalsIgnoreCase(stepId)) {
+                            if(stepQuizResultHolder.get(x)){
                                     try{
-                                        points = (points + Integer.parseInt(qn_Marks.get(cnt)));
+                                        points = (points + Integer.parseInt(qn_Marks.get(x)));
                                     }catch (Exception intErr){
                                         points++;
                                     }
 
                                 }
-                            }
-                            ary_stepsResult.add(""+points+"");
+
+                            Result.add(points+"");
+                            Status.add("1");
+                            ary_pqAttempts.add(ary_pqAttempts.get(x)+1);
                         }
+                        temp_ary_LstResult.add(Result);
+                        temp_ary_LstStatus.add(Status);
+                        Log.e(TAG, " Inside Inside  " + Result);
                     }
-                    mem_course_prog_properties.put("pqAttempts",ary_pqAttempts );
-                    mem_course_prog_properties.put("stepsResult",ary_stepsResult );
-                    mem_course_prog_properties.put("stepsStatus", ary_stepsStatus);
+
+                    mem_course_prog_properties.put("pqAttempts",ary_pqAttempts);
+                    mem_course_prog_properties.put("stepsResult",temp_ary_LstResult);
+                    mem_course_prog_properties.put("stepsStatus", temp_ary_LstStatus);
                     mem_course_prog_doc.putProperties(mem_course_prog_properties);
                     Log.e(TAG, "member course progress Exist data " + mem_course_prog_properties);
+
                 }
             }else{
                 //// Following BeLL structure
                 Map<String, Object> newProperties = new HashMap<>();
                 List<Integer> ary_pqAttempts = new ArrayList<>();
-                List<String> ary_stepsResult = new ArrayList<>();
-                List<String> ary_stepsStatus = new ArrayList<>();
+                List<ArrayList> ary_LstResults = new ArrayList<>();
+                List<ArrayList> ary_LstStatus = new ArrayList<>();
+                points=0;
+                for(int cnt=0;cnt < stepQuizResultHolder.size();cnt++){
+                    if(stepQuizResultHolder.get(cnt)){
+                        try{
+                            points = (points + Integer.parseInt(qn_Marks.get(cnt)));
+                        }catch (Exception intErr){
+                            points++;
+                        }
+
+                    }
+                }
                 for (int x=0; x<crs_StepIds.size();x++){
                     ary_pqAttempts.add(0);
-                    ary_stepsResult.add(null);
-                    ary_stepsStatus.add(null);
+                    ArrayList<String> listResult = new ArrayList<String>();
+                    ArrayList<String> listStatus = new ArrayList<String>();
+                    listResult.add(null);
+                    listStatus.add(null);
+                    if(crs_StepIds.get(x).equalsIgnoreCase(stepId)){
+                        listResult.add(points+"");
+                        listStatus.add("1");
+                    }
+                    ary_LstResults.add(listResult);
+                    ary_LstStatus.add(listStatus);
                 }
                 newProperties.put("stepsIds", crs_StepIds);
                 newProperties.put("memberId", sys_usercouchId);
                 newProperties.put("courseId", mCourseId);
                 newProperties.put("kind", "course-member-result");
-                for (int x=0; x<crs_StepIds.size();x++){
-                    if(crs_StepIds.get(x).equalsIgnoreCase(stepId)){
-                        ary_pqAttempts.add(1);
-                        ary_stepsStatus.add("1");
-                        int points=0;
-                        for(int cnt=0;cnt < stepQuizResultHolder.size();cnt++){
-                            if(stepQuizResultHolder.get(cnt)){
-                                points++;
-                            }
-                        }
-                        ary_stepsResult.add(""+points+"");
-                    }
-                }
-                newProperties.put("pqAttempts",ary_pqAttempts );
-                newProperties.put("stepsResult",ary_stepsResult );
-                newProperties.put("stepsStatus", ary_stepsStatus);
+                ary_pqAttempts.set(0,1); // step index
+                newProperties.put("pqAttempts",ary_pqAttempts);
+                newProperties.put("stepsResult",ary_LstResults);
+                newProperties.put("stepsStatus",ary_LstStatus);
                 ////// Saving course step result.
                 Document document = local_member_course_progress.createDocument();
                 document.putProperties(newProperties);
