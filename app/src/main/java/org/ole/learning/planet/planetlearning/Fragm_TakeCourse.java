@@ -11,9 +11,9 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,7 +28,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
@@ -37,6 +36,7 @@ import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
+import com.marcoscg.dialogsheet.DialogSheet;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -45,7 +45,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import android.os.Handler;
 
 import us.feras.mdv.MarkdownView;
 
@@ -317,6 +316,7 @@ public class Fragm_TakeCourse extends OpenResource {
 
     public void stepUILoader(String StepId) {
 
+
         Log.e(TAG, "Step ID " + StepId + " -  Course " + crs_MainTId);
 
         stepCurrentIndex = crs_StepIds.indexOf(StepId);
@@ -410,6 +410,7 @@ public class Fragm_TakeCourse extends OpenResource {
         lblStepTitle.setText(crs_StepTitles.get(stepCurrentIndex));
         markdownCourseDescContent.loadMarkdown(crs_StepDescription.get(stepCurrentIndex));
     }
+
 
     public void takeTestDialog(String StepId, String StepTitle) {
         qn_Ids.clear();
@@ -1010,6 +1011,25 @@ public class Fragm_TakeCourse extends OpenResource {
         return true;
     }
     public void alertDialogOkay(String Message) {
+        final DialogSheet sh =  new DialogSheet(getContext());
+        sh.setTitle(R.string.app_name)
+                .setMessage(Message)
+                .setPositiveButton(android.R.string.ok, new DialogSheet.OnPositiveClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        sh.dismiss();
+                    }
+                })
+                .setButtonsColorRes(R.color.colorPrimary)  // Default color is accent
+                .show();
+        /*.setNegativeButton(android.R.string.cancel, new DialogSheet.OnNegativeClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // Your action
+                    }
+                })*/
+    }
+    public void alertDialogOkayOLD(String Message) {
         AlertDialog.Builder builder1 = new AlertDialog.Builder(getContext());
         builder1.setMessage(Message);
         builder1.setCancelable(true);

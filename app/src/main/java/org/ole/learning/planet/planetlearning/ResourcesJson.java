@@ -1,11 +1,8 @@
 package org.ole.learning.planet.planetlearning;
 
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.support.v7.app.NotificationCompat;
 import android.util.Log;
-import android.view.View;
 
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
