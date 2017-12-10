@@ -123,9 +123,11 @@ public class Fragm_TakeCourse extends OpenResource {
     List<String> rs_Title = new ArrayList<>();
     List<String> rs_Description = new ArrayList<>();
     List<Boolean> stepQuizResultHolder = new ArrayList<>();
+    List<String> stepTextResultHolder = new ArrayList<>();
     TextView lbl_ResStepTitle;
 
     int points = 0;
+    String scoreMessage = "";
     private String mCourseId;
     private String mMemberId;
 
@@ -420,6 +422,7 @@ public class Fragm_TakeCourse extends OpenResource {
         qn_CorrectAnswer.clear();
         qn_NoOptions.clear();
         stepQuizResultHolder.clear();
+        stepTextResultHolder.clear();
         ArrayList course_QuestionList = null;
         try {
             AndroidContext androidContext = new AndroidContext(getContext());
@@ -441,6 +444,7 @@ public class Fragm_TakeCourse extends OpenResource {
                     qn_CorrectAnswer.add((ArrayList) question_properties.get("CorrectAnswer"));
                     try {
                         ArrayList tempHolder = (ArrayList) question_properties.get("Options");
+                        Log.e(TAG, "Multiple choice questions list " + tempHolder);
                         qn_StepOptions.add(new String[]{android.text.TextUtils.join(",", tempHolder)});
                         qn_NoOptions.add(tempHolder.size());
                     } catch (Exception err) {
@@ -518,7 +522,7 @@ public class Fragm_TakeCourse extends OpenResource {
                                 public void run() {
                                     getSavePoints(crs_StepIds.get(stepCurrentIndex), stepCurrentIndex);
                                 }
-                            }, 3000);
+                            }, 500);
                         } else {
                             QuestionUILoader(qn_Ids.get(quesionCurrentIndex + 1), totalNumOfQuestions);
                         }
@@ -549,6 +553,7 @@ public class Fragm_TakeCourse extends OpenResource {
 
         if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Multiple Choice")) {
             lt_QueMultipleChoiceHolder.setVisibility(View.VISIBLE);
+            Log.e(TAG,"Multiple choice UI Display "+qn_StepOptions.get(quesionCurrentIndex)[0]);
             if (((LinearLayout) lt_QueMultipleChoiceHolder).getChildCount() > 0) {
                 ((LinearLayout) lt_QueMultipleChoiceHolder).removeAllViews();
             }
@@ -556,7 +561,6 @@ public class Fragm_TakeCourse extends OpenResource {
             List<String> items = Arrays.asList(tempOptionsHolder.split("\\s*,\\s*"));
             qn_OptionsCheckbox = new CheckBox[items.size()];
             for (int x = 0; x < items.size(); x++) {
-                //Log.e(TAG, "Loop No " + quesionCurrentIndex + " " + items.get(x));
                 qn_OptionsCheckbox[x] = new CheckBox(getContext());
                 qn_OptionsCheckbox[x].setId(x);
                 qn_OptionsCheckbox[x].setTag(x);
@@ -585,7 +589,7 @@ public class Fragm_TakeCourse extends OpenResource {
         totalNumOfQuestions = numberOfQuestions;
         quesionCurrentIndex = qn_Ids.indexOf(questionID);
         boolean correctAnswrGiven = false;
-        //// Save response to local_courseanswer
+        //// Save response in local_course_answer
         AndroidContext androidContext = new AndroidContext(getContext());
         Manager manager = null;
         try {
@@ -622,13 +626,17 @@ public class Fragm_TakeCourse extends OpenResource {
                 }
                 if (correctAnswrGiven) {
                     stepQuizResultHolder.add(correctAnswrGiven);
-                    alertDialogOkay("That's the correct answer, well done");
+                    if ((quesionCurrentIndex + 1) != totalNumOfQuestions) {
+                        alertDialogOkay("Ques #"+quesionCurrentIndex,"That's the correct answer, well done");
+                    }
                     Log.d(TAG, "That's the correct answer, Well Done");
 
                 } else {
                     stepQuizResultHolder.add(correctAnswrGiven);
+                    if ((quesionCurrentIndex + 1) == totalNumOfQuestions) {
+                        alertDialogOkay("Ques #"+quesionCurrentIndex,"Oops, Wrong answer!! ");
+                    }
                     Log.d(TAG, "Oops, Wrong answer!!");
-                    alertDialogOkay("Oops, Wrong answer!! ");
                 }
                 newCourseAnsProperties.put("kind","courseanswer");
                 newCourseAnsProperties.put("pqattempts",getCourseAttempt());
@@ -639,16 +647,25 @@ public class Fragm_TakeCourse extends OpenResource {
                 Document document = local_member_course_answer.createDocument();
                 document.putProperties(newCourseAnsProperties);
                 Log.e(TAG, "Course Ans DB properties = "+ newCourseAnsProperties);
+
+                stepTextResultHolder.add(null);
                 return true;
             } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Comment/Essay Box")) {
+
+                stepQuizResultHolder.add(null);
+                stepTextResultHolder.add(txt_QueMultilineAns.getText().toString());
                 Log.d(TAG, "Comment/Essay Box");
                 txt_QueMultilineAns.setText("");
                 return true;
             } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Single Textbox")) {
+                stepQuizResultHolder.add(null);
+                stepTextResultHolder.add(txt_QueSinglelineAns.getText().toString());
                 Log.d(TAG, "Single Textbox");
                 txt_QueSinglelineAns.setText("");
                 return true;
             } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Attachment")) {
+                stepQuizResultHolder.add(null);
+                stepTextResultHolder.add(null);
                 Log.d(TAG, "Attachment");
                 return true;
             }
@@ -690,7 +707,7 @@ public class Fragm_TakeCourse extends OpenResource {
     }
     public void getSavePoints(String stepId, int stepNo){
         Log.e(TAG, "Save Details = courseId : "+ mCourseId + " StepID "+ stepId + " stepNo "+ stepNo );
-        Log.e(TAG, "Result : "+ stepQuizResultHolder  );
+        Log.e(TAG, "Raw Result : "+ stepQuizResultHolder);
         AndroidContext androidContext = new AndroidContext(getContext());
         Manager manager = null;
         try {
@@ -717,18 +734,26 @@ public class Fragm_TakeCourse extends OpenResource {
                     List<List> temp_ary_LstStatus = new ArrayList<>();
                     List<String> Result=null;
                     List<String> Status=null;
+                    points = 0;
+                    scoreMessage="";
                     for (int x=0; x<crs_StepIds.size();x++) {
                         Result = (List<String>) ary_LstResults.get(x);
                         Status = (List<String>) ary_LstStatus.get(x);
                         if(crs_StepIds.get(x).equalsIgnoreCase(stepId)) {
-                            if(stepQuizResultHolder.get(x)){
-                                    try{
-                                        points = (points + Integer.parseInt(qn_Marks.get(x)));
-                                    }catch (Exception intErr){
-                                        points++;
+                            for(int cnt=0;cnt<stepQuizResultHolder.size();cnt++) {
+                                if (stepQuizResultHolder.get(cnt) != null) {
+                                    if (stepQuizResultHolder.get(cnt)) {
+                                        try {
+                                            points = (points + Integer.parseInt(qn_Marks.get(x)));
+                                        } catch (Exception intErr) {
+                                            points++;
+                                        }
                                     }
 
+                                }else{
+                                    scoreMessage = "\n Essay/Text/Attachment will scored later";
                                 }
+                            }
 
                             Result.add(points+"");
                             Status.add("1");
@@ -745,6 +770,8 @@ public class Fragm_TakeCourse extends OpenResource {
                     mem_course_prog_doc.putProperties(mem_course_prog_properties);
                     Log.e(TAG, "member course progress Exist data " + mem_course_prog_properties);
 
+                    stepQuizResultHolder.clear();
+                    stepTextResultHolder.clear();
                 }
             }else{
                 //// Following BeLL structure
@@ -788,9 +815,12 @@ public class Fragm_TakeCourse extends OpenResource {
                 Document document = local_member_course_progress.createDocument();
                 document.putProperties(newProperties);
                 Log.e(TAG, "New member course progress data " + newProperties);
+
+                stepQuizResultHolder.clear();
+                stepTextResultHolder.clear();
             }
             dialogTest.dismiss();
-            alertDialogOkay("Your score for this step was "+ points);
+            alertDialogOkay("Score for Step "+stepCurrentIndex,"Multiple Choice questions) : "+ points+ " "+ scoreMessage);
         } catch (Exception err) {
             Log.e(TAG, "local_courses_admission on device " + err.getMessage());
             err.printStackTrace();
@@ -1010,9 +1040,9 @@ public class Fragm_TakeCourse extends OpenResource {
         }
         return true;
     }
-    public void alertDialogOkay(String Message) {
+    public void alertDialogOkay(String Heading,String Message) {
         final DialogSheet sh =  new DialogSheet(getContext());
-        sh.setTitle(R.string.app_name)
+        sh.setTitle(Heading)
                 .setMessage(Message)
                 .setPositiveButton(android.R.string.ok, new DialogSheet.OnPositiveClickListener() {
                     @Override
@@ -1028,18 +1058,5 @@ public class Fragm_TakeCourse extends OpenResource {
                         // Your action
                     }
                 })*/
-    }
-    public void alertDialogOkayOLD(String Message) {
-        AlertDialog.Builder builder1 = new AlertDialog.Builder(getContext());
-        builder1.setMessage(Message);
-        builder1.setCancelable(true);
-        builder1.setNegativeButton("Okay",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                    }
-                });
-        AlertDialog alert11 = builder1.create();
-        alert11.show();
     }
 }
