@@ -423,6 +423,7 @@ public class Fragm_TakeCourse extends OpenResource {
         qn_NoOptions.clear();
         stepQuizResultHolder.clear();
         stepTextResultHolder.clear();
+        qn_StepOptions.clear();
         ArrayList course_QuestionList = null;
         try {
             AndroidContext androidContext = new AndroidContext(getContext());
@@ -451,12 +452,18 @@ public class Fragm_TakeCourse extends OpenResource {
                         err.printStackTrace();
                     }
                 } else if (((String) question_properties.get("Type")).equalsIgnoreCase("Attachment")) {
-                    qn_NoOptions.add(0);
+                    qn_StepOptions.add(new String[]{"","","",""});
+                    qn_NoOptions.add(4);
+                    qn_CorrectAnswer.add(new ArrayList());
                 } else if (((String) question_properties.get("Type")).equalsIgnoreCase("Comment/Essay Box")) {
-                    qn_NoOptions.add(0);
+                    qn_StepOptions.add(new String[]{"","","",""});
+                    qn_NoOptions.add(4);
+                    qn_CorrectAnswer.add(new ArrayList());
                 } else {
                     /// Textbox
-                    qn_NoOptions.add(0);
+                    qn_StepOptions.add(new String[]{"","","",""});
+                    qn_NoOptions.add(4);
+                    qn_CorrectAnswer.add(new ArrayList());
                 }
             }
         } catch (Exception err) {
@@ -500,12 +507,10 @@ public class Fragm_TakeCourse extends OpenResource {
         } else {
             btnQueSubmitAns.setText(R.string.finish);
             btnQueSubmitAns.setVisibility(View.VISIBLE);
-            ///btnQueSubmitAns.setVisibility(View.GONE);
         }
 
         if (quesionCurrentIndex > 0) {
             btnQueBack.setVisibility(View.GONE);
-
         } else {
             btnQueBack.setVisibility(View.GONE);
         }
@@ -530,6 +535,7 @@ public class Fragm_TakeCourse extends OpenResource {
 
                 } catch (Exception except) {
                     Log.d(TAG, "Next clicked error " + except.getMessage());
+                    except.printStackTrace();
                 }
             }
         });
@@ -547,15 +553,22 @@ public class Fragm_TakeCourse extends OpenResource {
         lt_QueMultilineHolder = dialogTest.findViewById(R.id.lt_QueMultilineHolder);
         lbl_QueStatus.setText((quesionCurrentIndex + 1) + " of " + numberOfQuestions);
         markdownQueDescContent.loadMarkdown(qn_Statement.get(quesionCurrentIndex));
+
         lt_QueMultipleChoiceHolder.setVisibility(View.GONE);
         lt_QueMultilineHolder.setVisibility(View.GONE);
         lt_QueSinglelineHolder.setVisibility(View.GONE);
 
+        Log.e(TAG,"Multiple choice UI Display length "+qn_StepOptions.get(quesionCurrentIndex).length);
         if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Multiple Choice")) {
             lt_QueMultipleChoiceHolder.setVisibility(View.VISIBLE);
-            Log.e(TAG,"Multiple choice UI Display "+qn_StepOptions.get(quesionCurrentIndex)[0]);
             if (((LinearLayout) lt_QueMultipleChoiceHolder).getChildCount() > 0) {
                 ((LinearLayout) lt_QueMultipleChoiceHolder).removeAllViews();
+            }
+            for(int a=0;a<qn_StepOptions.size();a++){
+                Log.e(TAG, "QN size "+qn_StepOptions.size());
+                for (int b=0;b<qn_StepOptions.get(a).length;b++) {
+                    Log.e(TAG, "UI Display MC ("+a+"). " + qn_StepOptions.get(a)[b]);
+                }
             }
             String tempOptionsHolder = qn_StepOptions.get(quesionCurrentIndex)[0];
             List<String> items = Arrays.asList(tempOptionsHolder.split("\\s*,\\s*"));
@@ -573,16 +586,6 @@ public class Fragm_TakeCourse extends OpenResource {
             lt_QueSinglelineHolder.setVisibility(View.VISIBLE);
         } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Attachment")) {
 
-        }
-    }
-    private class AnswerChecker extends AsyncTask<Void, Void, Void>
-    {
-        @Override
-        protected Void doInBackground(Void... params) {
-            return null;
-        }
-        @Override
-        protected void onPostExecute(Void result) {
         }
     }
     public boolean CheckAnsBeforeNext(String questionID, int numberOfQuestions) {
@@ -627,7 +630,7 @@ public class Fragm_TakeCourse extends OpenResource {
                 if (correctAnswrGiven) {
                     stepQuizResultHolder.add(correctAnswrGiven);
                     if ((quesionCurrentIndex + 1) != totalNumOfQuestions) {
-                        alertDialogOkay("Ques #"+quesionCurrentIndex,"That's the correct answer, well done");
+                        alertDialogOkay("Ques #"+(quesionCurrentIndex+1),"That's the correct answer, well done");
                     }
                     Log.d(TAG, "That's the correct answer, Well Done");
 
@@ -654,14 +657,14 @@ public class Fragm_TakeCourse extends OpenResource {
 
                 stepQuizResultHolder.add(null);
                 stepTextResultHolder.add(txt_QueMultilineAns.getText().toString());
-                Log.d(TAG, "Comment/Essay Box");
                 txt_QueMultilineAns.setText("");
+                Log.d(TAG, "Comment/Essay Box");
                 return true;
             } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Single Textbox")) {
                 stepQuizResultHolder.add(null);
                 stepTextResultHolder.add(txt_QueSinglelineAns.getText().toString());
-                Log.d(TAG, "Single Textbox");
                 txt_QueSinglelineAns.setText("");
+                Log.d(TAG, "Single Textbox");
                 return true;
             } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Attachment")) {
                 stepQuizResultHolder.add(null);
@@ -670,6 +673,7 @@ public class Fragm_TakeCourse extends OpenResource {
                 return true;
             }
             Log.d(TAG, "Not handled.." + qn_Type.get(quesionCurrentIndex));
+
             return true;
         }catch(Exception err){
             Log.d(TAG, "Quiz Error.." + err.getMessage());
@@ -751,7 +755,7 @@ public class Fragm_TakeCourse extends OpenResource {
                                     }
 
                                 }else{
-                                    scoreMessage = "\n Essay/Text/Attachment will scored later";
+                                    scoreMessage = "\nEssay / Attachment question will scored later.";
                                 }
                             }
 
@@ -820,7 +824,7 @@ public class Fragm_TakeCourse extends OpenResource {
                 stepTextResultHolder.clear();
             }
             dialogTest.dismiss();
-            alertDialogOkay("Score for Step "+stepCurrentIndex,"Multiple Choice questions) : "+ points+ " "+ scoreMessage);
+            alertDialogOkay("Score this step #"+(stepCurrentIndex+1),"Multiple Choice questions : "+ points+ " "+ scoreMessage);
         } catch (Exception err) {
             Log.e(TAG, "local_courses_admission on device " + err.getMessage());
             err.printStackTrace();

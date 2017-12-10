@@ -102,7 +102,7 @@
                 android:id="@+id/lt_Cont_StepTitle"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="2"
+                android:layout_weight="1"
                 android:gravity="center_vertical|center_horizontal"
                 android:orientation="horizontal">
 
@@ -122,7 +122,7 @@
                 android:id="@+id/lt_Cont_Description"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="6"
+                android:layout_weight="7"
                 android:orientation="horizontal">
 
                 <us.feras.mdv.MarkdownView
