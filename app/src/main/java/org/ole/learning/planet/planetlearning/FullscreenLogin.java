@@ -311,6 +311,7 @@ public class FullscreenLogin extends AppCompatActivity {
             alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
             Log.e(TAG, "Getting date from server" + err);
         }
+
         try {
             Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             resourceRating = manager.getDatabase("resourcerating");
@@ -484,7 +485,6 @@ public class FullscreenLogin extends AppCompatActivity {
 
 
     }
-
     public void sendCourseToServer(ProgressDialog feedbackDialog) {
         Database local_member_course_progress, local_member_course_answer,local_courses_admission;
         Database resourceRating, activitylog, visits;
@@ -670,7 +670,6 @@ public class FullscreenLogin extends AppCompatActivity {
 
 
     }
-
     public void setLocale(String lang) {
         Locale myLocale = new Locale(lang);
         Resources res = getResources();

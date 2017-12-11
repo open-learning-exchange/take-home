@@ -784,7 +784,6 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
         resetActiveButton();
         lt_myCourses.setBackgroundColor(getResources().getColor(R.color.ole_blueLine));
     }
-
     public void showRoundMenu(){
         Dialog dialogMenu;
         AlertDialog.Builder dialogB2 = new AlertDialog.Builder(context,R.style.TransparentDialog);

@@ -831,7 +831,6 @@ public class Fragm_TakeCourse extends OpenResource {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database local_member_course_progress = manager.getDatabase("local_member_course_progress");
             //local_member_course_progress.delete();
-
             //local_member_course_progress = manager.getDatabase("local_member_course_progress");
             Query orderedQuery = chViews.ReadMemberCourseProgByMemberIdCourceId(local_member_course_progress,mCourseId,sys_usercouchId).createQuery();
             orderedQuery.setDescending(true);
@@ -935,12 +934,12 @@ public class Fragm_TakeCourse extends OpenResource {
                 Document document = local_member_course_progress.createDocument();
                 document.putProperties(newProperties);
                 Log.e(TAG, "New member course progress data " + newProperties);
-
                 stepQuizResultHolder.clear();
                 stepTextResultHolder.clear();
             }
             dialogTest.dismiss();
             alertDialogOkay("Score for step #"+(stepCurrentIndex+1),"Multiple Choice questions : "+ points+ " "+ scoreMessage);
+
         } catch (Exception err) {
             Log.e(TAG, "local_courses_admission on device " + err.getMessage());
             err.printStackTrace();
