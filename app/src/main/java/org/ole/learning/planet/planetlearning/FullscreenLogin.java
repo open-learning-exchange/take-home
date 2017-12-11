@@ -227,8 +227,11 @@ public class FullscreenLogin extends AppCompatActivity {
                                 alertDialogOkay("Check WiFi connection and try again");
                                 dialogFeedbackProgress.dismiss();
                             } else {
-                                UpdateCoursesDatabase updateCoursesDatabase = new UpdateCoursesDatabase();
-                                updateCoursesDatabase.execute();
+                                UpdateMemberCourseProgressDatabase updateMemberCourseProgressDatabase = new UpdateMemberCourseProgressDatabase();
+                                updateMemberCourseProgressDatabase.execute();
+
+                                //UpdateCoursesDatabase updateCoursesDatabase = new UpdateCoursesDatabase();
+                                //updateCoursesDatabase.execute();
 
                                 //////////////////sendfeedbackToServer(feedbackDialog);
                             }
@@ -308,6 +311,7 @@ public class FullscreenLogin extends AppCompatActivity {
             alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
             Log.e(TAG, "Getting date from server" + err);
         }
+
         try {
             Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             resourceRating = manager.getDatabase("resourcerating");
@@ -481,7 +485,6 @@ public class FullscreenLogin extends AppCompatActivity {
 
 
     }
-
     public void sendCourseToServer(ProgressDialog feedbackDialog) {
         Database local_member_course_progress, local_member_course_answer,local_courses_admission;
         Database resourceRating, activitylog, visits;
@@ -667,7 +670,6 @@ public class FullscreenLogin extends AppCompatActivity {
 
 
     }
-
     public void setLocale(String lang) {
         Locale myLocale = new Locale(lang);
         Resources res = getResources();
@@ -1225,6 +1227,20 @@ public class FullscreenLogin extends AppCompatActivity {
                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                 Database dbcourses_admission = manager.getDatabase("local_courses_admission");
                 dbcourses_admission.delete();
+            } catch (Exception err) {
+                err.printStackTrace();
+            }
+            try {
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbLocalMemCourseProg = manager.getDatabase("local_member_course_progress");
+                dbLocalMemCourseProg.delete();
+            } catch (Exception err) {
+                err.printStackTrace();
+            }
+            try {
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbLocalMemCourseAns = manager.getDatabase("local_member_course_answer");
+                dbLocalMemCourseAns.delete();
             } catch (Exception err) {
                 err.printStackTrace();
             }
@@ -2025,6 +2041,34 @@ public class FullscreenLogin extends AppCompatActivity {
         });*/
     }
 
+    public JsonArray ConvertStringToJsonArray(List<String> list ) {
+        Gson gson = new Gson();
+        JsonParser parser = new JsonParser();
+        JsonArray _Array = new JsonArray();
+        JsonElement _Element = parser.parse(gson.toJson(list));
+        try {
+            _Array.addAll(_Element.getAsJsonArray());
+            return _Array;
+        }catch(Exception err){
+            err.printStackTrace();
+            return null;
+        }
+    }
+
+    public JsonArray ConvertToJsonArray(List<Integer> list ) {
+        Gson gson = new Gson();
+        JsonParser parser = new JsonParser();
+        JsonArray _Array = new JsonArray();
+        JsonElement _Element = parser.parse(gson.toJson(list));
+        try {
+            _Array.addAll(_Element.getAsJsonArray());
+            return _Array;
+        }catch(Exception err){
+            err.printStackTrace();
+            return null;
+        }
+    }
+
     class GetServerDate extends AsyncTask<String, Void, String> {
         private Exception exception;
         private String cls_dbName;
@@ -2092,77 +2136,31 @@ public class FullscreenLogin extends AppCompatActivity {
     //// Courses
 
     class UpdateCoursesDatabase extends AsyncTask<String, Void, String> {
-        private int cls_male_visits, cls_female_visits;
-        private ArrayList cls_male_rating, cls_male_timesRated, cls_female_timesRated, cls_female_rating, cls_resourcesIds;
-        private ArrayList cls_male_opened, cls_female_opened, cls_resources_names, cls_resources_opened;
-
-        public void set_resourcesIds(ArrayList resourcesIds) {
-            cls_resourcesIds = resourcesIds;
-        }
-
-        ;
-
-        public void set_resources_names(ArrayList resources_names) {
-            cls_resources_names = resources_names;
-        }
-
-        ;
-
-        public void set_resources_opened(ArrayList resources_opened) {
-            cls_resources_opened = resources_opened;
-        }
-
-        ;
-
-        public void set_male_visits(int male_visits) {
-            cls_male_visits = male_visits;
-        }
-
-        ;
-
-        public void set_female_visits(int female_visits) {
-            cls_female_visits = female_visits;
-        }
-
-        ;
-
-        public void set_male_rating(ArrayList male_rating) {
-            cls_male_rating = male_rating;
-        }
-
-        ;
-
-        public void set_female_rating(ArrayList female_rating) {
-            cls_female_rating = female_rating;
-        }
-
-        ;
-
-        public void set_male_timesRated(ArrayList male_timesRated) {
-            cls_male_timesRated = male_timesRated;
-        }
-
-        ;
-
-        public void set_female_timesRated(ArrayList female_timesRated) {
-            cls_female_timesRated = female_timesRated;
-        }
-
-        ;
-
-        public void set_male_opened(ArrayList male_opened) {
-            cls_male_opened = male_opened;
-        }
-
-        ;
-
-        public void set_female_opened(ArrayList female_opened) {
-            cls_female_opened = female_opened;
-        }
-
-        ;
-
+        private ArrayList local_coursemembers;
         protected String doInBackground(String... urls) {
+            AndroidContext androidContext = new AndroidContext(context);
+            Manager manager = null;
+            ArrayList local_Admitted_Courses = new ArrayList();
+            try {
+                manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database admission_course_db = manager.getExistingDatabase("local_courses_admission");
+                Query orderedQuery = chViews.ReadAdmissionCourseList(admission_course_db).createQuery();
+                orderedQuery.setDescending(true);
+                QueryEnumerator results = orderedQuery.run();
+                for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                    QueryRow row = it.next();
+                    String docId = (String) row.getValue();
+                    Document doc = admission_course_db.getExistingDocument(docId);
+                    Map<String, Object> properties = doc.getProperties();
+                    ArrayList courseMembers = (ArrayList) properties.get("members");
+                    if(courseMembers.contains(sys_usercouchId)){
+                        local_Admitted_Courses.add(docId);
+                    }
+                }
+            } catch (Exception err) {
+                Log.e("MyCouch", "Compiling user specific locally admitted courses " + err.getMessage());
+                err.getMessage();
+            }
             try {
                 URI uri = URI.create(sys_oldSyncServerURL);
                 String url_Scheme = uri.getScheme();
@@ -2177,7 +2175,6 @@ public class FullscreenLogin extends AppCompatActivity {
                 CouchDbClientAndroid dbClient = new CouchDbClientAndroid("courses", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
                 org.lightcouch.View view = dbClient.view("bell/GetCourseByID").includeDocs(false);
                 List<Map> results = view.reduce(false).includeDocs(false).query(Map.class);
-                //String todaysActivityDocId = null;
                 String docIdStr = null;
                 int i = 0;
                 if (results.size() != 0) {
@@ -2186,213 +2183,262 @@ public class FullscreenLogin extends AppCompatActivity {
                         Gson gson = new Gson();
                         JsonObject jsonObject = gson.toJsonTree(treemap).getAsJsonObject();
                         docIdStr = jsonObject.get("_id").getAsString();
-                        Log.e(TAG, i + " " + docIdStr + " - " + jsonObject.get("_id").toString());
-
-                        i++;
-                    }
-                    //// Check if activitylog document for today exist
-                    /*if (docDateStr != null && todaysActivityDocId != null) {
-                        try {
-                            Gson gson = new Gson();
+                        if(local_Admitted_Courses.contains(docIdStr)){
+                            Log.e(TAG,"New admission on course id"+ docIdStr);
                             JsonParser parser = new JsonParser();
-                            JsonObject jsonObject = dbClient.find(JsonObject.class, todaysActivityDocId);
+                            JsonObject jsonDocObject = dbClient.find(JsonObject.class, docIdStr );
                             //female_opened
-                            JsonArray female_opened_Array = jsonObject.get("female_opened").getAsJsonArray();
-                            JsonElement female_opened_Element = parser.parse(gson.toJson(cls_female_opened));
-                            Log.e("MyCouch", "Begun -- ");
+                            JsonArray members_Array = jsonDocObject.get("members").getAsJsonArray();
+                            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                            Database admission_course_db = manager.getExistingDatabase("local_courses_admission");
+                            Document doc = admission_course_db.getExistingDocument(docIdStr);
+                            Map<String, Object> properties = doc.getProperties();
+                            local_coursemembers = (ArrayList) properties.get("members");
                             try {
-                                female_opened_Array.addAll(female_opened_Element.getAsJsonArray());
+                                for(int x=0;x<members_Array.size();x++){
+                                    if(local_coursemembers.contains(members_Array.get(x).getAsString())){
+                                        local_coursemembers.remove(local_coursemembers.indexOf(members_Array.get(x).getAsString()));
+                                    }
+                                }
+                                JsonElement members_Element = parser.parse(gson.toJson(local_coursemembers));
+                                members_Array.addAll(members_Element.getAsJsonArray());
+                                Log.e(TAG, docIdStr + " Included all is " + members_Array);
+                                jsonObject.add("members", members_Array);
+                                dbClient.update(jsonObject);
                             } catch (Exception err) {
-                                Log.e("MyCouch", "Got to female_opened " + err.getLocalizedMessage());
-                            }
-                            //male_rating
-                            JsonArray male_rating_Array = jsonObject.get("male_rating").getAsJsonArray();
-                            JsonElement male_rating_Element = parser.parse(gson.toJson(cls_male_rating));
-                            try {
-                                male_rating_Array.addAll(male_rating_Element.getAsJsonArray());
-                            } catch (Exception err) {
-                                Log.e("MyCouch", "Got to male_rating " + err.getLocalizedMessage());
-                            }
-
-                            //male_timesRated
-                            JsonArray male_timesRated_Array = jsonObject.get("male_timesRated").getAsJsonArray();
-                            JsonElement male_timesRated_Element = parser.parse(gson.toJson(cls_male_timesRated));
-                            try {
-                                male_timesRated_Array.addAll(male_timesRated_Element.getAsJsonArray());
-                            } catch (Exception err) {
-                                Log.e("MyCouch", "Got to male_timesRated " + err.getLocalizedMessage());
-                            }
-                            //female_timesRated
-                            JsonArray female_timesRated_Array = jsonObject.get("female_timesRated").getAsJsonArray();
-                            JsonElement female_timesRated_Element = parser.parse(gson.toJson(cls_female_timesRated));
-                            try {
-                                female_timesRated_Array.addAll(female_timesRated_Element.getAsJsonArray());
-                            } catch (Exception err) {
-                                Log.e("MyCouch", "Got to female_timesRated " + err.getLocalizedMessage());
-                            }
-                            //female_rating
-                            JsonArray female_rating_Array = jsonObject.get("female_rating").getAsJsonArray();
-                            JsonElement female_rating_Element = parser.parse(gson.toJson(cls_female_rating));
-                            try {
-                                female_rating_Array.addAll(female_rating_Element.getAsJsonArray());
-                            } catch (Exception err) {
-                                Log.e("MyCouch", "Got to female_rating " + err.getLocalizedMessage());
-                            }
-                            //resourcesIds
-                            JsonArray resourcesIds_Array = jsonObject.get("resourcesIds").getAsJsonArray();
-                            JsonElement resourcesIds_Element = parser.parse(gson.toJson(cls_resourcesIds));
-                            try {
-                                resourcesIds_Array.addAll(resourcesIds_Element.getAsJsonArray());
-                            } catch (Exception err) {
-                                Log.e("MyCouch", "Got to resourcesIds " + err.getLocalizedMessage());
-                            }
-                            //male_opened
-                            JsonArray male_opened_Array = jsonObject.get("male_opened").getAsJsonArray();
-                            JsonElement male_opened_Element = parser.parse(gson.toJson(cls_male_opened));
-                            try {
-                                male_opened_Array.addAll(male_opened_Element.getAsJsonArray());
-                            } catch (Exception err) {
-                                Log.e("MyCouch", "Got to male_opened " + err.getLocalizedMessage());
-                            }
-                            //resources_names
-                            JsonArray resources_names_Array = jsonObject.get("resources_names").getAsJsonArray();
-                            JsonElement resources_names_Element = parser.parse(gson.toJson(cls_resources_names));
-                            try {
-                                resources_names_Array.addAll(resources_names_Element.getAsJsonArray());
-                            } catch (Exception err) {
-                                Log.e("MyCouch", "Got to resources_names " + err.getLocalizedMessage());
-                            }
-                            //resources_opened
-                            JsonArray resources_opened_Array = jsonObject.get("resources_opened").getAsJsonArray();
-                            JsonElement resources_opened_Element = parser.parse(gson.toJson(cls_resources_opened));
-                            try {
-                                resources_opened_Array.addAll(resources_opened_Element.getAsJsonArray());
-                            } catch (Exception err) {
-                                Log.e("MyCouch", "Got to resources_opened " + err.getLocalizedMessage());
-                            }
-                            Log.e("MyCouch", "Ended -- ");
-                            int totalMaleVisits = (cls_male_visits + jsonObject.get("male_visits").getAsInt());
-                            jsonObject.addProperty("male_visits", totalMaleVisits);
-                            int totalFemaleVisits = (cls_female_visits + jsonObject.get("female_visits").getAsInt());
-                            jsonObject.addProperty("female_visits", totalFemaleVisits);
-                            jsonObject.add("female_opened", female_opened_Array);
-                            jsonObject.add("male_rating", male_rating_Array);
-                            jsonObject.add("male_timesRated", male_timesRated_Array);
-                            jsonObject.add("female_timesRated", female_timesRated_Array);
-                            jsonObject.add("female_rating", female_rating_Array);
-                            jsonObject.add("resourcesIds", resourcesIds_Array);
-                            jsonObject.add("male_opened", male_opened_Array);
-                            jsonObject.add("resources_names", resources_names_Array);
-                            jsonObject.add("resources_opened", resources_opened_Array);
-                            dbClient.update(jsonObject);
-                        } catch (Exception err) {
-                            Log.e("MyCouch", "Error updating existing activity log " + err.getMessage());
-                        }
-                    } else {
-                        try {
-                            Gson gson = new Gson();
-                            JsonParser parser = new JsonParser();
-                            JsonObject jsonObject = new JsonObject();
-                            Log.e("MyCouch", "Begun New Activity Resource -- ");
-                            //female_opened
-                            JsonArray female_opened_Array = new JsonArray();
-                            JsonElement female_opened_Element = parser.parse(gson.toJson(cls_female_opened));
-                            try {
-                                female_opened_Array.addAll(female_opened_Element.getAsJsonArray());
-                            } catch (Exception err) {
-                                Log.e("MyCouch", "Got to female_opened " + err.getLocalizedMessage());
-                            }
-                            //male_rating
-                            JsonArray male_rating_Array = new JsonArray();
-                            JsonElement male_rating_Element = parser.parse(gson.toJson(cls_male_rating));
-                            try {
-                                male_rating_Array.addAll(male_rating_Element.getAsJsonArray());
-                            } catch (Exception err) {
-                                Log.e("MyCouch", "Got to male_rating " + err.getLocalizedMessage());
-                            }
-                            //male_timesRated
-                            JsonArray male_timesRated_Array = new JsonArray();
-                            JsonElement male_timesRated_Element = parser.parse(gson.toJson(cls_male_timesRated));
-                            try {
-                                male_timesRated_Array.addAll(male_timesRated_Element.getAsJsonArray());
-                            } catch (Exception err) {
-                                Log.e("MyCouch", "Got to male_timesRated " + err.getLocalizedMessage());
-                            }
-                            //female_timesRated
-                            JsonArray female_timesRated_Array = new JsonArray();
-                            JsonElement female_timesRated_Element = parser.parse(gson.toJson(cls_female_timesRated));
-                            try {
-                                female_timesRated_Array.addAll(female_timesRated_Element.getAsJsonArray());
-                            } catch (Exception err) {
-                                Log.e("MyCouch", "Got to female_timesRated " + err.getLocalizedMessage());
-                            }
-                            //female_rating
-                            JsonArray female_rating_Array = new JsonArray();
-                            JsonElement female_rating_Element = parser.parse(gson.toJson(cls_female_rating));
-                            try {
-                                female_rating_Array.addAll(female_rating_Element.getAsJsonArray());
-                            } catch (Exception err) {
-                                Log.e("MyCouch", "Got to female_rating " + err.getLocalizedMessage());
-                            }
-                            //resourcesIds
-                            JsonArray resourcesIds_Array = new JsonArray();
-                            JsonElement resourcesIds_Element = parser.parse(gson.toJson(cls_resourcesIds));
-                            try {
-                                resourcesIds_Array.addAll(resourcesIds_Element.getAsJsonArray());
-                            } catch (Exception err) {
-                                Log.e("MyCouch", "Got to resourcesIds " + err.getLocalizedMessage());
-                            }
-                            //male_opened
-                            JsonArray male_opened_Array = new JsonArray();
-                            JsonElement male_opened_Element = parser.parse(gson.toJson(cls_male_opened));
-                            try {
-                                male_opened_Array.addAll(male_opened_Element.getAsJsonArray());
-                            } catch (Exception err) {
-                                Log.e("MyCouch", "Got to male_opened " + err.getLocalizedMessage());
-                            }
-                            //resources_names
-                            JsonArray resources_names_Array = new JsonArray();
-                            JsonElement resources_names_Element = parser.parse(gson.toJson(cls_resources_names));
-                            try {
-                                resources_names_Array.addAll(resources_names_Element.getAsJsonArray());
-                            } catch (Exception err) {
-                                Log.e("MyCouch", "Got to resources_names " + err.getLocalizedMessage());
-                            }
-                            //resources_opened
-                            Log.e("MyCouch", "Ended New Activity Resource -- ");
-                            JsonArray resources_opened_Array = new JsonArray();
-                            JsonElement resources_opened_Element = parser.parse(gson.toJson(cls_resources_opened));
-                            try {
-                                resources_opened_Array.addAll(resources_opened_Element.getAsJsonArray());
-                            } catch (Exception err) {
-                                Log.e("MyCouch", "Opened resources null " + err.getMessage());
+                                Log.e(TAG, "Got to Saving course members into db " + err.getLocalizedMessage());
                                 err.printStackTrace();
                             }
-                            Log.e("MyCouch", "Rating " + female_opened_Array);
-                            jsonObject.addProperty("logDate", Serverdate);
-                            jsonObject.addProperty("male_visits", cls_male_visits);
-                            jsonObject.addProperty("female_visits", cls_female_visits);
-                            jsonObject.add("female_opened", female_opened_Array);
-                            jsonObject.add("male_rating", male_rating_Array);
-                            jsonObject.add("male_timesRated", male_timesRated_Array);
-                            jsonObject.add("female_timesRated", female_timesRated_Array);
-                            jsonObject.add("female_rating", female_rating_Array);
-                            jsonObject.add("resourcesIds", resourcesIds_Array);
-                            jsonObject.add("male_opened", male_opened_Array);
-                            jsonObject.add("resources_names", resources_names_Array);
-                            jsonObject.add("resources_opened", resources_opened_Array);
-                            dbClient.save(jsonObject);
-                        } catch (Exception err) {
-                            Log.e("MyCouch", "Error writing new activity log data " + err.getMessage());
-                            err.printStackTrace();
+                            dialogFeedbackProgress.dismiss();
                         }
-                    }*/
+                        Log.e(TAG, i + " " + docIdStr + " - " + jsonObject.get("_id").toString());
+                        i++;
+                    }
                 }
                 return "";
             } catch (Exception e) {
                 Log.e("MyCouch", e.getMessage());
                 return null;
             }
+        }
+
+        protected void onPostExecute(String message) {
+            try {
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database activitylog = manager.getDatabase("activitylog");
+                activitylog.delete();
+                btnFeedback.setTextColor(getResources().getColor(R.color.ole_white));
+                btnFeedback.setEnabled(false);
+                //WifiManager wm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+                //String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
+                //Document doc = activitylog.getExistingDocument(m_WLANMAC);
+                //doc.delete();
+            } catch (Exception err) {
+                Log.e("MyCouch", "Error deleting document from activitylog " + err.getMessage());
+            }
+        }
+    }
+
+    class UpdateMemberCourseProgressDatabase extends AsyncTask<String, Void, String> {
+        private ArrayList local_coursemembers;
+        protected String doInBackground(String... urls) {
+            AndroidContext androidContext = new AndroidContext(context);
+            Manager manager = null;
+            try {
+                manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database local_member_course_progress = manager.getDatabase("local_member_course_progress");
+                Query orderedQuery = chViews.ReadMemberCourseProg(local_member_course_progress).createQuery();
+                orderedQuery.setDescending(true);
+                QueryEnumerator results = orderedQuery.run();
+                if(results.getCount()>0) {
+                    for (Iterator<QueryRow> c_prg = results; c_prg.hasNext(); ) {
+                        QueryRow row = c_prg.next();
+                        String docId = (String) row.getValue();
+                        Document mem_course_prog_doc = local_member_course_progress.getExistingDocument(docId);
+                        Map<String, Object> mem_course_prog_properties = new HashMap<>();
+                        mem_course_prog_properties.putAll(mem_course_prog_doc.getProperties());
+                        List<Integer> ary_pqAttempts = (List<Integer>) mem_course_prog_properties.get("pqAttempts");
+                        List<String> ary_stepsResult = (List<String>) mem_course_prog_properties.get("stepsResult");
+                        List<String> ary_stepsStatus = (List<String>) mem_course_prog_properties.get("stepsStatus");
+                        List<String> ary_stepsIDs = (List<String>) mem_course_prog_properties.get("stepsIds");
+                        String memberId = (String) mem_course_prog_properties.get("memberId");
+                        String courseId = (String)  mem_course_prog_properties.get("courseId");
+                        try {
+                            URI uri = URI.create(sys_oldSyncServerURL);
+                            String url_Scheme = uri.getScheme();
+                            String url_Host = uri.getHost();
+                            int url_Port = uri.getPort();
+                            String url_user = null, url_pwd = null;
+                            if (sys_oldSyncServerURL.contains("@")) {
+                                String[] userinfo = uri.getUserInfo().split(":");
+                                url_user = userinfo[0];
+                                url_pwd = userinfo[1];
+                            }
+                            CouchDbClientAndroid dbClient = new CouchDbClientAndroid("membercourseprogress", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+                            org.lightcouch.View view = dbClient.view("bell/GetMemberCourseResult").includeDocs(true);
+                            ArrayList<String> keys = new ArrayList<String>();
+                            keys.add(memberId);
+                            keys.add(courseId);
+                            List<Map> online_results = view.key(keys).reduce(false).query(Map.class);
+                            String docIdStr = null;
+                            int i = 0;
+                            Log.e(TAG, "Starting result " + online_results );
+                            if (online_results.size() != 0) {
+                                while (i < online_results.size()) {
+                                    LinkedTreeMap treemap = (LinkedTreeMap) online_results.get(i);
+                                    Log.e(TAG, "Reading Tree " + treemap);
+                                    Gson gson = new Gson();
+                                    JsonObject jsonObject = gson.toJsonTree(treemap).getAsJsonObject();
+                                    docIdStr = jsonObject.get("_id").getAsString();
+                                    Log.e(TAG, "Reading online membercourseprogress " + docIdStr);
+                                    /*if(local_Admitted_Courses.contains(docIdStr)){
+                                        Log.e(TAG,"New admission on course id"+ docIdStr);
+                                        JsonParser parser = new JsonParser();
+                                        JsonObject jsonDocObject = dbClient.find(JsonObject.class, docIdStr );
+                                        //female_opened
+                                        JsonArray members_Array = jsonDocObject.get("members").getAsJsonArray();
+                                        manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                                        Database admission_course_db = manager.getExistingDatabase("local_courses_admission");
+                                        Document doc = admission_course_db.getExistingDocument(docIdStr);
+                                        Map<String, Object> properties = doc.getProperties();
+                                        local_coursemembers = (ArrayList) properties.get("members");
+                                        try {
+                                            for(int x=0;x<members_Array.size();x++){
+                                                if(local_coursemembers.contains(members_Array.get(x).getAsString())){
+                                                    local_coursemembers.remove(local_coursemembers.indexOf(members_Array.get(x).getAsString()));
+                                                }
+                                            }
+                                            JsonElement members_Element = parser.parse(gson.toJson(local_coursemembers));
+                                            members_Array.addAll(members_Element.getAsJsonArray());
+                                            Log.e(TAG, docIdStr + " Included all is " + members_Array);
+                                            jsonObject.add("members", members_Array);
+                                            dbClient.update(jsonObject);
+                                        } catch (Exception err) {
+                                            Log.e(TAG, "Got to Saving course members into db " + err.getLocalizedMessage());
+                                            err.printStackTrace();
+                                        }
+                                        dialogFeedbackProgress.dismiss();
+                                    }*/
+                                    Log.e(TAG, i + " " + docIdStr + " - " + jsonObject.get("_id").toString());
+                                    i++;
+                                }
+                            }else{
+                                // create a new document
+                                Gson gson = new Gson();
+                                JsonParser parser = new JsonParser();
+                                JsonObject jsonObject = new JsonObject();
+                                jsonObject.addProperty("kind", "course-member-result");
+                                jsonObject.addProperty("memberId", memberId);
+                                jsonObject.addProperty("courseId", courseId);
+                                jsonObject.add("stepsIds", ConvertStringToJsonArray(ary_stepsIDs));
+                                jsonObject.add("stepsResult",ConvertStringToJsonArray(ary_stepsResult));
+                                jsonObject.add("stepsStatus", ConvertStringToJsonArray(ary_stepsStatus));
+                                jsonObject.add("pqAttempts", ConvertToJsonArray(ary_pqAttempts));
+                                Log.e(TAG, "New record online membercourseprogress - " + jsonObject);
+                                dbClient.save(jsonObject);
+                            }
+                            dialogFeedbackProgress.dismiss();
+                            return "";
+                        } catch (Exception e) {
+                            Log.e("MyCouch", e.getMessage());
+                            e.printStackTrace();
+                            return null;
+                        }
+                    }
+                }
+            } catch (Exception err) {
+                Log.e(TAG, "local_courses_admission on device " + err.getMessage());
+                err.printStackTrace();
+            }
+
+
+
+
+
+           /*
+           AndroidContext androidContext = new AndroidContext(context);
+            Manager manager = null;
+            ArrayList local_Admitted_Courses = new ArrayList();
+            try {
+                manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database admission_course_db = manager.getExistingDatabase("local_courses_admission");
+                Query orderedQuery = chViews.ReadAdmissionCourseList(admission_course_db).createQuery();
+                orderedQuery.setDescending(true);
+                QueryEnumerator results = orderedQuery.run();
+                for (Iterator<QueryRow> it = results; it.hasNext(); ) {
+                    QueryRow row = it.next();
+                    String docId = (String) row.getValue();
+                    Document doc = admission_course_db.getExistingDocument(docId);
+                    Map<String, Object> properties = doc.getProperties();
+                    ArrayList courseMembers = (ArrayList) properties.get("members");
+                    if(courseMembers.contains(sys_usercouchId)){
+                        local_Admitted_Courses.add(docId);
+                    }
+                }
+            } catch (Exception err) {
+                Log.e("MyCouch", "Compiling user specific locally admitted courses " + err.getMessage());
+                err.getMessage();
+            }
+            try {
+                URI uri = URI.create(sys_oldSyncServerURL);
+                String url_Scheme = uri.getScheme();
+                String url_Host = uri.getHost();
+                int url_Port = uri.getPort();
+                String url_user = null, url_pwd = null;
+                if (sys_oldSyncServerURL.contains("@")) {
+                    String[] userinfo = uri.getUserInfo().split(":");
+                    url_user = userinfo[0];
+                    url_pwd = userinfo[1];
+                }
+                CouchDbClientAndroid dbClient = new CouchDbClientAndroid("courses", true, url_Scheme, url_Host, url_Port, url_user, url_pwd);
+                org.lightcouch.View view = dbClient.view("bell/GetCourseByID").includeDocs(false);
+                List<Map> results = view.reduce(false).includeDocs(false).query(Map.class);
+                String docIdStr = null;
+                int i = 0;
+                if (results.size() != 0) {
+                    while (i < results.size()) {
+                        LinkedTreeMap treemap = (LinkedTreeMap) results.get(i).get("value");
+                        Gson gson = new Gson();
+                        JsonObject jsonObject = gson.toJsonTree(treemap).getAsJsonObject();
+                        docIdStr = jsonObject.get("_id").getAsString();
+                        if(local_Admitted_Courses.contains(docIdStr)){
+                            Log.e(TAG,"New admission on course id"+ docIdStr);
+                            JsonParser parser = new JsonParser();
+                            JsonObject jsonDocObject = dbClient.find(JsonObject.class, docIdStr );
+                            //female_opened
+                            JsonArray members_Array = jsonDocObject.get("members").getAsJsonArray();
+                            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                            Database admission_course_db = manager.getExistingDatabase("local_courses_admission");
+                            Document doc = admission_course_db.getExistingDocument(docIdStr);
+                            Map<String, Object> properties = doc.getProperties();
+                            local_coursemembers = (ArrayList) properties.get("members");
+                            try {
+                                for(int x=0;x<members_Array.size();x++){
+                                    if(local_coursemembers.contains(members_Array.get(x).getAsString())){
+                                        local_coursemembers.remove(local_coursemembers.indexOf(members_Array.get(x).getAsString()));
+                                    }
+                                }
+                                JsonElement members_Element = parser.parse(gson.toJson(local_coursemembers));
+                                members_Array.addAll(members_Element.getAsJsonArray());
+                                Log.e(TAG, docIdStr + " Included all is " + members_Array);
+                                jsonObject.add("members", members_Array);
+                                dbClient.update(jsonObject);
+                            } catch (Exception err) {
+                                Log.e(TAG, "Got to Saving course members into db " + err.getLocalizedMessage());
+                                err.printStackTrace();
+                            }
+                            dialogFeedbackProgress.dismiss();
+                        }
+                        Log.e(TAG, i + " " + docIdStr + " - " + jsonObject.get("_id").toString());
+                        i++;
+                    }
+                }
+                return "";
+            } catch (Exception e) {
+                Log.e("MyCouch", e.getMessage());
+                return null;
+            }*/
+           return null;
         }
 
         protected void onPostExecute(String message) {

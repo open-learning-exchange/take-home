@@ -13,6 +13,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
@@ -25,6 +26,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,6 +38,7 @@ import com.couchbase.lite.Query;
 import com.couchbase.lite.QueryEnumerator;
 import com.couchbase.lite.QueryRow;
 import com.couchbase.lite.android.AndroidContext;
+import com.ramotion.circlemenu.CircleMenuView;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -53,7 +56,8 @@ import java.util.Set;
 public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse.OnFragmentInteractionListener,
         ListViewAdapter_myCourses.OnmyCourseListListener, Fragm_myCourses.OnFragmentInteractionListener,
         ListViewAdapter_myLibrary.OnResouceListListener,Fragm_Loading.OnFragmentInteractionListener,
-        ListViewAdapter_Courses.OnCourseListListener, Fragm_Courses.OnFragmentInteractionListener  {
+        ListViewAdapter_Courses.OnCourseListListener, Fragm_Courses.OnFragmentInteractionListener,
+        Fragm_TakeCourseTabbed.OnFragmentInteractionListener ,BlankFragment.OnFragmentInteractionListener {
     private View mControlsView;
     String TAG = "MYAPP";
     public static final String PREFS_NAME = "MyPrefsFile";
@@ -131,6 +135,7 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
         resetActiveButton();
         lt_myLibrary.setBackgroundColor(getResources().getColor(R.color.ole_blueLine));
 
+
     }
 
 
@@ -176,6 +181,7 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
     }
 
     public void initiateOnClickActions() {
+
         btnBadges.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -274,6 +280,7 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
             @Override
             public void onClick(View view) {
                 try {
+                    //showRoundMenu();
                 } catch (Exception except) {
                     Log.d(TAG, "PlanetLogo click action error " + except.getMessage());
                 }
@@ -548,6 +555,8 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
         alert11.show();
     }
 
+
+
     public void runBackgroundService() {
         try {
             serviceIntent = new Intent(context, ServerSearchService.class);
@@ -666,6 +675,19 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
         ///Show as active
         resetActiveButton();
         lt_myCourses.setBackgroundColor(getResources().getColor(R.color.ole_blueLine));
+       /* Fragm_TakeCourseTabbed fg_TakeCourse = new Fragm_TakeCourseTabbed();
+        Bundle args = new Bundle();
+        args.putString("sys_usercouchId", sys_usercouchId);
+        args.putString("courseId", courseId);
+        //fg_TakeCourse.setArguments(args);
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fmlt_container, fg_TakeCourse);
+        transaction.addToBackStack(null);
+        transaction.commit();
+        ///Show as active
+        resetActiveButton();
+        lt_myCourses.setBackgroundColor(getResources().getColor(R.color.ole_blueLine));
+        */
     }
 
     @Override
@@ -761,6 +783,54 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
         transaction.commit();
         resetActiveButton();
         lt_myCourses.setBackgroundColor(getResources().getColor(R.color.ole_blueLine));
+    }
+    public void showRoundMenu(){
+        Dialog dialogMenu;
+        AlertDialog.Builder dialogB2 = new AlertDialog.Builder(context,R.style.TransparentDialog);
+        dialogB2.setView(R.layout.dialog_menu);
+        dialogB2.setCancelable(false);
+        Log.d(TAG, "Whats here");
+        try {
+            dialogMenu = dialogB2.create();
+            dialogMenu.show();
+
+            final CircleMenuView menu = (CircleMenuView) dialogMenu.findViewById(R.id.circle_menu);
+            menu.setEventListener(new CircleMenuView.EventListener() {
+                @Override
+                public void onMenuOpenAnimationStart(@NonNull CircleMenuView view) {
+                    Log.d("D", "onMenuOpenAnimationStart");
+                }
+
+                @Override
+                public void onMenuOpenAnimationEnd(@NonNull CircleMenuView view) {
+                    Log.d("D", "onMenuOpenAnimationEnd");
+                }
+
+                @Override
+                public void onMenuCloseAnimationStart(@NonNull CircleMenuView view) {
+                    Log.d("D", "onMenuCloseAnimationStart");
+                }
+
+                @Override
+                public void onMenuCloseAnimationEnd(@NonNull CircleMenuView view) {
+                    Log.d("D", "onMenuCloseAnimationEnd");
+                }
+
+                @Override
+                public void onButtonClickAnimationStart(@NonNull CircleMenuView view, int index) {
+                    Log.d("D", "onButtonClickAnimationStart| index: " + index);
+                }
+
+                @Override
+                public void onButtonClickAnimationEnd(@NonNull CircleMenuView view, int index) {
+                    Log.d("D", "onButtonClickAnimationEnd| index: " + index);
+                }
+            });
+            //downloadPB.setScaleY(3f);
+
+        } catch (Exception err) {
+            err.printStackTrace();
+        }
     }
     /*
     public void saveRating(int rate, String comment, String resourceId) {

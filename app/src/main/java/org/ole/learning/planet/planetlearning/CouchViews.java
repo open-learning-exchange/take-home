@@ -149,7 +149,7 @@ public class CouchViews {
                     public void map(Map<String, Object> document,Emitter emitter) {
                         emitter.emit((String) document.get("courseId"), (String) document.get("_id"));
                     }
-                }, "2"
+                }, "3"
         );
         return CourseProg;
     }

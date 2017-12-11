@@ -57,6 +57,8 @@ android {
         compile 'us.feras.mdv:markdownview:1.1.0'
 
         compile 'com.android.support.constraint:constraint-layout:1.0.2'
+        compile 'com.github.marcoscgdev:DialogSheet:1.0.2'
+        compile 'com.ramotion.circlemenu:circle-menu:0.2.1'
 
         compile files('libs/PBKDF2-1.0.4.jar')
         testCompile 'junit:junit:4.12'
