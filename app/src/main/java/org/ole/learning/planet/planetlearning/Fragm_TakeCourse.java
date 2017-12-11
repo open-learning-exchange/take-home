@@ -413,7 +413,6 @@ public class Fragm_TakeCourse extends OpenResource {
         markdownCourseDescContent.loadMarkdown(crs_StepDescription.get(stepCurrentIndex));
     }
 
-
     public void takeTestDialog(String StepId, String StepTitle) {
         qn_Ids.clear();
         qn_Type.clear();
@@ -465,6 +464,7 @@ public class Fragm_TakeCourse extends OpenResource {
                     qn_NoOptions.add(4);
                     qn_CorrectAnswer.add(new ArrayList());
                 }
+
             }
         } catch (Exception err) {
             err.printStackTrace();
@@ -489,11 +489,11 @@ public class Fragm_TakeCourse extends OpenResource {
             lt_QueMultipleChoiceHolder = (LinearLayout) dialogTest.findViewById(R.id.lt_QueMultipleChoiceHolder);
             btnQueSubmitAns = (Button) dialogTest.findViewById(R.id.btn_QueSubmitAns);
             btnQueBack = (Button) dialogTest.findViewById(R.id.btn_QueBack);
-
-
         } catch (Exception err) {
             err.printStackTrace();
         }
+
+        NewStepTestAttempt(crs_StepIds.get(stepCurrentIndex), stepCurrentIndex);
         QuestionUILoader(qn_Ids.get(0), course_QuestionList.size());
     }
 
@@ -558,18 +558,18 @@ public class Fragm_TakeCourse extends OpenResource {
         lt_QueMultilineHolder.setVisibility(View.GONE);
         lt_QueSinglelineHolder.setVisibility(View.GONE);
 
-        Log.e(TAG,"Multiple choice UI Display length "+qn_StepOptions.get(quesionCurrentIndex).length);
+        //Log.e(TAG,"Multiple choice UI Display length "+qn_StepOptions.get(quesionCurrentIndex).length);
         if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Multiple Choice")) {
             lt_QueMultipleChoiceHolder.setVisibility(View.VISIBLE);
-            if (((LinearLayout) lt_QueMultipleChoiceHolder).getChildCount() > 0) {
-                ((LinearLayout) lt_QueMultipleChoiceHolder).removeAllViews();
+            if (lt_QueMultipleChoiceHolder.getChildCount() > 0) {
+                lt_QueMultipleChoiceHolder.removeAllViews();
             }
-            for(int a=0;a<qn_StepOptions.size();a++){
+           /* for(int a=0;a<qn_StepOptions.size();a++){
                 Log.e(TAG, "QN size "+qn_StepOptions.size());
                 for (int b=0;b<qn_StepOptions.get(a).length;b++) {
                     Log.e(TAG, "UI Display MC ("+a+"). " + qn_StepOptions.get(a)[b]);
                 }
-            }
+            }*/
             String tempOptionsHolder = qn_StepOptions.get(quesionCurrentIndex)[0];
             List<String> items = Arrays.asList(tempOptionsHolder.split("\\s*,\\s*"));
             qn_OptionsCheckbox = new CheckBox[items.size()];
@@ -588,6 +588,7 @@ public class Fragm_TakeCourse extends OpenResource {
 
         }
     }
+
     public boolean CheckAnsBeforeNext(String questionID, int numberOfQuestions) {
         totalNumOfQuestions = numberOfQuestions;
         quesionCurrentIndex = qn_Ids.indexOf(questionID);
@@ -641,30 +642,52 @@ public class Fragm_TakeCourse extends OpenResource {
                     }
                     Log.d(TAG, "Oops, Wrong answer!!");
                 }
+                List<Integer> attemptList = getCourseAttempt();
+                //attemptList.add((stepCurrentIndex,attemptList.get(stepCurrentIndex)+1);
                 newCourseAnsProperties.put("kind","courseanswer");
-                newCourseAnsProperties.put("pqattempts",getCourseAttempt());
+                newCourseAnsProperties.put("pqattempts",attemptList.get(stepCurrentIndex));
                 newCourseAnsProperties.put("QuestionID",qn_Ids.get(quesionCurrentIndex));
                 newCourseAnsProperties.put("MemberID",sys_usercouchId);
                 newCourseAnsProperties.put("StepID",crs_StepIds.get(stepCurrentIndex));
                 newCourseAnsProperties.put("Answer",ary_Answer);
                 Document document = local_member_course_answer.createDocument();
                 document.putProperties(newCourseAnsProperties);
-                Log.e(TAG, "Course Ans DB properties = "+ newCourseAnsProperties);
-
+                Log.e(TAG, "Multiple Choice - Course Ans DB properties = "+ newCourseAnsProperties);
                 stepTextResultHolder.add(null);
                 return true;
             } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Comment/Essay Box")) {
-
+                ary_Answer.add(txt_QueMultilineAns.getText().toString());
+                List<Integer> attemptList = getCourseAttempt();
+                //attemptList.add((stepCurrentIndex,attemptList.get(stepCurrentIndex)+1);
+                newCourseAnsProperties.put("kind","courseanswer");
+                newCourseAnsProperties.put("pqattempts",attemptList.get(stepCurrentIndex));
+                newCourseAnsProperties.put("QuestionID",qn_Ids.get(quesionCurrentIndex));
+                newCourseAnsProperties.put("MemberID",sys_usercouchId);
+                newCourseAnsProperties.put("StepID",crs_StepIds.get(stepCurrentIndex));
+                newCourseAnsProperties.put("Answer",ary_Answer);
+                Document document = local_member_course_answer.createDocument();
+                document.putProperties(newCourseAnsProperties);
+                Log.e(TAG, "Comment/Essay Box - Course Ans DB properties = "+ newCourseAnsProperties);
                 stepQuizResultHolder.add(null);
                 stepTextResultHolder.add(txt_QueMultilineAns.getText().toString());
                 txt_QueMultilineAns.setText("");
-                Log.d(TAG, "Comment/Essay Box");
                 return true;
             } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Single Textbox")) {
+                ary_Answer.add(txt_QueSinglelineAns.getText().toString());
+                List<Integer> attemptList = getCourseAttempt();
+                //attemptList.add((stepCurrentIndex,attemptList.get(stepCurrentIndex)+1);
+                newCourseAnsProperties.put("kind","courseanswer");
+                newCourseAnsProperties.put("pqattempts",attemptList.get(stepCurrentIndex));
+                newCourseAnsProperties.put("QuestionID",qn_Ids.get(quesionCurrentIndex));
+                newCourseAnsProperties.put("MemberID",sys_usercouchId);
+                newCourseAnsProperties.put("StepID",crs_StepIds.get(stepCurrentIndex));
+                newCourseAnsProperties.put("Answer",ary_Answer);
+                Document document = local_member_course_answer.createDocument();
+                document.putProperties(newCourseAnsProperties);
+                Log.e(TAG, "Single Textbox - Course Ans DB properties = "+ newCourseAnsProperties);
                 stepQuizResultHolder.add(null);
                 stepTextResultHolder.add(txt_QueSinglelineAns.getText().toString());
                 txt_QueSinglelineAns.setText("");
-                Log.d(TAG, "Single Textbox");
                 return true;
             } else if (qn_Type.get(quesionCurrentIndex).equalsIgnoreCase("Attachment")) {
                 stepQuizResultHolder.add(null);
@@ -682,7 +705,8 @@ public class Fragm_TakeCourse extends OpenResource {
         }
 
     }
-    public int getCourseAttempt(){
+
+    public List getCourseAttempt(){
         AndroidContext androidContext = new AndroidContext(getContext());
         Manager manager = null;
         try {
@@ -698,17 +722,106 @@ public class Fragm_TakeCourse extends OpenResource {
                     Document mem_course_prog_doc = local_member_course_progress.getExistingDocument(docId);
                     Map<String, Object> mem_course_prog_properties = new HashMap<>();
                     mem_course_prog_properties.putAll(mem_course_prog_doc.getProperties());
-                    return ((List<Integer>) mem_course_prog_properties.get("pqAttempts")).size();
+                    return ((List<Integer>) mem_course_prog_properties.get("pqAttempts"));
                 }
             }else{
-                return 1;
+                List<Integer> intList = new ArrayList<>();
+                for (int index = 0; index < crs_StepIds.size(); index++) {
+                    intList.add(0);
+                }
+                return intList;
             }
         } catch (Exception err) {
             Log.e(TAG, "getCourseAttempt - local_courses_admission " + err.getMessage());
             err.printStackTrace();
         }
-        return 0;
+
+        List<Integer> intList = new ArrayList<>();
+        for (int index = 0; index < crs_StepIds.size(); index++)
+        {
+            intList.add(0);
+        }
+        return intList;
     }
+
+    public void NewStepTestAttempt(String stepId, int stepNo){
+        AndroidContext androidContext = new AndroidContext(getContext());
+        Manager manager = null;
+        try {
+            manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+            Database local_member_course_progress = manager.getDatabase("local_member_course_progress");
+            //local_member_course_progress.delete();
+            //local_member_course_progress = manager.getDatabase("local_member_course_progress");
+            Query orderedQuery = chViews.ReadMemberCourseProgByMemberIdCourceId(local_member_course_progress,mCourseId,sys_usercouchId).createQuery();
+            orderedQuery.setDescending(true);
+            QueryEnumerator results = orderedQuery.run();
+            if(results.getCount()>0) {
+                for (Iterator<QueryRow> c_prg = results; c_prg.hasNext(); ) {
+                    QueryRow row = c_prg.next();
+                    String docId = (String) row.getValue();
+                    Document mem_course_prog_doc = local_member_course_progress.getExistingDocument(docId);
+                    Map<String, Object> mem_course_prog_properties = new HashMap<>();
+                    mem_course_prog_properties.putAll(mem_course_prog_doc.getProperties());
+                    Log.e(TAG, "STEPS NO " + crs_StepIds.size() + " IDS" + crs_StepIds);
+                    List<Integer> ary_pqAttempts = (List<Integer>) mem_course_prog_properties.get("pqAttempts");
+                    List<List> ary_LstStatus = (List<List>) mem_course_prog_properties.get("stepsStatus");
+                    if(ary_LstStatus.get(stepCurrentIndex).get(ary_LstStatus.get(stepCurrentIndex).size()-1)!=null){
+                        if(!ary_LstStatus.get(stepCurrentIndex).get(ary_LstStatus.get(stepCurrentIndex).size()-1).toString().equalsIgnoreCase("0")){
+                            ary_pqAttempts.set(stepCurrentIndex,ary_pqAttempts.get(stepCurrentIndex)+1);
+                            mem_course_prog_properties.put("pqAttempts",ary_pqAttempts);
+                            mem_course_prog_doc.putProperties(mem_course_prog_properties);
+                        }else{
+                            Log.e(TAG, "Last attempt is not updated ");
+                        }
+                    }else{
+                        Log.e(TAG, "Last status check is null ");
+                        if(ary_pqAttempts.get(stepCurrentIndex)==0){
+                            ary_pqAttempts.set(stepCurrentIndex,1);
+                            mem_course_prog_properties.put("pqAttempts",ary_pqAttempts);
+                            mem_course_prog_doc.putProperties(mem_course_prog_properties);
+                        }
+                    }
+
+                    Log.e(TAG, "NewStepTestAttempt - member course progress exist data " + mem_course_prog_properties);
+                }
+            }else{
+                //// Following BeLL structure
+                Map<String, Object> newProperties = new HashMap<>();
+                List<Integer> ary_pqAttempts = new ArrayList<>();
+                List<ArrayList> ary_LstResults = new ArrayList<>();
+                List<ArrayList> ary_LstStatus = new ArrayList<>();
+                for (int x=0; x<crs_StepIds.size();x++){
+                    ary_pqAttempts.add(0);
+                    ArrayList<String> listResult = new ArrayList<>();
+                    ArrayList<String> listStatus = new ArrayList<>();
+                    listResult.add(null);
+                    listStatus.add(null);
+                    if(crs_StepIds.get(x).equalsIgnoreCase(stepId)){
+                        //listResult.add(points+"");
+                        //listStatus.add("0");
+                    }
+                    ary_LstResults.add(listResult);
+                    ary_LstStatus.add(listStatus);
+                }
+                newProperties.put("stepsIds", crs_StepIds);
+                newProperties.put("memberId", sys_usercouchId);
+                newProperties.put("courseId", mCourseId);
+                newProperties.put("kind", "course-member-result");
+                ary_pqAttempts.set(0,1);
+                newProperties.put("pqAttempts",ary_pqAttempts);
+                newProperties.put("stepsResult",ary_LstResults);
+                newProperties.put("stepsStatus",ary_LstStatus);
+                ////// Saving course step result.
+                Document document = local_member_course_progress.createDocument();
+                document.putProperties(newProperties);
+                Log.e(TAG, "NewStepTestAttempt - New member course progress data " + newProperties);
+            }
+        } catch (Exception err) {
+            Log.e(TAG, "NewStepTestAttempt - local_courses_admission on device " + err.getMessage());
+            err.printStackTrace();
+        }
+    }
+
     public void getSavePoints(String stepId, int stepNo){
         Log.e(TAG, "Save Details = courseId : "+ mCourseId + " StepID "+ stepId + " stepNo "+ stepNo );
         Log.e(TAG, "Raw Result : "+ stepQuizResultHolder);
@@ -761,14 +874,14 @@ public class Fragm_TakeCourse extends OpenResource {
 
                             Result.add(points+"");
                             Status.add("1");
-                            ary_pqAttempts.add(ary_pqAttempts.get(x)+1);
+                            //ary_pqAttempts.add(ary_pqAttempts.get(x)+1);
                         }
                         temp_ary_LstResult.add(Result);
                         temp_ary_LstStatus.add(Status);
                         Log.e(TAG, " Inside Inside  " + Result);
                     }
 
-                    mem_course_prog_properties.put("pqAttempts",ary_pqAttempts);
+                    //mem_course_prog_properties.put("pqAttempts",ary_pqAttempts);
                     mem_course_prog_properties.put("stepsResult",temp_ary_LstResult);
                     mem_course_prog_properties.put("stepsStatus", temp_ary_LstStatus);
                     mem_course_prog_doc.putProperties(mem_course_prog_properties);
@@ -784,16 +897,19 @@ public class Fragm_TakeCourse extends OpenResource {
                 List<ArrayList> ary_LstResults = new ArrayList<>();
                 List<ArrayList> ary_LstStatus = new ArrayList<>();
                 points=0;
-                for(int cnt=0;cnt < stepQuizResultHolder.size();cnt++){
-                    if(stepQuizResultHolder.get(cnt)){
-                        try{
-                            points = (points + Integer.parseInt(qn_Marks.get(cnt)));
-                        }catch (Exception intErr){
-                            points++;
-                        }
+                    for (int cnt = 0; cnt < stepQuizResultHolder.size(); cnt++) {
+                        if(stepQuizResultHolder.get(cnt) != null) {
+                            if (stepQuizResultHolder.get(cnt)) {
+                                try {
+                                    points = (points + Integer.parseInt(qn_Marks.get(cnt)));
+                                } catch (Exception intErr) {
+                                    points++;
+                                }
 
+                            }
+                        }
                     }
-                }
+
                 for (int x=0; x<crs_StepIds.size();x++){
                     ary_pqAttempts.add(0);
                     ArrayList<String> listResult = new ArrayList<String>();
@@ -811,8 +927,8 @@ public class Fragm_TakeCourse extends OpenResource {
                 newProperties.put("memberId", sys_usercouchId);
                 newProperties.put("courseId", mCourseId);
                 newProperties.put("kind", "course-member-result");
-                ary_pqAttempts.set(0,1); // step index
-                newProperties.put("pqAttempts",ary_pqAttempts);
+                //ary_pqAttempts.set(0,1); // step index
+                //newProperties.put("pqAttempts",ary_pqAttempts);
                 newProperties.put("stepsResult",ary_LstResults);
                 newProperties.put("stepsStatus",ary_LstStatus);
                 ////// Saving course step result.
@@ -824,7 +940,7 @@ public class Fragm_TakeCourse extends OpenResource {
                 stepTextResultHolder.clear();
             }
             dialogTest.dismiss();
-            alertDialogOkay("Score this step #"+(stepCurrentIndex+1),"Multiple Choice questions : "+ points+ " "+ scoreMessage);
+            alertDialogOkay("Score for step #"+(stepCurrentIndex+1),"Multiple Choice questions : "+ points+ " "+ scoreMessage);
         } catch (Exception err) {
             Log.e(TAG, "local_courses_admission on device " + err.getMessage());
             err.printStackTrace();

@@ -1233,6 +1233,20 @@ public class FullscreenLogin extends AppCompatActivity {
             }
             try {
                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbLocalMemCourseProg = manager.getDatabase("local_member_course_progress");
+                dbLocalMemCourseProg.delete();
+            } catch (Exception err) {
+                err.printStackTrace();
+            }
+            try {
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
+                Database dbLocalMemCourseAns = manager.getDatabase("local_member_course_answer");
+                dbLocalMemCourseAns.delete();
+            } catch (Exception err) {
+                err.printStackTrace();
+            }
+            try {
+                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                 Database dbOffline_course_resources = manager.getDatabase("offline_course_resources");
                 dbOffline_course_resources.delete();
             } catch (Exception err) {
@@ -2321,6 +2335,7 @@ public class FullscreenLogin extends AppCompatActivity {
                                 jsonObject.add("stepsResult",ConvertStringToJsonArray(ary_stepsResult));
                                 jsonObject.add("stepsStatus", ConvertStringToJsonArray(ary_stepsStatus));
                                 jsonObject.add("pqAttempts", ConvertToJsonArray(ary_pqAttempts));
+                                Log.e(TAG, "New record online membercourseprogress - " + jsonObject);
                                 dbClient.save(jsonObject);
                             }
                             dialogFeedbackProgress.dismiss();
