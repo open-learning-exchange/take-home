@@ -101,7 +101,7 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="finish">Finish</string>
     <string name="submit">Submit</string>
-    <string name="version">version 2.1.1</string>
+    <string name="version">version 2.1.2</string>
 
     <string name="title_activity_downloading_items">DownloadingItems</string>
     <string name="bbtext_Next">next</string>
