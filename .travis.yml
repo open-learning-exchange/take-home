@@ -55,8 +55,7 @@ notifications:
   email: false
 deploy:
   provider: releases
-  api_key:
-    secure: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDErfy/esyuCjTeUvBbrpwzksPBHHBgwRuRB4Vf5RdbI392/7UorEKeefxf7lcrbZXIjEmNLBMvFYapvB+VKupB8HB8sNbNmJ/5zf5Umw2sudIK5yB7Q6bmQGFFRSR0N1Limri7AvhJ5WO9ZXmdsjtGCvuSKigiNs6Vbrj7Ic1GB/JxuiKs4YIjft1QR2u42sLnjuctq1W6ghP1w2AoafZkT4yVAun24JLBhdAEHGf7O4GWhVcSUH/NoghNia3QhCY+Mhnq8l49RHNKdakiTqFqjQ5BwlQptnZt2LQ0DDw83kapr8IBPOFu2nsOYfAEVyDP3KgHwWKNtehoEY3+At/TRuh1fTJ/zf5fR6N1C+IHE9PewDzPL3SFJlmiSLQ35JvslFBGOM1JuRrw/cxRuAt9Mgrjb0kf0WwlGeSgs5kZ03T1kOoQY7FllbLHFZlQdFQCa/zugo7VZ8Qlvib85o+dqKPTOu8N1EwFePdxt5b4Fy3a61Fw9KJqyXRCafkYMbGYlnOjbbHJhwVw5ns5WPKJaB50OeusTDhhV66us4brobmS9wPjdToSeHSLHrKg8xPUHdzjf6fLWT1EEU0UEoHdsyILWTt5tt1wZI1KRjjRSAp+aogyDNeZLIjPYb86rEdHSu3GmDQ1R+FZ+FZa6fjJuGOpYeG3YXJq12rbgv8FEQ== leomaxi@outlook.com"
+  api_key: "b37707248c4bcf943e56410a560aeb6d2484e93b"
   file_glob: true
   file: app/build/outputs/apk/*
   skip-cleanup: true
