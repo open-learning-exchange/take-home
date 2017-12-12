@@ -28,8 +28,6 @@ env:
  - ANDROID_BUILD_TOOLS=25.0.2
  - ADB_INSTALL_TIMEOUT=5 # minutes
 
-
-
 android:
  components:
  - tools
@@ -53,27 +51,3 @@ android:
  - android-sdk-preview-license-.+
  - android-sdk-license-.+
  - google-gdk-license-.+
-
-
-
-notifications:
-  email: false
-
-before_deploy:
-- cp $TRAVIS_BUILD_DIR/example_keystore.jks $HOME
-- cd app/build/outputs/apk/
-- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore $HOME/example_keystore.jks -storepass $storepass -keypass $keypass app-release-unsigned.apk ExampleKeystoreAlias
-# Verification
-- jarsigner -verify app-release-unsigned.apk
-- "${ANDROID_HOME}/build-tools/25.0.2/zipalign -v 4 app-release-unsigned.apk TakeHomeAPK.apk"
-
-deploy:
-  provider: releases
-  file: TakeHomeAPK.apk
-  skip_cleanup: true
-  on:
-    repo: take-home/maxi_takecoursequiz
-    tags: true
-    jdk: oraclejdk8
-  api_key:
-    secure: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCZNi10cLA+B5aMjF3IZ3cDPEa4pcF08uVpkqrscsUADrt62YFnMoyBcH3Kv7Yf2L/7P6hUndbMJ3heh/yRdJ8npYE64AA1k4aBzD6MbivbtWJk8aK12ddEqSiFqVCc1oAb0MDfMk/fBFV43JijS6+UuZYqUfUzYyaNe+Obd91hrtjHxyYTeaWa7cG7Sg2KE8dKriSkKCxcPToDWovnbbU+5S7Z4dj0UiTcah+1VWNCkDyoGaocGjx9TxzEBo4LNn2TGTODp6+knuOaklllXZvuf6iozyRb7LROXMH//8DnmxRIs7I3C8strQH6dBQEXfB6QpoqyshTLhxYlfMSLaQ/ leonardmensah@Leonards-MBP-2.local.tld"
