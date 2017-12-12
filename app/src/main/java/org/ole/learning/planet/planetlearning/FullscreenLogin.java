@@ -227,13 +227,7 @@ public class FullscreenLogin extends AppCompatActivity {
                                 alertDialogOkay("Check WiFi connection and try again");
                                 dialogFeedbackProgress.dismiss();
                             } else {
-                                UpdateMemberCourseProgressDatabase updateMemberCourseProgressDatabase = new UpdateMemberCourseProgressDatabase();
-                                updateMemberCourseProgressDatabase.execute();
-
-                                //UpdateCoursesDatabase updateCoursesDatabase = new UpdateCoursesDatabase();
-                                //updateCoursesDatabase.execute();
-
-                                //////////////////sendfeedbackToServer(feedbackDialog);
+                                sendfeedbackToServer();
                             }
 
                         } catch (Exception e) {
@@ -298,7 +292,7 @@ public class FullscreenLogin extends AppCompatActivity {
 
     }
 
-    public void sendfeedbackToServer(ProgressDialog feedbackDialog) {
+    public void sendfeedbackToServer() {
         Database resourceRating, activitylog, visits;
         try {
             // Get server date for activitylog update
@@ -307,7 +301,7 @@ public class FullscreenLogin extends AppCompatActivity {
             gtSvDt.setView("date_now");
             gtSvDt.execute("");
         } catch (Exception err) {
-            feedbackDialog.dismiss();
+            dialogFeedbackProgress.dismiss();
             alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
             Log.e(TAG, "Getting date from server" + err);
         }
@@ -335,7 +329,7 @@ public class FullscreenLogin extends AppCompatActivity {
             Database dbResources = manager.getDatabase("resourcerating");
             dbResources.delete();
         } catch (Exception err) {
-            feedbackDialog.dismiss();
+            dialogFeedbackProgress.dismiss();
             alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
             Log.e(TAG, "reading resource rating error " + err);
         }
@@ -361,7 +355,7 @@ public class FullscreenLogin extends AppCompatActivity {
             Database visitsdb = manager.getDatabase("visits");
             visitsdb.delete();
         } catch (Exception err) {
-            feedbackDialog.dismiss();
+            dialogFeedbackProgress.dismiss();
             alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
             Log.e(TAG, "reading visits error " + err);
         }
@@ -386,7 +380,7 @@ public class FullscreenLogin extends AppCompatActivity {
                 nwActivityLog.set_male_visits(0);
             }
         } catch (Exception err) {
-            feedbackDialog.dismiss();
+            dialogFeedbackProgress.dismiss();
             alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
             Log.e(TAG, "reading activity log " + err);
         }
@@ -414,7 +408,7 @@ public class FullscreenLogin extends AppCompatActivity {
             Database dbResources = manager.getDatabase("resourcerating");
             dbResources.delete();
         } catch (Exception err) {
-            feedbackDialog.dismiss();
+            dialogFeedbackProgress.dismiss();
             alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
             Log.e(TAG, "reading resource rating error " + err);
         }
@@ -440,7 +434,7 @@ public class FullscreenLogin extends AppCompatActivity {
             Database dbResources = manager.getDatabase("visits");
             dbResources.delete();
         } catch (Exception err) {
-            feedbackDialog.dismiss();
+            dialogFeedbackProgress.dismiss();
             alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
             Log.e(TAG, "reading visits error " + err);
         }
@@ -474,200 +468,28 @@ public class FullscreenLogin extends AppCompatActivity {
             nwActivityLog.set_resources_opened(((ArrayList) properties.get("resources_opened")));
             nwActivityLog.set_resourcesIds(((ArrayList) properties.get("resourcesIds")));
             nwActivityLog.execute("");
-            feedbackDialog.dismiss();
-            updateUI();
+           // dialogFeedbackProgress.dismiss();
+
+            sendCourseToServer();
+            //updateUI();
         } catch (Exception err) {
             updateUI();
-            feedbackDialog.dismiss();
+            dialogFeedbackProgress.dismiss();
             alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
             Log.e(TAG, "reading activity log error " + err);
         }
 
 
     }
-    public void sendCourseToServer(ProgressDialog feedbackDialog) {
-        Database local_member_course_progress, local_member_course_answer,local_courses_admission;
-        Database resourceRating, activitylog, visits;
-
-        try {
-            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-            local_member_course_progress = manager.getDatabase("local_member_course_progress");
-            local_member_course_answer = manager.getDatabase("local_member_course_answer");
-            local_courses_admission = manager.getDatabase("local_courses_admission");
-            //ReadMemberCourseProg(local_member_course_progress);
-            //ReadCourseMemberAnswers(local_member_course_answer);
-           // ReadAdmissionCourseList(local_courses_admission)
-
-            /*
-            Query orderedQuery = chViews.ReadResourceRatingByIdView(resourceRating).createQuery();
-            orderedQuery.setDescending(true);
-            QueryEnumerator results = orderedQuery.run();
-            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
-                QueryRow row = it.next();
-                String docId = (String) row.getValue();
-                Document doc = resourceRating.getExistingDocument(docId);
-                Map<String, Object> properties = doc.getProperties();
-                int sum = ((int) properties.get("sum"));
-                int timesRated = ((Integer) properties.get("timesRated"));
-                // Update server resources with new ratings
-                UpdateResourceDocument nwUpdateResDoc = new UpdateResourceDocument();
-                nwUpdateResDoc.setResourceId(docId);
-                nwUpdateResDoc.setSum(sum);
-                nwUpdateResDoc.setTimesRated(timesRated);
-                nwUpdateResDoc.execute("");
-            }
-            Database dbResources = manager.getDatabase("resourcerating");
-            dbResources.delete();
-            */
-        } catch (Exception err) {
-            feedbackDialog.dismiss();
-            alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-            Log.e(TAG, "reading resource rating error " + err);
+    public void sendCourseToServer() {
+        try{
+            UpdateCoursesDatabase updateCoursesDatabase = new UpdateCoursesDatabase();
+            updateCoursesDatabase.execute();
+        }catch(Exception err){
+            Log.e(TAG,"Course database update error "+err.getMessage());
+            alertDialogOkay("Updating member course progress error. Check connection and try again");
+            err.printStackTrace();
         }
-        try {
-            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-            visits = manager.getDatabase("visits");
-            Query orderedQuery = chViews.ReadMemberVisitsId(visits).createQuery();
-            orderedQuery.setDescending(true);
-            QueryEnumerator results = orderedQuery.run();
-            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
-                QueryRow row = it.next();
-                String docId = (String) row.getValue();
-                Document doc = visits.getExistingDocument(docId);
-                Map<String, Object> properties = doc.getProperties();
-                int numOfVisits = ((Integer) properties.get("noOfVisits"));
-                Log.e(TAG, "Number Of visits for " + docId + " is " + numOfVisits);
-                // Update server members with visits
-                UpdateMemberVisitsDocument nwUpdateMemberVisits = new UpdateMemberVisitsDocument();
-                nwUpdateMemberVisits.setMemberId(docId);
-                nwUpdateMemberVisits.setSumVisits(numOfVisits);
-                nwUpdateMemberVisits.execute("");
-            }
-            Database visitsdb = manager.getDatabase("visits");
-            visitsdb.delete();
-        } catch (Exception err) {
-            feedbackDialog.dismiss();
-            alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-            Log.e(TAG, "reading visits error " + err);
-        }
-        //// Read activitylog database details
-        try {
-            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-            activitylog = manager.getDatabase("activitylog");
-            @SuppressLint("WifiManagerLeak") WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-            String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
-            Document doc = activitylog.getExistingDocument(m_WLANMAC);
-            Map<String, Object> properties = doc.getProperties();
-            // Update server resources with new ratings
-            UpdateActivityLogDatabase nwActivityLog = new UpdateActivityLogDatabase();
-            if (properties.get("female_visits") != null) {
-                nwActivityLog.set_female_visits(((Integer) properties.get("female_visits")));
-            } else {
-                nwActivityLog.set_female_visits(0);
-            }
-            if (properties.get("male_visits") != null) {
-                nwActivityLog.set_male_visits(((Integer) properties.get("male_visits")));
-            } else {
-                nwActivityLog.set_male_visits(0);
-            }
-        } catch (Exception err) {
-            feedbackDialog.dismiss();
-            alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-            Log.e(TAG, "reading activity log " + err);
-        }
-
-        try {
-            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-            resourceRating = manager.getDatabase("resourcerating");
-            Query orderedQuery = chViews.ReadResourceRatingByIdView(resourceRating).createQuery();
-            orderedQuery.setDescending(true);
-            QueryEnumerator results = orderedQuery.run();
-            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
-                QueryRow row = it.next();
-                String docId = (String) row.getValue();
-                Document doc = resourceRating.getExistingDocument(docId);
-                Map<String, Object> properties = doc.getProperties();
-                int sum = ((int) properties.get("sum"));
-                int timesRated = ((Integer) properties.get("timesRated"));
-                // Update server resources with new ratings
-                UpdateResourceDocument nwUpdateResDoc = new UpdateResourceDocument();
-                nwUpdateResDoc.setResourceId(docId);
-                nwUpdateResDoc.setSum(sum);
-                nwUpdateResDoc.setTimesRated(timesRated);
-                nwUpdateResDoc.execute("");
-            }
-            Database dbResources = manager.getDatabase("resourcerating");
-            dbResources.delete();
-        } catch (Exception err) {
-            feedbackDialog.dismiss();
-            alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-            Log.e(TAG, "reading resource rating error " + err);
-        }
-        try {
-            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-            visits = manager.getDatabase("visits");
-            Query orderedQuery = chViews.ReadMemberVisitsId(visits).createQuery();
-            orderedQuery.setDescending(true);
-            QueryEnumerator results = orderedQuery.run();
-            for (Iterator<QueryRow> it = results; it.hasNext(); ) {
-                QueryRow row = it.next();
-                String docId = (String) row.getValue();
-                Document doc = visits.getExistingDocument(docId);
-                Map<String, Object> properties = doc.getProperties();
-                int numOfVisits = ((Integer) properties.get("noOfVisits"));
-                Log.e(TAG, "Number Of visits for " + docId + " is " + numOfVisits);
-                // Update server members with visits
-                UpdateMemberVisitsDocument nwUpdateMemberVisits = new UpdateMemberVisitsDocument();
-                nwUpdateMemberVisits.setMemberId(docId);
-                nwUpdateMemberVisits.setSumVisits(numOfVisits);
-                nwUpdateMemberVisits.execute("");
-            }
-            Database dbResources = manager.getDatabase("visits");
-            dbResources.delete();
-        } catch (Exception err) {
-            feedbackDialog.dismiss();
-            alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-            Log.e(TAG, "reading visits error " + err);
-        }
-        //// Read activitylog database details
-        try {
-            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-            activitylog = manager.getDatabase("activitylog");
-            @SuppressLint("WifiManagerLeak") WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-            String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
-            Document doc = activitylog.getExistingDocument(m_WLANMAC);
-            Map<String, Object> properties = doc.getProperties();
-            // Update server resources with new ratings
-            UpdateActivityLogDatabase nwActivityLog = new UpdateActivityLogDatabase();
-            if (properties.get("female_visits") != null) {
-                nwActivityLog.set_female_visits(((Integer) properties.get("female_visits")));
-            } else {
-                nwActivityLog.set_female_visits(0);
-            }
-            if (properties.get("male_visits") != null) {
-                nwActivityLog.set_male_visits(((Integer) properties.get("male_visits")));
-            } else {
-                nwActivityLog.set_male_visits(0);
-            }
-            nwActivityLog.set_female_opened((ArrayList) properties.get("female_opened"));
-            nwActivityLog.set_female_rating(((ArrayList) properties.get("female_rating")));
-            nwActivityLog.set_female_timesRated(((ArrayList) properties.get("female_timesRated")));
-            nwActivityLog.set_male_opened(((ArrayList) properties.get("male_opened")));
-            nwActivityLog.set_male_rating(((ArrayList) properties.get("male_rating")));
-            nwActivityLog.set_male_timesRated(((ArrayList) properties.get("male_timesRated")));
-            nwActivityLog.set_resources_names(((ArrayList) properties.get("resources_names")));
-            nwActivityLog.set_resources_opened(((ArrayList) properties.get("resources_opened")));
-            nwActivityLog.set_resourcesIds(((ArrayList) properties.get("resourcesIds")));
-            nwActivityLog.execute("");
-            feedbackDialog.dismiss();
-            updateUI();
-        } catch (Exception err) {
-            updateUI();
-            feedbackDialog.dismiss();
-            alertDialogOkay("Device can not send feedback data. Check connection to server and try again");
-            Log.e(TAG, "reading activity log error " + err);
-        }
-
 
     }
     public void setLocale(String lang) {
@@ -1997,8 +1819,6 @@ public class FullscreenLogin extends AppCompatActivity {
                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
                 Database activitylog = manager.getDatabase("activitylog");
                 activitylog.delete();
-                btnFeedback.setTextColor(getResources().getColor(R.color.ole_white));
-                btnFeedback.setEnabled(false);
                 //WifiManager wm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
                 //String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
                 //Document doc = activitylog.getExistingDocument(m_WLANMAC);
@@ -2224,15 +2044,9 @@ public class FullscreenLogin extends AppCompatActivity {
 
         protected void onPostExecute(String message) {
             try {
-                Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                Database activitylog = manager.getDatabase("activitylog");
-                activitylog.delete();
-                btnFeedback.setTextColor(getResources().getColor(R.color.ole_white));
-                btnFeedback.setEnabled(false);
-                //WifiManager wm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
-                //String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
-                //Document doc = activitylog.getExistingDocument(m_WLANMAC);
-                //doc.delete();
+                UpdateMemberCourseProgressDatabase updateMemberCourseProgressDatabase = new UpdateMemberCourseProgressDatabase();
+                updateMemberCourseProgressDatabase.execute();
+
             } catch (Exception err) {
                 Log.e("MyCouch", "Error deleting document from activitylog " + err.getMessage());
             }
@@ -2258,8 +2072,10 @@ public class FullscreenLogin extends AppCompatActivity {
                         Map<String, Object> mem_course_prog_properties = new HashMap<>();
                         mem_course_prog_properties.putAll(mem_course_prog_doc.getProperties());
                         List<Integer> ary_pqAttempts = (List<Integer>) mem_course_prog_properties.get("pqAttempts");
-                        List<String> ary_stepsResult = (List<String>) mem_course_prog_properties.get("stepsResult");
-                        List<String> ary_stepsStatus = (List<String>) mem_course_prog_properties.get("stepsStatus");
+                        List<List> ary_stepsResult = (List<List>) mem_course_prog_properties.get("stepsResult");
+                        List<String> ary_stepsStringResult = (List<String>) mem_course_prog_properties.get("stepsResult");
+                        List<List> ary_stepsStatus = (List<List>) mem_course_prog_properties.get("stepsStatus");
+                        List<String> ary_stepsStringStatus = (List<String>) mem_course_prog_properties.get("stepsStatus");
                         List<String> ary_stepsIDs = (List<String>) mem_course_prog_properties.get("stepsIds");
                         String memberId = (String) mem_course_prog_properties.get("memberId");
                         String courseId = (String)  mem_course_prog_properties.get("courseId");
@@ -2291,35 +2107,81 @@ public class FullscreenLogin extends AppCompatActivity {
                                     JsonObject jsonObject = gson.toJsonTree(treemap).getAsJsonObject();
                                     docIdStr = jsonObject.get("_id").getAsString();
                                     Log.e(TAG, "Reading online membercourseprogress " + docIdStr);
-                                    /*if(local_Admitted_Courses.contains(docIdStr)){
-                                        Log.e(TAG,"New admission on course id"+ docIdStr);
-                                        JsonParser parser = new JsonParser();
-                                        JsonObject jsonDocObject = dbClient.find(JsonObject.class, docIdStr );
-                                        //female_opened
-                                        JsonArray members_Array = jsonDocObject.get("members").getAsJsonArray();
-                                        manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                                        Database admission_course_db = manager.getExistingDatabase("local_courses_admission");
-                                        Document doc = admission_course_db.getExistingDocument(docIdStr);
-                                        Map<String, Object> properties = doc.getProperties();
-                                        local_coursemembers = (ArrayList) properties.get("members");
-                                        try {
-                                            for(int x=0;x<members_Array.size();x++){
-                                                if(local_coursemembers.contains(members_Array.get(x).getAsString())){
-                                                    local_coursemembers.remove(local_coursemembers.indexOf(members_Array.get(x).getAsString()));
+                                    JsonParser parser = new JsonParser();
+                                    JsonObject jsonDocObject = dbClient.find(JsonObject.class, docIdStr);
+                                    JsonArray jsonpqAttempts = jsonDocObject.get("pqAttempts").getAsJsonArray();
+                                    JsonElement jsonStepsResult = jsonDocObject.get("stepsResult");
+                                    JsonElement jsonStepsStatus = jsonDocObject.get("stepsStatus");
+                                    // Attempt
+                                    for (int x=0; x<ary_stepsIDs.size();x++){
+                                        int serverAttempt = jsonpqAttempts.get(x).getAsInt();
+                                        int deviceAttempt = ary_pqAttempts.get(x).intValue();
+                                        jsonpqAttempts.set(x,parser.parse(gson.toJson(deviceAttempt+serverAttempt)));
+                                        //Log.e(TAG,   " New device total  " + jsonpqAttempts);
+                                    }
+                                    Log.e(TAG,   " Output Attempts  " + jsonpqAttempts);
+                                    // Results
+                                    JsonArray arrayResults_output= new JsonArray();
+                                    JsonArray arrayResults = jsonStepsResult.getAsJsonArray();
+                                    for (int x=0; x<ary_stepsIDs.size();x++) {
+                                        JsonArray arrayResultsHolder = arrayResults.get(x).getAsJsonArray();
+                                        List<String> listResult =  ary_stepsResult.get(x);
+                                        int maxAttepmts = ((arrayResultsHolder.size() > listResult.size())? arrayResultsHolder.size():listResult.size());
+                                        Log.e(TAG,"Maximum attemps " + maxAttepmts + " Local " + listResult.size() + " Remote "+arrayResultsHolder.size());
+                                        for(int cnt=1; cnt<maxAttepmts; cnt++){
+                                            //Log.e(TAG,   " Inner local device array" + listResult.get(cnt));
+                                            int serverResult=0;
+                                            int deviceResult  = 0;
+                                            try {
+                                                if (listResult.get(cnt) != null) {
+                                                    serverResult = Integer.parseInt(listResult.get(cnt));
                                                 }
+                                            }catch (IndexOutOfBoundsException err2){
+                                                Log.e(TAG,"Server result array short / with null");
                                             }
-                                            JsonElement members_Element = parser.parse(gson.toJson(local_coursemembers));
-                                            members_Array.addAll(members_Element.getAsJsonArray());
-                                            Log.e(TAG, docIdStr + " Included all is " + members_Array);
-                                            jsonObject.add("members", members_Array);
-                                            dbClient.update(jsonObject);
-                                        } catch (Exception err) {
-                                            Log.e(TAG, "Got to Saving course members into db " + err.getLocalizedMessage());
-                                            err.printStackTrace();
+                                            try {
+                                                if (arrayResultsHolder.get(cnt) != null) {
+                                                    deviceResult = arrayResultsHolder.get(cnt).getAsInt();
+                                                }
+                                            }catch (IndexOutOfBoundsException err2){
+                                                Log.e(TAG,"Device result array short / with null");
+                                            }
+                                            if(cnt >= arrayResultsHolder.size()){
+                                                arrayResultsHolder.add(parser.parse(gson.toJson(serverResult+deviceResult+"")));
+                                            }else {
+                                                arrayResultsHolder.set(cnt,parser.parse(gson.toJson(serverResult+deviceResult+"")));
+                                            }
+
+                                            //Log.e(TAG,   " New device total  " + arrayResultsHolder);
                                         }
-                                        dialogFeedbackProgress.dismiss();
-                                    }*/
-                                    Log.e(TAG, i + " " + docIdStr + " - " + jsonObject.get("_id").toString());
+                                        arrayResults_output.add(arrayResultsHolder);
+                                        ///Log.e(TAG,   " Results  " + arrayResults.get(x).getAsJsonArray());
+                                    }
+                                    Log.e(TAG,   " Output Result " + arrayResults_output);
+
+                                    // Status
+                                    JsonArray arrayStatus_output= new JsonArray();
+                                    JsonArray arrayStatus = jsonStepsStatus.getAsJsonArray();
+                                    for (int n=0; n < ary_stepsIDs.size(); n++) {
+                                        JsonArray arrayStatusHolder = arrayStatus.get(n).getAsJsonArray();
+                                        List<String> listStatus =  ary_stepsStatus.get(n);
+                                        int maxStatusAttepmts = ((arrayStatusHolder.size() > listStatus.size())? arrayStatusHolder.size():listStatus.size());
+                                        for(int cntn=1; cntn<maxStatusAttepmts; cntn++){
+                                            if(cntn>= arrayStatusHolder.size()){
+                                                arrayStatusHolder.add(parser.parse(gson.toJson(1+"")));
+                                            }else {
+                                                arrayStatusHolder.set(cntn, parser.parse(gson.toJson(1 + "")));
+                                            }
+                                        }
+                                        arrayStatus_output.add(arrayStatusHolder);
+                                        ///Log.e(TAG,   " Results  " + arrayResults.get(x).getAsJsonArray());
+                                    }
+                                    Log.e(TAG,   " Output Status  " + arrayStatus_output);
+                                    ///
+                                    jsonObject.add("stepsResult",arrayResults_output);
+                                    jsonObject.add("stepsStatus", arrayStatus_output);
+                                    jsonObject.add("pqAttempts", jsonpqAttempts);
+                                    dbClient.update(jsonObject);
                                     i++;
                                 }
                             }else{
@@ -2331,11 +2193,12 @@ public class FullscreenLogin extends AppCompatActivity {
                                 jsonObject.addProperty("memberId", memberId);
                                 jsonObject.addProperty("courseId", courseId);
                                 jsonObject.add("stepsIds", ConvertStringToJsonArray(ary_stepsIDs));
-                                jsonObject.add("stepsResult",ConvertStringToJsonArray(ary_stepsResult));
-                                jsonObject.add("stepsStatus", ConvertStringToJsonArray(ary_stepsStatus));
+                                jsonObject.add("stepsResult",ConvertStringToJsonArray(ary_stepsStringResult));
+                                jsonObject.add("stepsStatus", ConvertStringToJsonArray(ary_stepsStringStatus));
                                 jsonObject.add("pqAttempts", ConvertToJsonArray(ary_pqAttempts));
                                 Log.e(TAG, "New record online membercourseprogress - " + jsonObject);
                                 dbClient.save(jsonObject);
+                                //mem_course_prog_doc.delete();
                             }
                             dialogFeedbackProgress.dismiss();
                             return "";
@@ -2444,14 +2307,11 @@ public class FullscreenLogin extends AppCompatActivity {
         protected void onPostExecute(String message) {
             try {
                 Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-                Database activitylog = manager.getDatabase("activitylog");
+                Database activitylog = manager.getDatabase("local_courses_admission");
                 activitylog.delete();
+                updateUI();
                 btnFeedback.setTextColor(getResources().getColor(R.color.ole_white));
                 btnFeedback.setEnabled(false);
-                //WifiManager wm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
-                //String m_WLANMAC = wm.getConnectionInfo().getMacAddress();
-                //Document doc = activitylog.getExistingDocument(m_WLANMAC);
-                //doc.delete();
             } catch (Exception err) {
                 Log.e("MyCouch", "Error deleting document from activitylog " + err.getMessage());
             }

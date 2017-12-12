@@ -23,7 +23,7 @@ install:
 
 env:
  global:
- - ANDROID_API=25
+ - ANDROID_API=22
  - EMULATOR_API=21
  - ANDROID_BUILD_TOOLS=25.0.2
  - ADB_INSTALL_TIMEOUT=5 # minutes
@@ -40,7 +40,7 @@ android:
  - addon-google_apis-google-19 # google play services
  - sys-img-armeabi-v7a-addon-google_apis-google-$ANDROID_API_LEVEL
  - sys-img-armeabi-v7a-addon-google_apis-google-$EMULATOR_API_LEVEL
- - build-tools-23.0.1
+ - build-tools-25.0.2
  - android-24
  - android-23
  - android-22
@@ -52,19 +52,15 @@ android:
  - android-sdk-license-.+
  - google-gdk-license-.+
 
-notifications:
-  email: false
-
-deploy:
-  provider: releases
-  api_key:
-    secure: "6b6e3e14e9cb23553e46e7254e915b9af2410a39"
-  file: "app/build/outputs/apk/*"
-  file_glob: "true"
-  skip_cleanup: true
-  on:
-    branch: master
-    repo: open-learning-exchange/take-home
-
-after_success:
-  - sh set_tags.sh
+ deploy:
+   provider: releases
+   api_key:
+     secure: DnJ2fHeGuY74PGRDp1q58dzW4fABxEhm6VpcTxiMxPOPlrhm7KdhuKXYljMr5vDcXqzK44jWQEJlCWZMYKpdGopwqs3KgpCOiD0pUyas1LXewr1h8SQaLCVUKVwYWRd/r7/i0VUQV8N+P0aokI95k/Xw2xfrkWjYdYIYg5+eBMCb7ykUY1Qd8KaaKJsmCNZ/7fqRw7sFk8HfAAzYF1mC1YUSgtlB6Ry1aAkTGeUG7DyYiYKG/2OxC4yWwwIi+ZGZ2gxqh2Dwy2eGRck/RblFFlHkvrvecn0p8ayyWziKRVAy0MZkWFET6QCSbpPyejHBE4apUqx2jhY/tvnFoHsW7qiqynZOS4i4nH8Km0ikyIt3DV3G0clGTnXXvBQZ002VInKhxlYCtiYVgYSrLf7WWsr+aI85BLDLqVB+7wg2TtqAqX89fw0vnX5zXB0qCh3BwVmPDuBY6+9pOOEjE2H5ZOb3qKA9S+RNQGdmtnLcHjIaa7SEX+RmoLWsPbHhoViE2F6hXWFRIqsnV+YtDU4L0nGTI+6fc3+H27veUQPmJsAEFYtn1/tnAgujS+3ubd+j8LgwaOp/1hKrBal8Cxono+rIU+7fEX1Q2gnMz6UzO7MJSESuCIM8P08idb9QyRcX0NZq1T9jdejwXStMSmJvSGwA3GaQnakeSTlmPFLZrbo=
+   file_glob: true
+   file: app/build/outputs/apk/*
+   skip-cleanup: true
+   on:
+     branch: master
+     repo: open-learning-exchange/take-home
+ after_success:
+   - sh set_tags.sh
