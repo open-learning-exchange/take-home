@@ -25,8 +25,7 @@ Thumbs.db
 .signing/
 
 # Built application files
-# *.apk
-app/build/outputs/apk/*
+*.apk
 *.ap_
 
 # Files for the ART/Dalvik VM
