@@ -1,62 +1,57 @@
 language: android
 sudo: false
 jdk: oraclejdk8
-
 before_install:
- - chmod +x gradlew
-
+- chmod +x gradlew
 before_script:
-  - echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a
-  - emulator -avd test -no-skin -no-audio -no-window &
-  - android-wait-for-emulator
-  - adb shell input keyevent 82 &
-
+- echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a
+- emulator -avd test -no-skin -no-audio -no-window &
+- android-wait-for-emulator
+- adb shell input keyevent 82 &
 install:
-  - echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2"
-  - echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout-solver;1.0.2"
-  - echo y | android update sdk -u -a -t tools
-  - echo y | android update sdk -u -a -t platform-tools
-  - echo y | android update sdk -u -a -t build-tools-25.0.2
-  - echo y | android update sdk -u -a -t android-25
-  - echo y | android update sdk -u -a -t extra-google-m2repository
-  - echo y | android update sdk -u -a -t extra-android-m2repository
-
+- echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2"
+- echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout-solver;1.0.2"
+- echo y | android update sdk -u -a -t tools
+- echo y | android update sdk -u -a -t platform-tools
+- echo y | android update sdk -u -a -t build-tools-25.0.2
+- echo y | android update sdk -u -a -t android-25
+- echo y | android update sdk -u -a -t extra-google-m2repository
+- echo y | android update sdk -u -a -t extra-android-m2repository
 env:
- global:
- - ANDROID_API=22
- - EMULATOR_API=21
- - ANDROID_BUILD_TOOLS=25.0.2
- - ADB_INSTALL_TIMEOUT=5 # minutes
-
+  global:
+  - ANDROID_API=22
+  - EMULATOR_API=21
+  - ANDROID_BUILD_TOOLS=25.0.2
+  - ADB_INSTALL_TIMEOUT=5
 android:
- components:
- - tools
- - platform-tools
- - build-tools-$ANDROID_BUILD_TOOLS
- - android-$ANDROID_API
- - android-$EMULATOR_API_LEVEL
- - extra-google-m2repository
- - extra-android-m2repository # for design library
- - addon-google_apis-google-19 # google play services
- - sys-img-armeabi-v7a-addon-google_apis-google-$ANDROID_API_LEVEL
- - sys-img-armeabi-v7a-addon-google_apis-google-$EMULATOR_API_LEVEL
- - build-tools-25.0.2
- - android-24
- - android-23
- - android-22
- - sys-img-armeabi-v7a-android-22
- - extra-android-support
- - extra-android-m2repository
- licenses:
- - android-sdk-preview-license-.+
- - android-sdk-license-.+
- - google-gdk-license-.+
+  components:
+  - tools
+  - platform-tools
+  - build-tools-$ANDROID_BUILD_TOOLS
+  - android-$ANDROID_API
+  - android-$EMULATOR_API_LEVEL
+  - extra-google-m2repository
+  - extra-android-m2repository
+  - addon-google_apis-google-19
+  - sys-img-armeabi-v7a-addon-google_apis-google-$ANDROID_API_LEVEL
+  - sys-img-armeabi-v7a-addon-google_apis-google-$EMULATOR_API_LEVEL
+  - build-tools-25.0.2
+  - android-24
+  - android-23
+  - android-22
+  - sys-img-armeabi-v7a-android-22
+  - extra-android-support
+  - extra-android-m2repository
+  licenses:
+  - android-sdk-preview-license-.+
+  - android-sdk-license-.+
+  - google-gdk-license-.+
 notifications:
   email: false
 deploy:
   provider: releases
   api_key:
-    secure: jtZhmLYoTsDTe3peZ9sI9h9NbDkfkSzHR8Arbrmct2M04A9atbQkl2qUd/Aicc4LIlnQwPoG92vv/QKrQg6ZdRQFNhGvrgdR4KiKMReBuxuvPGOYrHpYIpRQkn/FyHQu6RnnmL6JkJUrr13akyJjyPkQnEqFvqLPuuopyFjbiC8QzFO7tm+BjzjRM7nqto7+lbttJbZJecjciFwn1VYdBNCgkOI/tq9x2sGF2OPtsCnitkp+GXHVYxQAh8fz/Jbn+eLA90Qy2ByQqkMyQIjCM4gkvXsRRBglcY0nkirkCjHsBQjy9bro71Ll9qapWnDPV6WEVWZqMu2B9te7aaY8l+eTRtM8gn13g/tcpmMCF8Zg/7+0D24cgeh6/sV6gBel8NipGQcuwpWeNsjObM6cW/g0FQl82kGwQVT2Lr2rcXA/FQuHxyQ/6E4/lQAcnKTRcZf3h4CPuYsZeqQ/kp7R0GWxdFOda6E+yCWEUMovlsTEnRHCJPvFylvsvEJo2406phhk8TF9wshlfK6PTO2Gh9bnbTQjRzVw0h3u5gbJMA8vguBJFx40TPcVsIx+WM7ut5SftVyXRB0YY5B4D/PZSXc13NjzPDRHeyxo3uf3fBFHjE7tJWX0bMKREh6gk1hN7EagSCMqFHAZfISPCqQHqL8eqpg/YoYQAK/ZSoupTh4=
+      secure: "bC2QhiiPkB1tFBjtS5bfymv5m0p5okYwgXX+F8XFrQCqWAtfJwiGlVAEmcFabqDMUoXPdG2EdCIiWnhSwzIPUhPFpq4Ex9TgVqBAUAjozSIw8t0e2292L7TZ0uO/hWwSUyQknPQ5EdehE4LFMvUfaDVJZP7IkefrfJYjr3br7u10GxrkCZ6HO6Q+EEzsyyd/BhcF8ARnL9bfbOybb76nl+6qtV6GASPGhNIV+k3K8KyyOdwK2Mz0PMoy+GDxaXnQ8tP9oY3oK6wXd66fj0SNzy/wbfuCBiqJ2gVqyFHjiDuzgD2Ujla5b84/vaTuDo0ne94jV5DWCizeF9XmgvTpqxhx+dTx9dnc9zmc4fxY/kcTUVOWDvVwMy0XLYNjJykjpQAUXwliv7alsxpbA/g+KvA2wYizPxUnI6HWE/TbifEa80oh2py8Zc/d8Vxv8JawvcnEl9DNBVXEjAZXiBw0p3rwLWdyxEp0pBAgMro5xBwai51kAAUuDiABIV/3mLS8sVSpuwUSSRP/rJGjiopV0OsEUtcPew3FGg2bFyzGSuc8VVRwv53iicw91gS6rjAHybP0phCX80/PPeeM9yt+iuQu2r1uF2vqXmWnYP0eOCJ/t/+GHa34p+ItIGVyghRGPFaVqNDUWyMOOxtNLwaCgkpziROzXBHuzkQzIax1jJ0="
   file_glob: true
   file: app/build/outputs/apk/*
   skip-cleanup: true
@@ -64,4 +59,4 @@ deploy:
     branch: master
     repo: open-learning-exchange/take-home
 after_success:
-   - sh set_tags.sh
+- sh set_tags.sh
