@@ -2,6 +2,8 @@ language: android
 sudo: false
 jdk: oraclejdk8
 before_install:
+- openssl aes-256-cbc -K $encrypted_2a6d2569bbc7_key -iv $encrypted_2a6d2569bbc7_iv
+  -in github_deploy_key.enc -out github_deploy_key -d
 - chmod +x gradlew
 before_script:
 - echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a
@@ -23,6 +25,7 @@ env:
   - EMULATOR_API=21
   - ANDROID_BUILD_TOOLS=25.0.2
   - ADB_INSTALL_TIMEOUT=5
+  - secure: DEyRg+B2HVdHpmvz8m0xwqgFfoh7adv/o00EmCe9hJk2AzIgjqSBOwWvh8AOH4+lvctJdutUjb+agyYWLRNsCRTIaMhwAiIw+jk9MR1LqA5vM8Zha/f3POabDJ+/IEgHJXANbls/ro4i1PGppdUObNGsRgg1GmxqNE3M7BfGFnbw/DtXOFMZDUVHqLuqOaUDOThT7uIPgpdPhxpAo4VeNyz8e1QZWPv97DxObXhS1Pq16N1fti3NIH6V0y6SCGg07EhCtq4ihRDqaDKnwygLZpof2supxxQw6ccem3VP6Li9DCgG43PawpmW7rxtfIGgHH3/luRy3b7zY3cEezipJPYYgHfBfBLYgEzCUSdd2SKALUjqyIn3Mj4RXeCIOHsCBAETdwD+p5/q69mcQoa2lFRiLpD9PbuBx3EF77LA8hbAh3tcqNs6NjKyq+D7fF2sXqD0NpRvu1Ls4MzpGYJhpJWiZVSH2C137Dh2MvosVpDXSuYj/ObDReF84Z1SebPr6lKB4RtIH4kKNrSAvp2pjnB0RfIqIycnRHTa/mGLD41bNlSBE6nPogSZ7UNCe+o3XSd4z1OMWZDHYFQ86DBi8oIFm8QPVKNe3AaN6Ri4INpQZ6JyA+jWfxK9J7P+iwm5ApiX7GE9CpCYqpEAY1BeI3JZf5I+j1dF8DOTEmPzfGs=
 android:
   components:
   - tools
@@ -50,8 +53,6 @@ notifications:
   email: false
 deploy:
   provider: releases
-  api_key:
-    secure: "Oo+ITe/5R1gmt28RSoV4loJqw/QUrsb8OF7V0Y/8zEkJfNtAtOHFJHz+Ld6YQBTEzAwyvxKCDTUZ9VFcIsZvoESmdD4WQkgptzEz56eqnbNln5poIRYl84Nj7LXuEkNudwwD92mhz24ajzafC5eJQF6GtguKUMuuLAQ+HqIWr/l7Qog/WFRRJ6n9Yjk9dcLfb2x0a2XOtHOjo0HAViVR+THXaYxpkQAgfpgSrBmI87R8mZJlh0dSLQnlr6+BndT5Vdw+380eM8sM3TXHb5eqvUrIBgoUQhncT4lGOWSZASeT5ZwXt1pQlEieITeMsPF5JokXylhjLN0DQzUCjY/jj5bx9eWGGEo6/axp+6lb23CGRCMmWBK+HVyo0Q6fEKENxFXoOd1ob+fMWELwYwtI9NDZApCxcsWYwtGAK+PstSvBdOcohImpdAEMLvjrHuhRrZlEU3exPtTFZohP3L9owa3ljd/Vibw8JuFyvFjnzXSgSAbFI1HqBGvvQ4sESzXfLdhhqU4ok37NFTsUL2KtLIFKPIaq3/wZBSgcx+ayY6/XNfvasYwZfAWT2Gp1RAuqv3PR2eeSWq11ELPs93Dv9+eoQfGFjaMOeFrQhQmFKZ5jpnZiMuaQVdo3c2ODpA48wGyfxm1cpwUItNy9XjA5fp2sOWIgWzdRriK6odqI2zQ="
   file_glob: true
   file: app/build/outputs/apk/*
   skip-cleanup: true
