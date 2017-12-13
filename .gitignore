@@ -53,10 +53,10 @@ proguard/
 *.log
 
 #Raw files
-*adobe_reader.apk
-adobe_reader.apk
-*firefox_49_0_multi_android.apk
-firefox_49_0_multi_android.apk
+#*adobe_reader.apk
+#adobe_reader.apk
+#*firefox_49_0_multi_android.apk
+#firefox_49_0_multi_android.apk
 
 assets/
 
