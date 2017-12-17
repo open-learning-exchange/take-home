@@ -11,7 +11,7 @@
   <string name="section_format">Hello World from section: %1$d</string>
   <string name="title_activity_login">Take-Home</string>
   <!-- Related to First Time Dialog -->
-  <string name="fst_welcome">Take Home</string>
+  <string name="fst_welcome">帶回家</string>
   <string name="fst_instruction">It appears your device hasn\'t yet been linked to the BeLL network.
         If you know your BeLL server\'s url, please enter it bellow or contact your coach / group leader for assistance</string>
   <string name="fst_syncurl">BeLL Server Url</string>
