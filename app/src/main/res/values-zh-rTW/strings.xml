@@ -19,14 +19,14 @@
   <!-- Bottom Bar Menu related to Dashboard -->
   <string name="bbtext_Achievments">Achievements</string>
   <string name="bbtext_MyLibrary">myLibrary</string>
-  <string name="bbtext_Courses">Courses Progress</string>
+  <string name="bbtext_Courses">課程進度</string>
   <string name="bbtext_Meetups">myMeetups</string>
   <!-- Strings related to Fragment 0 / Achievements -->
   <string name="frg1_Visits">訪問次數</string>
   <string name="frg1_OpenedRes">Opened Resources</string>
   <!-- Strings related to Change Sync URL -->
   <string name="syncURL_label">Sync server url</string>
-  <string name="syncURL_saveButton">Save changes</string>
+  <string name="syncURL_saveButton">保存更改</string>
   <!-- Strings Sync URL -->
   <string name="sync_LastSyncDate">Last sync date</string>
   <string name="sync_Headen">Synchronize device with server</string>
