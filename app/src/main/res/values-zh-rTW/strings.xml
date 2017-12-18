@@ -12,9 +12,9 @@
   <string name="title_activity_login">帶回家</string>
   <!-- Related to First Time Dialog -->
   <string name="fst_welcome">帶回家</string>
-  <string name="fst_instruction">It appears your device hasn\'t yet been linked to the BeLL network.
-        If you know your BeLL server\'s url, please enter it bellow or contact your coach / group leader for assistance</string>
-  <string name="fst_syncurl">BeLL Server Url</string>
+  <string name="fst_instruction">你的設備好像尚未鏈接到BeLL網絡。 
+如果你知道你的BeLL服務器的網址，請在已下輸入或聯繫你的教練/小組負責人尋求幫助</string>
+  <string name="fst_syncurl">BeLL服務器網址</string>
   <string name="fst_proceed">保存並繼續</string>
   <!-- Bottom Bar Menu related to Dashboard -->
   <string name="bbtext_Achievments">Achievements</string>
