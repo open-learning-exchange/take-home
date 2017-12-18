@@ -70,16 +70,16 @@
   <string name="multi_download">多种材料下载</string>
   <string name="single_download">单种材料下载</string>
   <string name="single_down_json_dis">已禁用 JSON 复制</string>
-  <string name="single_down_file_streaming">FILE STREAMING DISABLED</string>
-  <string name="check_updates">Update</string>
-  <string name="txtBecomeMember">Become a member</string>
-  <string name="language">Language</string>
-  <string name="title_activity_home">Home</string>
-  <string name="dummy_button">Dummy Button</string>
-  <string name="dummy_content">DUMMY\nCONTENT</string>
+  <string name="single_down_file_streaming">文件流已被禁用</string>
+  <string name="check_updates">更新</string>
+  <string name="txtBecomeMember">成为会员</string>
+  <string name="language">语言</string>
+  <string name="title_activity_home">主页面</string>
+  <string name="dummy_button">虚拟按钮</string>
+  <string name="dummy_content">虚拟 \nCONTENT</string>
   <string name="title_activity_user__dashboard">User_Dashboard</string>
   <string name="bbtext_MyCourses">myCourses</string>
   <string name="bbtext_MyTeams">myTeams</string>
   <!-- TODO: Remove or change this placeholder text -->
-  <string name="hello_blank_fragment">Hello blank fragment</string>
+  <string name="hello_blank_fragment">你好空白片段</string>
 </resources>
