@@ -32,8 +32,8 @@
   <string name="sync_Headen">與服務器同步設備</string>
   <string name="sync_NowPush">推送更改</string>
   <string name="sync_NowPull">拉動更改</string>
-  <string name="sync_EraseOldData">Wipe Clean</string>
-  <string name="sync_Resources">Sync Materials</string>
+  <string name="sync_EraseOldData">擦乾淨</string>
+  <string name="sync_Resources">同步資料</string>
   <!-- Strings related to login -->
   <string name="prompt_username">用戶名</string>
   <string name="prompt_password">密碼（可選擇）</string>
@@ -43,16 +43,16 @@
   <string name="error_field_required">此欄位是需要的</string>
   <string name="permission_rationale">\"Contacts permissions are needed for providing email completions.\"
     </string>
-  <string name="title_activity_sync_device">Sync Device</string>
-  <string name="title_activity_new_sync">First Time Configuration</string>
-  <string name="sync_NowPullOnly">Synchronize With Server</string>
+  <string name="title_activity_sync_device">同步設備</string>
+  <string name="title_activity_new_sync">首次配置</string>
+  <string name="sync_NowPullOnly">與服務器同步</string>
   <string name="sync_CloseWindow">關閉</string>
   <string name="sync_DownloadResPersons">下載資源</string>
   <string name="open_course">開設課程</string>
   <string name="title_activity_course">課程</string>
   <string name="bbtext_MyTutors">我的導師</string>
-  <string name="bbtext_Home">My Home</string>
-  <string name="txtLibrary">Library</string>
+  <string name="bbtext_Home">我的家</string>
+  <string name="txtLibrary">圖書館</string>
   <string name="txtCourses">課程</string>
   <string name="txtMeetups">聚會</string>
   <string name="txtLogout">登出</string>
@@ -60,7 +60,7 @@
   <string name="txtFeedback">意見</string>
   <string name="txtMember_Login">會員登錄</string>
   <string name="txtWelcome">歡迎</string>
-  <string name="txtDemo">Demo Mode</string>
+  <string name="txtDemo">示範模式</string>
   <string name="txtLogin">登入</string>
   <string name="txt_Password">密碼</string>
   <string name="title_activity_test">測試</string>
