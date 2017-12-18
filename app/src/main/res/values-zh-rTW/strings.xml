@@ -41,8 +41,7 @@
   <string name="action_sign_in_short">登入</string>
   <string name="error_incorrect_password">此密碼不正確</string>
   <string name="error_field_required">此欄位是需要的</string>
-  <string name="permission_rationale">\"Contacts permissions are needed for providing email completions.\"
-    </string>
+  <string name="permission_rationale">提供電郵才可以完成所需的連絡人許可權。    </string>
   <string name="title_activity_sync_device">同步設備</string>
   <string name="title_activity_new_sync">首次配置</string>
   <string name="sync_NowPullOnly">與服務器同步</string>
@@ -72,16 +71,16 @@
   <string name="multi_download">多種資料下載</string>
   <string name="single_download">一種資料下載</string>
   <string name="single_down_json_dis">已禁用 JSON 複製</string>
-  <string name="single_down_file_streaming">FILE STREAMING DISABLED</string>
+  <string name="single_down_file_streaming">檔案流已禁用</string>
   <string name="check_updates">更新</string>
-  <string name="txtBecomeMember">Become a member</string>
+  <string name="txtBecomeMember">成為會員</string>
   <string name="language">語言</string>
   <string name="title_activity_home">主頁</string>
-  <string name="dummy_button">Dummy Button</string>
-  <string name="dummy_content">DUMMY\nCONTENT</string>
-  <string name="title_activity_user__dashboard">User_Dashboard</string>
+  <string name="dummy_button">虛擬按鈕</string>
+  <string name="dummy_content">虛擬 \ n內容</string>
+  <string name="title_activity_user__dashboard">用戶儀表板</string>
   <string name="bbtext_MyCourses">我的課程</string>
   <string name="bbtext_MyTeams">我的團隊</string>
   <!-- TODO: Remove or change this placeholder text -->
-  <string name="hello_blank_fragment">Hello blank fragment</string>
+  <string name="hello_blank_fragment">你好的空白片段</string>
 </resources>
