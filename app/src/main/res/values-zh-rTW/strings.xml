@@ -24,20 +24,20 @@
   <string name="bbtext_Meetups">我的聚會</string>
   <!-- Strings related to Fragment 0 / Achievements -->
   <string name="frg1_Visits">訪問次數</string>
-  <string name="frg1_OpenedRes">Opened Resources</string>
+  <string name="frg1_OpenedRes">保存更改</string>
   <!-- Strings related to Change Sync URL -->
   <string name="syncURL_label">Sync server url</string>
-  <string name="syncURL_saveButton">Save changes</string>
+  <string name="syncURL_saveButton">保存更改</string>
   <!-- Strings Sync URL -->
   <string name="sync_LastSyncDate">Last sync date</string>
   <string name="sync_Headen">Synchronize device with server</string>
-  <string name="sync_NowPush">Push Changes</string>
-  <string name="sync_NowPull">Pull Changes</string>
-  <string name="sync_EraseOldData">Wipe Clean</string>
+  <string name="sync_NowPush">推送更改</string>
+  <string name="sync_NowPull">拉動更改</string>
+  <string name="sync_EraseOldData">擦乾淨</string>
   <string name="sync_Resources">Sync Materials</string>
   <!-- Strings related to login -->
-  <string name="prompt_username">Username</string>
-  <string name="prompt_password">Password (optional)</string>
+  <string name="prompt_username">用戶名</string>
+  <string name="prompt_password">密碼（可選擇）</string>
   <string name="action_sign_in">Sign in</string>
   <string name="action_sign_in_short">Sign-in</string>
   <string name="error_incorrect_password">This password is incorrect</string>
