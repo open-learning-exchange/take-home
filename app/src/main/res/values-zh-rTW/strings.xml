@@ -85,7 +85,7 @@
   <string name="bbtext_MyTeams">myTeams</string>
   <!-- TODO: Remove or change this placeholder text -->
   <string name="hello_blank_fragment">Hello blank fragment</string>
-  <string name="finish">Finish</string>
+  <string name="finish">完成</string>
   <string name="submit">Submit</string>
   <string name="version">version 2.1.2</string>
   <string name="title_activity_downloading_items">DownloadingItems</string>
