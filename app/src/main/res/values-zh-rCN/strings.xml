@@ -59,18 +59,19 @@
   <string name="txtLogout">登出</string>
   <string name="txtSettings">设置</string>
   <string name="txtFeedback">反馈</string>
-  <string name="txtMember_Login">Member Login</string>
-  <string name="txtWelcome">Welcome</string>
-  <string name="txtDemo">Demo Mode</string>
-  <string name="txtLogin">Login</string>
-  <string name="txt_Password">Password</string>
-  <string name="title_activity_test">test</string>
-  <string name="btnSetup">Setup</string>
-  <string name="fst_material_offline">This material is not on this device (offline). Do you want to open it online or download into this device.</string>
-  <string name="txtDownload">Download this</string>
-  <string name="txtOpenOnline">Open Online</string>
-  <string name="txtDownladAll">Download All</string>
-  <string name="multi_download">Multiple material download</string>
+  <string name="txtMember_Login">会员登录</string>
+  <string name="txtWelcome">欢迎</string>
+  <string name="txtDemo">演示模式</string>
+  <string name="txtLogin">登录</string>
+  <string name="txt_Password">密码</string>
+  <string name="title_activity_test">测试</string>
+  <string name="btnSetup">设置</string>
+  <string name="fst_material_offline">此材料不在此设备上 (脱机)。 
+你想打开它在网上或下载到这个设备。</string>
+  <string name="txtDownload">下载此项</string>
+  <string name="txtOpenOnline">在线开放</string>
+  <string name="txtDownladAll">全部下载</string>
+  <string name="multi_download">多种材料下载</string>
   <string name="single_download">单一材料下载</string>
   <string name="single_down_json_dis">JSON复制已禁用</string>
   <string name="single_down_file_streaming">文件流禁用</string>
@@ -85,10 +86,10 @@
   <string name="bbtext_MyTeams">我的队伍</string>
   <!-- TODO: Remove or change this placeholder text -->
   <string name="hello_blank_fragment">你好空白片段</string>
-  <string name="finish">Finish</string>
-  <string name="submit">Submit</string>
+  <string name="finish">完</string>
+  <string name="submit">提交</string>
   <string name="version">version 2.1.2</string>
-  <string name="title_activity_downloading_items">DownloadingItems</string>
-  <string name="bbtext_Next">next</string>
-  <string name="bbtext_Previous">prev</string>
+  <string name="title_activity_downloading_items">下载项目</string>
+  <string name="bbtext_Next">下一个</string>
+  <string name="bbtext_Previous">以前</string>
 </resources>
