@@ -20,8 +20,8 @@
   <!-- Bottom Bar Menu related to Dashboard -->
   <string name="bbtext_Achievments">Başarılar</string>
   <string name="bbtext_MyLibrary">kütüphanem</string>
-  <string name="bbtext_Courses">Courses Progress</string>
-  <string name="bbtext_Meetups">myMeetups</string>
+  <string name="bbtext_Courses">Kurslar İlerleme</string>
+  <string name="bbtext_Meetups">görüşmelerim</string>
   <!-- Strings related to Fragment 0 / Achievements -->
   <string name="frg1_Visits">Ziyaretler</string>
   <string name="frg1_OpenedRes">Açılmış Kaynaklar</string>
@@ -31,28 +31,27 @@
   <!-- Strings Sync URL -->
   <string name="sync_LastSyncDate">Son senkronizasyon tarihi</string>
   <string name="sync_Headen">Cihazı sunucu ile senkronize et</string>
-  <string name="sync_NowPush">Push Changes</string>
-  <string name="sync_NowPull">Pull Changes</string>
-  <string name="sync_EraseOldData">Wipe Clean</string>
+  <string name="sync_NowPush">Değişiklikleri Zorla</string>
+  <string name="sync_NowPull">Değişiklikleri Çek</string>
+  <string name="sync_EraseOldData">Temizle</string>
   <string name="sync_Resources">Senkronizasyon Malzemeleri</string>
   <!-- Strings related to login -->
   <string name="prompt_username">Kullanıcı adı</string>
   <string name="prompt_password">Şifre (isteğe bağlı)</string>
   <string name="action_sign_in">Giriş yap</string>
-  <string name="action_sign_in_short">Sign-in</string>
+  <string name="action_sign_in_short">Giriş yap</string>
   <string name="error_incorrect_password">Bu şifre yanlış</string>
   <string name="error_field_required">Bu alan gereklidir</string>
-  <string name="permission_rationale">\"Contacts permissions are needed for providing email completions.\"
-    </string>
+  <string name="permission_rationale">\"E-posta tamamlamalarını sağlamak için Kişiler izinleri gereklidir.\"    </string>
   <string name="title_activity_sync_device">Senkronizasyon Cihazı</string>
   <string name="title_activity_new_sync">İlk Kez Yapılandırma</string>
   <string name="sync_NowPullOnly">Sunucu ile Senkronize Et</string>
   <string name="sync_CloseWindow">Kapat</string>
   <string name="sync_DownloadResPersons">Kaynakları İndir</string>
-  <string name="open_course">Open Course</string>
-  <string name="title_activity_course">Course</string>
+  <string name="open_course">Açık Kurs</string>
+  <string name="title_activity_course">Kurs</string>
   <string name="bbtext_MyTutors">Öğretmenlerim</string>
-  <string name="bbtext_Home">My Home</string>
+  <string name="bbtext_Home">Evim</string>
   <string name="txtLibrary">Kütüphane</string>
   <string name="txtCourses">Dersler</string>
   <string name="txtMeetups">Buluşmalar</string>
@@ -61,7 +60,7 @@
   <string name="txtFeedback">Geri bildirim</string>
   <string name="txtMember_Login">Üye Girişi</string>
   <string name="txtWelcome">Hoşgeldiniz</string>
-  <string name="txtDemo">Demo Mode</string>
+  <string name="txtDemo">Demo modu</string>
   <string name="txtLogin">Oturum aç</string>
   <string name="txt_Password">Parola</string>
   <string name="title_activity_test">test</string>
@@ -73,12 +72,12 @@
   <string name="multi_download">Çoklu malzeme indirme</string>
   <string name="single_download">Tek malzeme indir</string>
   <string name="single_down_json_dis">JSON Çoğaltması Devre Dışı Bırakıldı</string>
-  <string name="single_down_file_streaming">FILE STREAMING DISABLED</string>
+  <string name="single_down_file_streaming">DOSYA AKIŞI DEVRE DIŞI</string>
   <string name="check_updates">Güncelleme</string>
-  <string name="txtBecomeMember">Become a member</string>
-  <string name="language">Language</string>
-  <string name="title_activity_home">Home</string>
-  <string name="dummy_button">Dummy Button</string>
+  <string name="txtBecomeMember">Üye Ol</string>
+  <string name="language">Dil</string>
+  <string name="title_activity_home">Ana sayfa</string>
+  <string name="dummy_button">Kukla Düğmesi</string>
   <string name="dummy_content">DUMMY\nCONTENT</string>
   <string name="title_activity_user__dashboard">User_Dashboard</string>
   <string name="bbtext_MyCourses">myCourses</string>
