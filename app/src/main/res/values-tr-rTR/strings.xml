@@ -77,17 +77,17 @@
   <string name="txtBecomeMember">Üye Ol</string>
   <string name="language">Dil</string>
   <string name="title_activity_home">Ana sayfa</string>
-  <string name="dummy_button">Kukla Düğmesi</string>
-  <string name="dummy_content">DUMMY\nCONTENT</string>
-  <string name="title_activity_user__dashboard">User_Dashboard</string>
-  <string name="bbtext_MyCourses">myCourses</string>
-  <string name="bbtext_MyTeams">myTeams</string>
+  <string name="dummy_button">Sahte Buton</string>
+  <string name="dummy_content">SAHTE\nİÇERİK</string>
+  <string name="title_activity_user__dashboard">Kullanıcı Kontrol Paneli</string>
+  <string name="bbtext_MyCourses">kurslarım</string>
+  <string name="bbtext_MyTeams">takımlarım</string>
   <!-- TODO: Remove or change this placeholder text -->
-  <string name="hello_blank_fragment">Hello blank fragment</string>
-  <string name="finish">Finish</string>
-  <string name="submit">Submit</string>
-  <string name="version">version 2.1.2</string>
-  <string name="title_activity_downloading_items">DownloadingItems</string>
-  <string name="bbtext_Next">next</string>
-  <string name="bbtext_Previous">prev</string>
+  <string name="hello_blank_fragment">Merhaba boş parça</string>
+  <string name="finish">Bitir</string>
+  <string name="submit">Gönder</string>
+  <string name="version">sürüm 2.1.2</string>
+  <string name="title_activity_downloading_items">Öğeleri İndirme</string>
+  <string name="bbtext_Next">sonraki</string>
+  <string name="bbtext_Previous">önceki</string>
 </resources>
