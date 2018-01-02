@@ -568,13 +568,21 @@ public class User_Dashboard extends FragmentActivity implements Fragm_TakeCourse
 
     public void resetActiveButton() {
         lt_myLibrary.setBackgroundColor(Color.TRANSPARENT);
-        lt_myLibrary.setBackgroundDrawable(getResources().getDrawable(R.drawable.border));
         lt_myCourses.setBackgroundColor(Color.TRANSPARENT);
-        lt_myCourses.setBackgroundDrawable(getResources().getDrawable(R.drawable.border));
         lt_myTeams.setBackgroundColor(Color.TRANSPARENT);
-        lt_myTeams.setBackgroundDrawable(getResources().getDrawable(R.drawable.border));
         lt_myMembers.setBackgroundColor(Color.TRANSPARENT);
-        lt_myMembers.setBackgroundDrawable(getResources().getDrawable(R.drawable.border));
+        int sdk = android.os.Build.VERSION.SDK_INT;
+        if(sdk < android.os.Build.VERSION_CODES.JELLY_BEAN) {
+            lt_myLibrary.setBackgroundDrawable(getResources().getDrawable(R.drawable.border));
+            lt_myCourses.setBackgroundDrawable(getResources().getDrawable(R.drawable.border));
+            lt_myTeams.setBackgroundDrawable(getResources().getDrawable(R.drawable.border));
+            lt_myMembers.setBackgroundDrawable(getResources().getDrawable(R.drawable.border));
+        } else {
+            lt_myLibrary.setBackground(getResources().getDrawable(R.drawable.border));
+            lt_myCourses.setBackground(getResources().getDrawable(R.drawable.border));
+            lt_myTeams.setBackground(getResources().getDrawable(R.drawable.border));
+            lt_myMembers.setBackground(getResources().getDrawable(R.drawable.border));
+        }
         lblHome.setTextColor(ContextCompat.getColor(context,R.color.ole_white));
         lblLibrary.setTextColor(ContextCompat.getColor(context,R.color.ole_white));
         lblCourses.setTextColor(ContextCompat.getColor(context,R.color.ole_white));
