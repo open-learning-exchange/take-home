@@ -195,6 +195,18 @@ public class FullscreenLogin extends AppCompatActivity {
         });
         //
 
+        TextView Version = (TextView) findViewById(R.id.txtVersion);
+        Version.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //alertDialogOkay("This feature has not been activated on this version.");
+                //setLocale("fr");
+                Intent intent = new Intent(context, Main_Dashboard.class);
+                startActivity(intent);
+            }
+        });
+        //
+
 
         // New UI
         ImageButton SetupButton = (ImageButton) findViewById(R.id.btnSetup);

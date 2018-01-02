@@ -39,31 +39,38 @@
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <service
             android:name=".ServerSearchService"
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+
         <activity
             android:name=".FullscreenLogin"
             android:configChanges="locale|orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_login"
             android:screenOrientation="landscape"
-            android:theme="@style/AppTheme"></activity>
+            android:theme="@style/AppTheme" />
         <activity
             android:name=".User_Dashboard"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_user__dashboard"
             android:screenOrientation="landscape"
-            android:theme="@style/FullscreenTheme"></activity>
+            android:theme="@style/FullscreenTheme" />
         <activity
             android:name=".DownloadingItems"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_downloading_items"
             android:screenOrientation="landscape"
-            android:theme="@style/FullscreenTheme"></activity>
+            android:theme="@style/FullscreenTheme" />
+        <activity
+            android:name=".Main_Dashboard"
+            android:label="@string/title_activity_main__dashboard"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>
