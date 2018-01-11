@@ -8,4 +8,105 @@
     tools:context="org.ole.learning.planet.planetlearning.Main_Dashboard"
     tools:showIn="@layout/app_bar_main__dashboard">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:weightSum="10">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="5dp"
+            android:layout_weight="2.5"
+            android:orientation="horizontal"
+            android:weightSum="5">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.7"
+                android:orientation="horizontal">
+
+            </LinearLayout>
+
+            <com.tdscientist.shelfview.ShelfView
+                android:id="@+id/shelfView_myLibrary"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="4.3" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="5dp"
+            android:layout_weight="2.5"
+            android:orientation="horizontal"
+            android:weightSum="5">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.7"
+                android:orientation="horizontal">
+
+            </LinearLayout>
+
+            <com.tdscientist.shelfview.ShelfView
+                android:id="@+id/shelfView_myCourses"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="4.3" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="5dp"
+            android:layout_weight="2.5"
+            android:orientation="horizontal"
+            android:weightSum="5">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.7"
+                android:orientation="horizontal">
+
+            </LinearLayout>
+
+            <com.tdscientist.shelfview.ShelfView
+                android:id="@+id/shelfView_MyTeams"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="4.3" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="5dp"
+            android:layout_weight="2.5"
+            android:orientation="horizontal"
+            android:weightSum="5">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.7"
+                android:orientation="horizontal">
+
+            </LinearLayout>
+
+            <com.tdscientist.shelfview.ShelfView
+                android:id="@+id/shelfView"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="4.3"
+                android:scrollbars="vertical"
+                android:stackFromBottom="false" />
+        </LinearLayout>
+    </LinearLayout>
+
 </android.support.constraint.ConstraintLayout>

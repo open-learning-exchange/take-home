@@ -50,6 +50,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * org.ole.learning.planet
+ *
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
