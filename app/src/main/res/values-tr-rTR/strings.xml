@@ -90,4 +90,7 @@
   <string name="title_activity_downloading_items">Öğeleri İndirme</string>
   <string name="bbtext_Next">sonraki</string>
   <string name="bbtext_Previous">önceki</string>
+  <string name="title_activity_main__dashboard">Main_Dashboard</string>
+  <string name="navigation_drawer_open">Open navigation drawer</string>
+  <string name="navigation_drawer_close">Close navigation drawer</string>
 </resources>
