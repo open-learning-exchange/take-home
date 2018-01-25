@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="org.ole.learning.planet.planetlearning.Main_Dashboard"
+    tools:showIn="@layout/app_bar_main__dashboard">
+
+    <LinearLayout
+        android:id="@+id/fullscreen_content_controls"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="bottom|center_horizontal"
+        android:animateLayoutChanges="true"
+        android:background="@drawable/dashboard_bg"
+        android:orientation="vertical"
+        android:weightSum="10"
+        tools:ignore="UselessParent"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:animateLayoutChanges="true"
+            android:background="@color/ole_black_blue"
+            android:orientation="horizontal"
+            android:weightSum="10">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:animateLayoutChanges="true"
+                android:orientation="horizontal"></LinearLayout>
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutMasterLibrary"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginEnd="1dp"
+            android:layout_marginLeft="1dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginStart="1dp"
+            android:layout_marginTop="10dp"
+            android:layout_weight="2"
+            android:animateLayoutChanges="true"
+            android:orientation="horizontal"
+            android:weightSum="4">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.5"
+                android:animateLayoutChanges="true"
+                android:background="@drawable/rounded_corners_left"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:textAlignment="center">
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layout_mylibrary"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_weight="3.4"
+                android:alpha="0.8"
+                android:animateLayoutChanges="true"
+                android:background="@color/ole_voulet"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:weightSum="5">
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <LinearLayout
+                        android:id="@+id/layholder_library"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                    </LinearLayout>
+                </HorizontalScrollView>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.1"
+                android:animateLayoutChanges="true"
+                android:background="@drawable/rounded_corners_right"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:textAlignment="center"></LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutMasterCoursesProgress"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginEnd="1dp"
+            android:layout_marginLeft="1dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginStart="1dp"
+            android:layout_marginTop="5dp"
+            android:layout_weight="2"
+            android:animateLayoutChanges="true"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.5"
+                android:animateLayoutChanges="true"
+                android:background="@drawable/rounded_corners_left"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:textAlignment="center">
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="3.4"
+                android:alpha="0.8"
+                android:animateLayoutChanges="true"
+                android:background="@color/ole_yellow"
+                android:orientation="horizontal"></LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.1"
+                android:animateLayoutChanges="true"
+                android:background="@drawable/rounded_corners_right"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:textAlignment="center"></LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutMasterMeetup"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginEnd="1dp"
+            android:layout_marginLeft="1dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginStart="1dp"
+            android:layout_marginTop="5dp"
+            android:layout_weight="2"
+            android:animateLayoutChanges="true"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.5"
+                android:animateLayoutChanges="true"
+                android:background="@drawable/rounded_corners_left"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:textAlignment="center">
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="3.4"
+                android:alpha="0.8"
+                android:animateLayoutChanges="true"
+                android:background="@color/ole_green"
+                android:orientation="horizontal"></LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.1"
+                android:animateLayoutChanges="true"
+                android:background="@drawable/rounded_corners_right"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:textAlignment="center"></LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutMasterTutors"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="1dp"
+            android:layout_marginEnd="1dp"
+            android:layout_marginLeft="1dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginStart="1dp"
+            android:layout_marginTop="5dp"
+            android:layout_weight="2"
+            android:animateLayoutChanges="true"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.5"
+                android:animateLayoutChanges="true"
+                android:background="@drawable/rounded_corners_left"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:textAlignment="center">
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="3.4"
+                android:alpha="0.8"
+                android:animateLayoutChanges="true"
+                android:background="@color/ole_blue"
+                android:orientation="horizontal"></LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.1"
+                android:animateLayoutChanges="true"
+                android:background="@drawable/rounded_corners_right"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:textAlignment="center"></LinearLayout>
+        </LinearLayout>
+
+        <!-- First layout bar -->
+
+        <!-- Second layout bar -->
+
+        <!-- Third layout bar -->
+
+        <!-- Forth layout bar -->
+
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>

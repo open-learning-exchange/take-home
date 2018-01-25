@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="org.ole.learning.planet.planetlearning">
 
     <!-- To auto-complete the email text field in the login form with the user's emails -->
@@ -31,39 +32,50 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:supportsRtl="false"
+        android:theme="@style/AppTheme"
+        tools:replace="allowBackup,supportsRtl"
+        tools:ignore="GoogleAppIndexingWarning,UnusedAttribute">
         <activity
             android:name=".MainActivity"
             android:screenOrientation="landscape"
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <service
             android:name=".ServerSearchService"
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+
         <activity
             android:name=".FullscreenLogin"
             android:configChanges="locale|orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_login"
             android:screenOrientation="landscape"
-            android:theme="@style/AppTheme"></activity>
+            android:theme="@style/AppTheme" />
         <activity
             android:name=".User_Dashboard"
+            android:screenOrientation="landscape"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_user__dashboard"
-            android:screenOrientation="landscape"
-            android:theme="@style/FullscreenTheme"></activity>
+            android:theme="@style/FullscreenTheme" />
         <activity
             android:name=".DownloadingItems"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_downloading_items"
             android:screenOrientation="landscape"
-            android:theme="@style/FullscreenTheme"></activity>
+            android:theme="@style/FullscreenTheme" />
+        <activity
+            android:name=".Main_Dashboard"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_main__dashboard"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>
