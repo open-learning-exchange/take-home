@@ -1,6 +1,7 @@
 package org.ole.learning.planet.planetlearning;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -84,7 +85,7 @@ import android.widget.Toast;
  * status bar and navigation/system bar) with user interaction.
  */
 @SuppressWarnings("ALL")
-public class FullscreenLogin extends AppCompatActivity {
+public class FullscreenLogin extends Activity {
     private View mContentView;
     private static final int REQUEST_READ_CONTACTS = 0;
     public static final String PREFS_NAME = "MyPrefsFile";
@@ -136,8 +137,8 @@ public class FullscreenLogin extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.new_activity_login);
         mContentView = findViewById(R.id.fullscreen_content2);
-        final ActionBar actionBar = getSupportActionBar();
-        actionBar.hide();
+        //final ActionBar actionBar = getSupportActionBar();
+        //actionBar.hide();
         androidContext = new AndroidContext(this);
         // Todo - : Decide on either to clear resource database and file storage anytime user syncs or rather keep old resources only if user doesn't change server url
         mUsername = (EditText) mContentView.findViewById(R.id.txtUsername);
