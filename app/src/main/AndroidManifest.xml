@@ -60,9 +60,9 @@
             android:theme="@style/AppTheme" />
         <activity
             android:name=".User_Dashboard"
+            android:screenOrientation="landscape"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_user__dashboard"
-            android:screenOrientation="landscape"
             android:theme="@style/FullscreenTheme" />
         <activity
             android:name=".DownloadingItems"
@@ -72,6 +72,8 @@
             android:theme="@style/FullscreenTheme" />
         <activity
             android:name=".Main_Dashboard"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_main__dashboard"
             android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
