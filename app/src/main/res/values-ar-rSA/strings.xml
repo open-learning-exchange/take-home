@@ -91,4 +91,7 @@
   <string name="title_activity_downloading_items">DownloadingItems</string>
   <string name="bbtext_Next">next</string>
   <string name="bbtext_Previous">prev</string>
+  <string name="title_activity_main__dashboard">Main_Dashboard</string>
+  <string name="navigation_drawer_open">Open navigation drawer</string>
+  <string name="navigation_drawer_close">Close navigation drawer</string>
 </resources>
