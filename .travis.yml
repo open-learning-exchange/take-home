@@ -1,56 +1,56 @@
 language: android
 sudo: false
 jdk: oraclejdk8
-before_install:
-- openssl aes-256-cbc -K $encrypted_2a6d2569bbc7_key -iv $encrypted_2a6d2569bbc7_iv
-  -in github_deploy_key.enc -out github_deploy_key -d
-- chmod +x gradlew
-before_script:
-- echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a
-- emulator -avd test -no-skin -no-audio -no-window &
-- android-wait-for-emulator
-- adb shell input keyevent 82 &
-install:
-- echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2"
-- echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout-solver;1.0.2"
-- echo y | android update sdk -u -a -t tools
-- echo y | android update sdk -u -a -t platform-tools
-- echo y | android update sdk -u -a -t build-tools-25.0.2
-- echo y | android update sdk -u -a -t android-25
-- echo y | android update sdk -u -a -t extra-google-m2repository
-- echo y | android update sdk -u -a -t extra-android-m2repository
 env:
   global:
-  - ANDROID_API=22
-  - EMULATOR_API=21
-  - ANDROID_BUILD_TOOLS=25.0.2
-  - ADB_INSTALL_TIMEOUT=5
-  - secure: DEyRg+B2HVdHpmvz8m0xwqgFfoh7adv/o00EmCe9hJk2AzIgjqSBOwWvh8AOH4+lvctJdutUjb+agyYWLRNsCRTIaMhwAiIw+jk9MR1LqA5vM8Zha/f3POabDJ+/IEgHJXANbls/ro4i1PGppdUObNGsRgg1GmxqNE3M7BfGFnbw/DtXOFMZDUVHqLuqOaUDOThT7uIPgpdPhxpAo4VeNyz8e1QZWPv97DxObXhS1Pq16N1fti3NIH6V0y6SCGg07EhCtq4ihRDqaDKnwygLZpof2supxxQw6ccem3VP6Li9DCgG43PawpmW7rxtfIGgHH3/luRy3b7zY3cEezipJPYYgHfBfBLYgEzCUSdd2SKALUjqyIn3Mj4RXeCIOHsCBAETdwD+p5/q69mcQoa2lFRiLpD9PbuBx3EF77LA8hbAh3tcqNs6NjKyq+D7fF2sXqD0NpRvu1Ls4MzpGYJhpJWiZVSH2C137Dh2MvosVpDXSuYj/ObDReF84Z1SebPr6lKB4RtIH4kKNrSAvp2pjnB0RfIqIycnRHTa/mGLD41bNlSBE6nPogSZ7UNCe+o3XSd4z1OMWZDHYFQ86DBi8oIFm8QPVKNe3AaN6Ri4INpQZ6JyA+jWfxK9J7P+iwm5ApiX7GE9CpCYqpEAY1BeI3JZf5I+j1dF8DOTEmPzfGs=
+    - ANDROID_API=22
+    - EMULATOR_API=21
+    - ANDROID_BUILD_TOOLS=25.0.2
+    - ADB_INSTALL_TIMEOUT=5
+    - secure: DEyRg+B2HVdHpmvz8m0xwqgFfoh7adv/o00EmCe9hJk2AzIgjqSBOwWvh8AOH4+lvctJdutUjb+agyYWLRNsCRTIaMhwAiIw+jk9MR1LqA5vM8Zha/f3POabDJ+/IEgHJXANbls/ro4i1PGppdUObNGsRgg1GmxqNE3M7BfGFnbw/DtXOFMZDUVHqLuqOaUDOThT7uIPgpdPhxpAo4VeNyz8e1QZWPv97DxObXhS1Pq16N1fti3NIH6V0y6SCGg07EhCtq4ihRDqaDKnwygLZpof2supxxQw6ccem3VP6Li9DCgG43PawpmW7rxtfIGgHH3/luRy3b7zY3cEezipJPYYgHfBfBLYgEzCUSdd2SKALUjqyIn3Mj4RXeCIOHsCBAETdwD+p5/q69mcQoa2lFRiLpD9PbuBx3EF77LA8hbAh3tcqNs6NjKyq+D7fF2sXqD0NpRvu1Ls4MzpGYJhpJWiZVSH2C137Dh2MvosVpDXSuYj/ObDReF84Z1SebPr6lKB4RtIH4kKNrSAvp2pjnB0RfIqIycnRHTa/mGLD41bNlSBE6nPogSZ7UNCe+o3XSd4z1OMWZDHYFQ86DBi8oIFm8QPVKNe3AaN6Ri4INpQZ6JyA+jWfxK9J7P+iwm5ApiX7GE9CpCYqpEAY1BeI3JZf5I+j1dF8DOTEmPzfGs=
+before_install:
+  - openssl aes-256-cbc -K $encrypted_2a6d2569bbc7_key -iv $encrypted_2a6d2569bbc7_iv
+    -in github_deploy_key.enc -out github_deploy_key -d
+  - chmod +x gradlew
+install:
+  - echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2"
+  - echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout-solver;1.0.2"
+  - echo y | android update sdk -u -a -t tools
+  - echo y | android update sdk -u -a -t platform-tools
+  - echo y | android update sdk -u -a -t build-tools-25.0.2
+  - echo y | android update sdk -u -a -t android-25
+  - echo y | android update sdk -u -a -t extra-google-m2repository
+  - echo y | android update sdk -u -a -t extra-android-m2repository
+before_script:
+  - echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a
+  - emulator -avd test -no-skin -no-audio -no-window &
+  - android-wait-for-emulator
+  - adb shell input keyevent 82 &
 android:
   components:
-  - tools
-  - platform-tools
-  - build-tools-$ANDROID_BUILD_TOOLS
-  - android-$ANDROID_API
-  - android-$EMULATOR_API_LEVEL
-  - extra-google-m2repository
-  - extra-android-m2repository
-  - addon-google_apis-google-19
-  - sys-img-armeabi-v7a-addon-google_apis-google-$ANDROID_API_LEVEL
-  - sys-img-armeabi-v7a-addon-google_apis-google-$EMULATOR_API_LEVEL
-  - build-tools-25.0.2
-  - android-24
-  - android-23
-  - android-22
-  - sys-img-armeabi-v7a-android-22
-  - extra-android-support
-  - extra-android-m2repository
+    - tools
+    - platform-tools
+    - build-tools-$ANDROID_BUILD_TOOLS
+    - android-$ANDROID_API
+    - android-$EMULATOR_API_LEVEL
+    - extra-google-m2repository
+    - extra-android-m2repository
+    - addon-google_apis-google-19
+    - sys-img-armeabi-v7a-addon-google_apis-google-$ANDROID_API_LEVEL
+    - sys-img-armeabi-v7a-addon-google_apis-google-$EMULATOR_API_LEVEL
+    - build-tools-25.0.2
+    - android-24
+    - android-23
+    - android-22
+    - sys-img-armeabi-v7a-android-22
+    - extra-android-support
+    - extra-android-m2repository
   licenses:
-  - android-sdk-preview-license-.+
-  - android-sdk-license-.+
-  - google-gdk-license-.+
-notifications:
-  email: false
+    - android-sdk-preview-license-.+
+    - android-sdk-license-.+
+    - google-gdk-license-.+
+after_success:
+  - sh set_tags.sh
 deploy:
   provider: releases
   api_key:
@@ -61,5 +61,5 @@ deploy:
   on:
     branch: master
     repo: open-learning-exchange/take-home
-after_success:
-- sh set_tags.sh
+notifications:
+  email: false
