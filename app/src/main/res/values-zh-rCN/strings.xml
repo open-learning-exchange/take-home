@@ -92,4 +92,7 @@
   <string name="title_activity_downloading_items">下载项目</string>
   <string name="bbtext_Next">下一个</string>
   <string name="bbtext_Previous">以前</string>
+  <string name="title_activity_main__dashboard">Main_Dashboard</string>
+  <string name="navigation_drawer_open">Open navigation drawer</string>
+  <string name="navigation_drawer_close">Close navigation drawer</string>
 </resources>
