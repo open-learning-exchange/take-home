@@ -117,7 +117,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
 
@@ -189,6 +188,7 @@ public class Main_Dashboard extends AppCompatActivity
     private long enqueue;
     int resourceCntr,attachmentLength;
     List<String> htmlResourceList = new ArrayList<String>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -325,7 +325,6 @@ public class Main_Dashboard extends AppCompatActivity
             Log.e(TAG, " Creating Service error " + error.getMessage());
         }
     }
-
     public void LoadShelfResourceList() {
         String memberId = sys_usercouchId;
         try {
@@ -386,7 +385,6 @@ public class Main_Dashboard extends AppCompatActivity
                     resourceNo++;
                 }
             }
-
             LinearLayout row2 = findViewById(R.id.layholder_library);
             libraryButtons = new Button[rsLstCnt];
             for( int ButtonCnt=0;ButtonCnt< rsLstCnt;ButtonCnt++) {
@@ -450,7 +448,6 @@ public class Main_Dashboard extends AppCompatActivity
             e.printStackTrace();
         }
     }
-
     public void MaterialClickDialog(boolean online,String title,String resId,int buttonPressedId){
         clicked_rs_status = online;
         clicked_rs_title = title;
