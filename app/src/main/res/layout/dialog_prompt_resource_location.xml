@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="4"
+    android:gravity="center">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:weightSum="6"
+        android:gravity="center"
+        android:background="@drawable/rounded_corners_all"
+        android:layout_margin="5dp">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_gravity="top|center"
+            android:gravity="center">
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" >
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:text="@string/fst_welcome"
+                        android:id="@+id/txtResourceID"
+                        android:layout_alignParentTop="true"
+                        android:layout_centerHorizontal="true"
+                        android:typeface="serif"
+                        android:textStyle="bold"
+                        android:textAlignment="center"
+                        android:textColor="@color/ole_black_blue"
+                        android:textSize="18sp"
+                        android:layout_marginBottom="30dp"
+                        android:layout_marginTop="20dp" />
+                </LinearLayout>
+            </ScrollView>
+
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_gravity="top|center"
+            android:gravity="center">
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" >
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:text="@string/fst_material_offline"
+                        android:id="@+id/textView6"
+                        android:layout_centerVertical="true"
+                        android:layout_centerHorizontal="true"
+                        android:textAlignment="center"
+                        android:textColor="@color/ole_black_blue"
+                        android:layout_marginBottom="30dp" />
+                </LinearLayout>
+            </ScrollView>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_gravity="top|center"
+            android:gravity="center"
+            android:layout_marginBottom="20dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:weightSum="5">
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/txtOpenOnline"
+                android:id="@+id/btnOpenOnline"
+                android:layout_gravity="center"
+                android:background="@drawable/rounded_corners_black_blue"
+                android:layout_marginTop="5dp"
+                android:layout_weight="1.5"
+                android:textAlignment="center"
+                android:textAllCaps="false"
+                android:textColor="@color/ole_white" />
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/txtDownload"
+                android:layout_gravity="center"
+                android:background="@drawable/rounded_corners_black_blue"
+                android:layout_marginTop="5dp"
+                android:layout_weight="1.5"
+                android:textAlignment="center"
+                android:textAllCaps="false"
+                android:textColor="@color/ole_white"
+                android:id="@+id/btnDownloadFile"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp" />
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/txtDownladAll"
+                android:id="@+id/btnDownloadAll"
+                android:layout_gravity="center"
+                android:background="@drawable/rounded_corners_black_blue"
+                android:layout_weight="1.5"
+                android:textAlignment="center"
+                android:textAllCaps="false"
+                android:textColor="@color/ole_white"
+                android:layout_marginTop="5dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

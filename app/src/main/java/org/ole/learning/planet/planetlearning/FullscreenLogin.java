@@ -151,7 +151,8 @@ public class FullscreenLogin extends Activity {
                 if (getSystemInfo()) {
                     if (authenticateUser()) {
                         if (updateActivityLog()) {
-                            Intent intent = new Intent(context, User_Dashboard.class);
+                            Intent intent = new Intent(context, Main_Dashboard.class);
+                           // Intent intent = new Intent(context, User_Dashboard.class);
                             //Intent intent = new Intent(context, FullscreenActivity.class);
                             Log.e(TAG, "Opening Dashboard");
                             startActivity(intent);
