@@ -91,7 +91,7 @@ public class Fragm_myLibrary  extends OpenResource {
         restorePref();
         LoadMyLibraryList();
 
-        list = (ListView) rootView.findViewById(R.id.material_list);
+        list = rootView.findViewById(R.id.material_list);
         adapter = new ListViewAdapter_myLibrary(resIDArrayList, getActivity(), context, materialList);
         list.setAdapter(adapter);
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -104,17 +104,6 @@ public class Fragm_myLibrary  extends OpenResource {
     }
 
     public void LoadMyLibraryList() {
-/*
-        try {
-            AndroidContext androidContext = new AndroidContext(context);
-            Manager manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
-            database = manager.getDatabase("resources");
-            database.delete();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-*/
-
         try {
             manager = new Manager(androidContext, Manager.DEFAULT_OPTIONS);
             Database shelf_db = manager.getExistingDatabase("shelf");
@@ -137,13 +126,13 @@ public class Fragm_myLibrary  extends OpenResource {
                 Document shelf_doc = shelf_db.getExistingDocument(docId);
                 Map<String, Object> shelf_properties = shelf_doc.getProperties();
                 ///Map<String, Object> shadowresources_properties = null;
-                if (sys_usercouchId.equals((String) shelf_properties.get("memberId"))) {
+                if (sys_usercouchId.equals(shelf_properties.get("memberId"))) {
                     String myresTitile = ((String) shelf_properties.get("resourceTitle"));
                     String myresId = ((String) shelf_properties.get("resourceId"));
                     resourceTitleList[rsLstCnt] = myresTitile;
                     resourceIdList[rsLstCnt] = myresId;
                     resIDArrayList.add(myresId);
-                    Log.e(TAG, "Resource Title " + (String) shelf_properties.get("resourceTitle"));
+                    Log.e(TAG, "Resource Title " + shelf_properties.get("resourceTitle"));
                     String buildDecript = "Description not available.";
                     String buildRating = "0";
                     String avgRating = "0";
@@ -159,10 +148,10 @@ public class Fragm_myLibrary  extends OpenResource {
                         Log.e(TAG, "Completed going to if " + myresTitile);
                         if (shadowresources_doc != null) {
                             Map<String, Object> shadowresources_properties = shadowresources_doc.getProperties();
-                            buildDecript = "Author : " + (String) shadowresources_properties.get("author") + "  Language : " + (String) shadowresources_properties.get("language") + " \n" +
-                                    "  Resource Type : " + (String) shadowresources_properties.get("Medium") + " \n" +
-                                    "Date Uploaded : " + (String) shadowresources_properties.get("uploadDate") + "  ";
-                            buildRating = (((String) shadowresources_properties.get("averageRating")) == "") ? "2.2" : (String) shadowresources_properties.get("averageRating");
+                            buildDecript = "Author : " + shadowresources_properties.get("author") + "  Language : " + shadowresources_properties.get("language") + " \n" +
+                                    "  Resource Type : " + shadowresources_properties.get("Medium") + " \n" +
+                                    "Date Uploaded : " + shadowresources_properties.get("uploadDate") + "  ";
+                            buildRating = (shadowresources_properties.get("averageRating") == "") ? "2.2" : (String) shadowresources_properties.get("averageRating");
                             avgRating = shadowresources_properties.get("averageRating").toString();
                             Log.e(TAG, "OBJECT FOUND - Item found in shadow resources " + myresTitile);
                         }
@@ -170,8 +159,8 @@ public class Fragm_myLibrary  extends OpenResource {
                             Log.e(TAG, "OBJECT ERROR - Item not in shadow resources checking local resources " + myresTitile);
                             Map<String, Object> local_downloaded_properties = local_downloaded_doc.getProperties();
                             Log.e(TAG, "OBJECT FOUND - Item found in local resources " + myresTitile);
-                            buildDecript = "Author : " + (String) local_downloaded_properties.get("author") + "  Language : " + (String) local_downloaded_properties.get("language") + " \n" +
-                                    "Date Uploaded : " + (String) local_downloaded_properties.get("uploadDate") + "  ";
+                            buildDecript = "Author : " + local_downloaded_properties.get("author") + "  Language : " + local_downloaded_properties.get("language") + " \n" +
+                                    "Date Uploaded : " + local_downloaded_properties.get("uploadDate") + "  ";
                             resourceDownloaded = true;
                             Log.e(TAG, "Resource Downloaded True " + myresTitile);
                         }
